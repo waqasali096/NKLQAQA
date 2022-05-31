@@ -1,0 +1,98 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickActionWithoutHeader" access="global" controller="TerminationRequestRefundController">
+    
+    <aura:attribute name="recordId" type="String"/>
+    <aura:attribute name="refundApplicable" type="boolean" default="false"/>
+    <aura:attribute name="caseObj" type="Object"/>
+    <aura:attribute name="numberOfMonthsRentDeduction" type="Double" default="0"/>
+    <aura:attribute name="penaltyCharges" type="Double" default="0.00"/>
+    <aura:attribute name="refundApplicableValue" type="String"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:attribute name="spinner" type="boolean" default="false"/>
+    <aura:attribute name="pageReference" type="Object"/>
+    <lightning:navigation aura:id="navService"/>
+
+
+    
+
+    <lightning:card>
+        <aura:if isTrue="{!v.spinner}">
+            <lightning:spinner class="spins" size="medium" variant="brand" alternativeText="Loading" />
+        </aura:if>
+
+    <div class="slds-page-header" style="margin-bottom:10px;">
+        <h1><b>Determine if customer should be refunded</b></h1>
+    </div> 
+    <lightning:recordEditForm
+        aura:id="recordEditForm"
+        objectApiName="Case"
+        recordId = "{!v.recordId}"
+        onsubmit="{!c.handleSubmit}"
+        onsuccess="{!c.handleSuccess}"
+        onerror="{!c.handleError}"
+        >
+        <lightning:messages />
+
+        <div class="slds-grid">
+            <div class="slds-col slds-size_1-of-2">
+                <lightning:outputField fieldName="AccountId" aura:id="accountId" value=""/>
+            </div>
+            <div class="slds-col slds-size_1-of-2">
+                <lightning:outputField fieldName="Lease_Start_Date__c" aura:id="leaseStartDateId" value=""/>
+            </div>
+        </div>
+        <div class="slds-grid">
+            <div class="slds-col slds-size_1-of-2">
+                <lightning:outputField fieldName="Termination_Type__c" aura:id="terminationTypeId" value=""/>
+            </div>
+            <aura:if isTrue="{!v.caseObj.Termination_Type__c == 'Premature Termination'}">
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning:outputField fieldName="Premature_Termination_Reason__c" aura:id="pmtReasonId" value=""/>
+                </div>
+            </aura:if>
+            <aura:if isTrue = "{!v.caseObj.Termination_Type__c == 'End Of Lease Termination'}">
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning:outputField fieldName="End_of_Lease_Termination_Reason__c" aura:id="eolReasonId" value=""/>
+                </div>
+            </aura:if>
+        </div>
+        
+        <div class="slds-grid">
+            <div class="slds-col slds-size_1-of-2">
+                <lightning:outputField fieldName="Expected_Termination_Date__c" aura:id="expectedTerminationDate" value=""/>
+            </div>
+            <div class="slds-col slds-size_1-of-2">
+                <lightning:outputField fieldName="Remaining_Lease_Period_Days__c" aura:id="remainingDaysId" value=""/>
+            </div>
+        </div>
+        <div class="slds-grid">
+            <div class="slds-col slds-size_1-of-2">
+                <lightning:outputField fieldName="Lease_End_Date_w_o_Grace_days__c" aura:id="endDateWithGracePeriodId" value=""/>
+            </div>
+            <div class="slds-col slds-size_1-of-2">
+                <lightning:outputField fieldName="Lease_End_Date__c" aura:id="leaseEndDateId" value=""/>
+            </div>
+        </div>
+        <div class="slds-grid">
+            <div class="slds-col slds-size_1-of-1">
+                <lightning:inputField fieldName="Refund_Applicable__c" aura:id="refundApplicableId" value="{!v.refundApplicableValue}" onchange="{!c.onPicklistChange}"/>
+            </div>
+        </div>
+        <aura:if isTrue="{!v.refundApplicable}">
+        <div class="slds-grid">
+            <div class="slds-col slds-size_1-of-2">
+                <lightning:inputField fieldName="No_of_Mths_Rent_Deduction__c" aura:id="rentDeductionId" value="{!v.numberOfMonthsRentDeduction}" required="true"/>
+            </div>
+            <div class="slds-col slds-size_1-of-2">
+                <lightning:inputField fieldName="Penalty_charges__c" aura:id="penaltyChargesId" value="{!v.penaltyCharges}" required="true"/>
+            </div>
+        </div>
+        
+    </aura:if>
+        <div style="text-align:center;">
+            <lightning:button class="slds-m-top_small" variant="neutral" type="submit" name="update" label="Cancel" onclick="{!c.onclickCancel}"/>
+            <lightning:button class="slds-m-top_small" type="submit" label="Save" variant="brand" /> 
+        </div>
+    </lightning:recordEditForm>
+</lightning:card>
+</aura:component>

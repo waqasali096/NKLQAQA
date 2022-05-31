@@ -1,0 +1,632 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:lightningQuickActionWithoutHeader,force:hasRecordId" access="global" Controller="RenewalSRUnitController" >
+    <aura:html tag="style">
+        .slds-modal__container{
+        max-width: 100rem !important;
+        width:95% !important;
+        }
+        .cuf-content {
+        padding: 0 0rem !important;
+        }
+        .slds-p-around--medium {
+        padding: 0rem !important;
+        }
+        .slds-modal__content {
+        overflow-y: hidden !important;
+        height: unset !important;
+        max-height: unset !important;
+        }        
+    </aura:html>
+    <!-- call doInit method on component load -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <!-- register the event-->
+    <!--aura:handler name="unitTableEvent" event="c:UnitTableEvent" action="{!c.handleUnitTblEvent}"/--> 
+    
+    <aura:attribute name="spinner" type="boolean" default="FALSE"/>
+    <!-- aura attributes to store data/values --> 
+    <aura:attribute name="errorMessage" type="String"/>
+    <aura:attribute name="errorFlag" type= "boolean" default = "false"/>
+    <aura:attribute name="completePropertyList" type="list"/>
+    <aura:attribute name="terminationUnitsList" type="list"/>
+    <aura:attribute name="completePropertyCount" type="Integer"/>
+    <aura:attribute name="listOfProperty" type="list"/> 
+    <aura:attribute name="listOfPropertyT2" type="list"/>
+    <aura:attribute name="projectUnitList" type="list"/>
+    <aura:attribute name="oppMap" type="Map"/>
+    <aura:attribute name="PaginationList" type="list"/> 
+    <aura:attribute name="PaginationListT2" type="list"/> 
+    <aura:attribute name="selectedCount" type="integer" default="0"
+                    description="selected Records Count"/>
+    <aura:attribute name="selectedCountT2" type="integer" default="0"
+                    description="selected Records Count"/>
+    <aura:attribute name="startPage" type="Integer" />
+    <aura:attribute name="startPageT2" type="Integer" />
+    <aura:attribute name="endPage" type="Integer"/>
+    <aura:attribute name="endPageT2" type="Integer"/>
+    <aura:attribute name="totalRecordsCount" type="Integer"/>
+    <aura:attribute name="totalRecordsCountT2" type="Integer"/>
+    <aura:attribute name="pageSize" type="Integer" default="10"
+                    description="number of records to be display on per page"/>
+    <aura:attribute name="pageSizeT2" type="Integer" default="10"
+                    description="number of records to be display on per page"/>
+    <aura:attribute name="currentPage" type="integer" default="1"/>
+    <aura:attribute name="currentPageT2" type="integer" default="1"/>
+    <aura:attribute name="totalPagesCount" type="integer"/>
+    <aura:attribute name="totalPagesCountT2" type="integer"/>
+    <aura:attribute name="bNoRecordsFound" type="boolean" default = "false"/>
+    <aura:attribute name="isAllSelected" type="boolean" default = "false"/>
+    <aura:attribute name="isAllSelectedT2" type="boolean" default = "false"/>
+    <aura:attribute name="selectedOpp" type="String"/>
+    <aura:attribute name="totalList" type="list"/> 
+    <aura:attribute name="totalListT2" type="list"/> 
+    <aura:attribute name="isShowTable" type= "boolean" default = "false"/>
+    <aura:attribute name="renewalType" type= "String" />
+    <aura:attribute name="noOfCheques" type= "integer" default="1" />
+    <aura:attribute name="noOfMonths" type= "integer"/>
+    <aura:attribute name="caseType" type= "String"/>
+    <aura:attribute name="flaggedPropList" type="list"/> 
+    <aura:attribute name="selTabId" type="String" default="tab1" />
+    <aura:attribute name="summaryList" type="list"/>
+    <aura:attribute name="isSingleUnitAcc" type= "boolean" default = "false"/>
+    <aura:attribute name="flag" type= "boolean" default = "false"/>
+    <aura:attribute name="renewalDate" type= "Date" />
+    <aura:attribute name="renewalDateDefault" type= "Date" />
+     <aura:attribute name="renewalEndDateDefault" type= "Date" />
+    <aura:attribute name="renewalEndDate" type= "Date" />
+    <aura:attribute name="tempflag" type= "boolean" default = "false"/>
+    <aura:attribute name="ejariNeeded" type= "boolean" default = "True"/>
+    <aura:attribute name="ProjectName" type= "String" />
+    <aura:attribute name="unitTypeMap" type="Map"/>
+    <aura:attribute name="propertyTypeMap" type="Map"/>
+    <aura:attribute name="buildingMap" type="Map"/>
+    <aura:attribute name="noOfBedroomMap" type="Map"/>
+    <aura:attribute name="selectedBedroom" type="string" />
+    <aura:attribute name="selectedUnitType" type="string" />
+    <aura:attribute name="selectedPropertyType" type="string" />
+    <aura:attribute name="selectedBuilding" type="string" />
+    <aura:attribute name="leasingType" type="string" />
+    <aura:attribute name="totalSearchRecordList" type="list" />
+    <aura:attribute name="totalSearchRecordListCount" type= "integer" default="0" />
+    <aura:attribute name="isTab3" type= "boolean" default = "false"/> 
+    <aura:attribute name="isTab2" type= "boolean" default = "false"/>
+    <aura:attribute name="isTab1" type= "boolean" default = "false"/>
+    <aura:attribute name="unitCodeSearchString" type="string" />
+    <aura:attribute name="paymentMode" type="string" />
+    <aura:attribute name="lateRenewalFee" type="Decimal" />
+    <aura:attribute name="rentPerDay" type="Decimal" />
+    <aura:handler event="aura:waiting" action="{!c.showSpinner}"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/>
+    
+	<!--loading spinner start-->
+    <aura:if isTrue="{!v.spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container">
+            <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                <span class="slds-assistive-text">Loading...</span>
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </aura:if>
+    <!-- Loading spinner end-->    
+    
+    <header class="slds-modal__header" style="background: steelblue;">
+        <h4 class="title slds-text-heading--medium slds-text-color_inverse"><span>Renew Contract</span></h4>
+    </header>
+    <aura:if isTrue="{!!v.errorFlag}">
+        <div aura:id="opp-product" style="margin-bottom: 10px">
+            <lightning:card>
+                <p class="slds-m-around_small slds-float--left">
+                    <aura:if isTrue="{!v.isSingleUnitAcc}">
+                        <span class="slds-badge slds-badge_lightest" style="display:inline-block;background: aliceblue;">
+                            
+                            
+                            Total Records : 1<!--{!v.selectedCount > 0 ? v.selectedCount + '/' : ''} {!v.totalRecordsCount} -->
+                            
+                        </span>
+                        <aura:set attribute="else">
+                            <aura:if isTrue="{!v.isTab1}">
+                                <span class="slds-badge slds-badge_lightest" style="display:inline-block;background: aliceblue;">
+                                    Total Records : {!v.selectedCount > 0 ? v.selectedCount + '/' : ''} {!v.totalRecordsCount} 
+                                </span> 
+                                
+                            </aura:if>
+                            <aura:if isTrue="{!v.isTab2}">
+                                <span class="slds-badge slds-badge_lightest" style="display:inline-block;background: aliceblue;">
+                                    Total Records : {!v.selectedCountT2 > 0 ? v.selectedCountT2 + '/' : ''} {!v.totalRecordsCountT2} 
+                                </span> 
+                                
+                            </aura:if>
+                            <aura:if isTrue="{!v.isTab3}">
+                                <span class="slds-badge slds-badge_lightest" style="display:inline-block;background: aliceblue;">
+                                    Total Records : {!v.completePropertyCount} 
+                                </span> 
+                                
+                            </aura:if>
+                        </aura:set>
+                    </aura:if>
+                    
+                    
+                </p>  
+                <!-- spinner -->
+                
+                 
+                <!-- spinner end-->
+                <aura:if isTrue="{!v.selTabId=='tab1' }">
+                <div class="slds-grid slds-grid_align-end slds-var-m-around_large slds-gutters">
+                    <div class="slds-col">
+                        
+                    </div> 
+                    <lightning:input type="date" name="renewalDate" label="Renewal Date" value="{!v.renewalDate}" disabled="true"/><!--disabled="{!!v.selTabId=='tab1'}"-->
+                    <aura:if isTrue="{!v.renewalType=='Extension' }">
+                        <lightning:input class="slds-col" type="date" name="renewalEndDate" label="Renewal End Date" value="{!v.renewalEndDate}" required="{!v.renewalType == 'Extension'}" />
+                    </aura:if>
+                    <lightning:select  class="slds-col" aura:id="renewalType" value="{!v.renewalType}" name="renewalType" 
+                                      label="Renewal Type" required="true" >
+                        <option value="">--None--</option>
+                        <option text="Full Extension" value="Full" selected="true"/>
+                        <option text="Partial Extension" value="Extension"/>
+                    </lightning:select>
+                        <lightning:select name="noOfCheque" label="No. of installments" value="{!v.noOfCheques}">
+                            <!-- <option value="">choose one...</option>-->
+                            <option value="1" text="1" selected="true"/>
+                            <option value="2" text="2"/> 
+                            <option value="4" text="4"/>
+                            <option value="6" text="6"/>
+                            <option value="12" text="12"/>
+                        </lightning:select>
+                    <!--aura:if isTrue="{!v.renewalType=='Extension' }">
+                        <div class="slds-col">
+                        </div>
+                        <lightning:input class="slds-col" type="checkbox" label="Ejari needed?" name="input3" checked="true" disabled="{!v.renewalType == 'Full'}"/> 
+                    </aura:if-->
+                    
+                </div>
+                </aura:if> 
+                <!--Start section displayed when selected tab is not tab 1 -->
+                  <aura:if isTrue="{!v.selTabId!='tab1'}">
+                <div class="slds-grid slds-grid_align-end slds-var-m-around_large slds-gutters">
+                    <div class="slds-col">
+                        
+                    </div> 
+                    <lightning:input type="date" name="renewalDate" label="Renewal Date" value="{!v.renewalDate}" disabled="true"/>
+                    <aura:if isTrue="{!v.renewalType=='Extension' }">
+                        <lightning:input class="slds-col"  type="date" name="renewalEndDate" label="Renewal End Date" value="{!v.renewalEndDate}" required="{!v.renewalType == 'Extension'}" disabled="true" />
+                    </aura:if>
+                    <lightning:select  class="slds-col" aura:id="renewalType" value="{!v.renewalType}" name="renewalType" 
+                                      label="Renewal Type" required="true" disabled="true">
+                        <option value="">--None--</option>
+                        <option text="Full Extension" value="Full" selected="true"/>
+                        <option text="Partial Extension" value="Extension"/>
+                    </lightning:select>
+                        <lightning:select name="noOfCheque" label="No. of installments" value="{!v.noOfCheques}"  disabled="true" >
+                            <!-- <option value="">choose one...</option>-->
+                            <option value="1" text="1" selected="true"/>
+                            <option value="2" text="2"/> 
+                            <option value="4" text="4"/>
+                            <option value="6" text="6"/>
+                            <option value="12" text="12"/>
+                            
+                        </lightning:select>
+                    <!--aura:if isTrue="{!v.renewalType=='Extension' }">
+                        <div class="slds-col">
+                        </div>
+                        <lightning:input class="slds-col" type="checkbox" label="Ejari needed?" name="input3" checked="true" disabled="true"/>  
+                        
+                    </aura:if-->
+                    
+                </div>
+                </aura:if> 
+                <!--End section displayed when selected tab is not tab 1 -->
+                <br/>
+                
+                <aura:if isTrue="{!!v.isSingleUnitAcc}">
+                    <lightning:tabset variant="scoped" selectedTabId="{!v.selTabId}" onselect = "{!c.tablSelect}" >
+                        <lightning:tab label="Current Unit" aura:id="tab1" tabindex="1" id="tab1" title="Current Unit">
+                            <aura:if isTrue="{!v.isTab1}">
+                                <div class="slds-show slds-p-around--medium" aura:id="articleTwo">
+                                    
+                                    <!-- data table start-->  
+                                    <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered slds-no-row-hover" style="background: aliceblue;">
+                                        <thead class="header">
+                                            
+                                            <tr class="slds-text-title_caps " style="background: aliceblue;">
+                                                <!--header checkbox for select all-->
+                                                <th style="width:2.25rem;" class="slds-text-align_right">
+                                                    <div class="slds-form-element">
+                                                        <div class="slds-form-element__control">
+                                                            <!---ui:inputCheckbox disabled="{!v.totalRecordsCount == 0}"
+                                                          aura:id="selectAllId"
+                                                          change="{!c.selectAllCheckbox}"/-->
+                                                            <lightning:input aura:id="selectAllId" type="checkbox-button" label="Input One" name="input1"
+                                                                             checked="{!v.isAllSelected}"
+                                                                             onchange="{!c.selectAllCheckbox}" disabled="{!v.totalRecordsCount == 0}"></lightning:input>
+                                                            
+                                                        </div>
+                                                    </div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Name">Location Code</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Phone">Building/Floor</div>
+                                                </th>
+                                                 <aura:if isTrue="{!v.leasingType != 'Commercial Unit'}">
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Type">No. of Bedrooms</div>
+                                                </th>
+                                                </aura:if>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Type">Property type</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Type">Unit type</div>
+                                                </th>
+                                                <aura:if isTrue="{!v.leasingType == 'Commercial Unit'}">
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Type">Price per sqft</div>
+                                                </th>
+                                                </aura:if>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Type">Leasable Area</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Type">Renewal Rent</div>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        
+                                        <tbody>
+                                            <aura:iteration items="{!v.PaginationList}" var="obj">
+                                                <tr>
+                                                    <th scope="row" class="slds-text-align_right" style="width:3.25rem;">
+                                                        
+                                                        <div class="slds-form-element__control">
+                                                            
+                                                            <lightning:input  type="checkbox-button" name="input2"
+                                                                             checked="{!obj.isChecked}"
+                                                                             onchange="{!c.checkboxSelect}" disabled="{!obj.propFlag}"></lightning:input>
+                                                        </div>
+                                                        
+                                                    </th>
+                                                    <th scope="row">
+                                                        <div class="slds-truncate slds-cell-wrap" title="{!obj.unitName}">
+                                                            <a data-caseid="{!obj.unitId}" onclick="{!c.navigateToRecord}">{!obj.unitName}</a>
+                                                        </div>
+                                                    </th> 
+                                                    <th scope="row">
+                                                        <div class="slds-truncate slds-cell-wrap" title="{!obj.dealId}">
+                                                            {!obj.building_Floor}
+                                                        </div>
+                                                    </th>
+                                                     <aura:if isTrue="{!v.leasingType != 'Commercial Unit'}">
+                                                    <th scope="row">
+                                                        <div class="slds-truncate slds-cell-wrap" title="{!obj.SpaceType}">
+                                                            {!obj.noOfBedrooms}
+                                                        </div>
+                                                    </th>
+                                                    </aura:if>
+                                                     <th scope="row">
+                                                        <div class="slds-truncate slds-cell-wrap" title="{!obj.UnitType}">
+                                                            {!obj.propertyType}
+                                                        </div>
+                                                    </th>
+                                                    <th scope="row">
+                                                        <div class="slds-truncate slds-cell-wrap" title="{!obj.UnitType}">
+                                                            {!obj.unitType}
+                                                        </div>
+                                                    </th>
+                                                    <aura:if isTrue="{!v.leasingType == 'Commercial Unit'}">
+                                                		<th scope="col">
+                                                         <div class="slds-truncate slds-cell-wrap" title="{!obj.RenewalRent}">
+                                                            {!obj.pricePerSqft}
+                                                        </div>
+                                               			 </th>
+                                                	</aura:if>
+                                                    <th scope="row">
+                                                        <div class="slds-truncate slds-cell-wrap" title="{!obj.leasableArea}">
+                                                            {!obj.leasableArea}
+                                                        </div>
+                                                    </th>
+                                                    <th scope="row">
+                                                        <div class="slds-truncate slds-cell-wrap" title="{!obj.RenewalRent}">
+                                                            {!obj.rent}
+                                                        </div>
+                                                    </th>
+                                                </tr>
+                                            </aura:iteration>
+                                        </tbody>
+                                    </table> 
+                                    <!-- DataTable End -->
+                                    
+                                    <!--  Pagination Buttons Start -->
+                                    <div class="slds-align_absolute-center">         
+                                        <lightning:button variant="brand"
+                                                          label="Previous Page"
+                                                          disabled="{!v.startPage == 0}" 
+                                                          class="{!v.startPage == 0 ? '' : 'buttonColor' }"
+                                                          onclick="{!c.navigation}"
+                                                          iconName="utility:back"
+                                                          name="previous"/>
+                                        
+                                        <span class="slds-badge slds-badge_lightest"
+                                              style="margin-right: 10px;margin-left: 10px;">
+                                            Page {!v.currentPage} out of {!v.totalPagesCount}
+                                        </span>
+                                        
+                                        <lightning:button variant="brand"
+                                                          label="Next Page"
+                                                          disabled="{!(v.endPage + 1) >= v.totalRecordsCount}" 
+                                                          class="{!(v.endPage + 1) >= v.totalRecordsCount  ? '' : 'buttonColor' }"
+                                                          onclick="{!c.navigation}"
+                                                          iconName="utility:forward"
+                                                          iconPosition="right"
+                                                          name="next"/>
+                                    </div>  
+                                </div>
+                            </aura:if>
+                            <!--  Pagination Buttons End -->
+                        </lightning:tab>
+                        <lightning:tab label="Add New Unit" aura:id="tab2" tabindex="2" id="tab2" title="Add New Unit">
+                            <aura:if isTrue="{!v.isTab2}">
+                                <div class="slds-show slds-p-around--medium" aura:id="articleTwo"> 
+                                    <!--Search section Start-->
+                                    <lightning:card variant="Narrow" title="Filters" iconName="standard:search">
+                                        <aura:set attribute="actions">
+                                            <!--<lightning:button variant="brand" label="Search" onclick="{!c.search}" class="slds-button">
+            </lightning:button>-->
+                                        </aura:set>
+                                        <aura:set attribute="footer">
+                                            <lightning:button variant="brand" label="{!v.spinner == true ? 'Searching...' : 'Search'}" onclick="{!c.search}" class="customButton"></lightning:button>
+                                            <lightning:button variant="neutral" label="Reset" onclick="{!c.clear}" class=""></lightning:button>
+                                        </aura:set>
+                                        <lightning:layout horizontalAlign="space" verticalAlign="center" multipleRows="true" class="slds-theme_shade">
+                                            <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                                <!--lightning:select aura:id="Projects" value="{!v.selectedProject}" label="Project" onchange="{!c.handleProjectOnChange}">
+                            
+                            <aura:iteration items="{!v.ProjectsMap}" var="typ" indexVar="key">
+                                <option text="{!typ.value}" value="{!typ.key}" selected="{!v.selectedProject == typ.key}" />
+                            </aura:iteration>
+                        </lightning:select-->
+                                                <lightning:input aura:id="projectName" type="text" label="Project Name" name="projectName" value="{!v.ProjectName}" disabled="true">
+                                                </lightning:input>
+                                                
+                                            </lightning:layoutItem>
+                                            <lightning:layoutItem class="slds-p-around_small slds-size_1-of-4 slds-medium-size_1-of-4 slds-large-size_1-of-4" padding="around-small">
+                                                <lightning:select aura:id="building" value="{!v.selectedBuilding}" label="Building">
+                                                    <option value="">--All--</option>
+                                                    <aura:iteration items="{!v.buildingMap}" var="typ" indexVar="key">
+                                                        <option text="{!typ.value}" value="{!typ.key}" />
+                                                    </aura:iteration>
+                                                </lightning:select>
+                                            </lightning:layoutItem>
+                                            <!--Start Unit name search-->
+                                            <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                                <lightning:input aura:id="unitCode" type="text" label="Unit Code" name="unitCode" value="{!v.unitCodeSearchString}" disabled="false">
+                                                </lightning:input>
+                                            </lightning:layoutItem>
+                                            <!--End Unit name search-->
+                                            
+                                            <aura:if isTrue="{!v.leasingType == 'Residential Units'}">
+                                            <lightning:layoutItem class="slds-p-around_small slds-size_1-of-4 slds-medium-size_1-of-4 slds-large-size_1-of-4" padding="around-small">
+                                                <lightning:select aura:id="Property Unit View" value="{!v.selectedBedroom}" label="No Of Bedrooms">
+                                                    <option value="">--All--</option>
+                                                    <aura:iteration items="{!v.noOfBedroomMap}" var="typ" indexVar="key">
+                                                        <option text="{!typ.value}" value="{!typ.key}" />
+                                                    </aura:iteration>
+                                                </lightning:select>
+                                            </lightning:layoutItem>
+                                            </aura:if>
+                                            <lightning:layoutItem class="slds-p-around_small slds-size_1-of-4 slds-medium-size_1-of-4 slds-large-size_1-of-4" padding="around-small">
+                                                <lightning:select aura:id="Property Unit View" value="{!v.selectedUnitType}" label="Unit Type">
+                                                    <option value="">--All--</option>
+                                                    <aura:iteration items="{!v.unitTypeMap}" var="typ" indexVar="key">
+                                                        <option text="{!typ.value}" value="{!typ.key}" />
+                                                    </aura:iteration>
+                                                </lightning:select>
+                                            </lightning:layoutItem>
+                                            <lightning:layoutItem class="slds-p-around_small slds-size_1-of-4 slds-medium-size_1-of-4 slds-large-size_1-of-4" padding="around-small">
+                                                <lightning:select aura:id="Property Unit View" value="{!v.selectedPropertyType}" label="Property Type">
+                                                    <option value="">--All--</option>
+                                                    <aura:iteration items="{!v.propertyTypeMap}" var="typ" indexVar="key">
+                                                        <option text="{!typ.value}" value="{!typ.key}" />
+                                                    </aura:iteration>
+                                                </lightning:select>
+                                            </lightning:layoutItem>
+                                            <!--lightning:layoutItem size="3" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+            </lightning:layoutItem-->
+                                            
+                                            
+                                        </lightning:layout>
+                                        
+                                    </lightning:card> 
+                                    <!--Search Section End-->
+                                    <!-- data table start-->  
+                                    <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered slds-no-row-hover" style="background: aliceblue;">
+                                        <thead class="header">
+                                            
+                                            <tr class="slds-text-title_caps">
+                                                <!--header checkbox for select all-->
+                                                <th style="width:2.25rem;" class="slds-text-align_right">
+                                                    <div class="slds-form-element">
+                                                        <div class="slds-form-element__control">
+                                                            <!---ui:inputCheckbox disabled="{!v.totalRecordsCount == 0}"
+                                                          aura:id="selectAllId"
+                                                          change="{!c.selectAllCheckbox}"/-->
+                                                            <lightning:input aura:id="selectAllIdT2" type="checkbox-button" label="Input OneT2" name="input1T2"
+                                                                             checked="{!v.isAllSelectedT2}"
+                                                                             onchange="{!c.selectAllCheckboxT2}" disabled="{!v.totalRecordsCountT2 == 0}"></lightning:input>
+                                                            
+                                                        </div>
+                                                    </div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Name">Location Code</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Phone">Building/Floor</div>
+                                                </th>
+                                                 <aura:if isTrue="{!v.leasingType != 'Commercial Unit'}">
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Type">No. of Bedrooms</div>
+                                                </th>
+                                                </aura:if>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Type">Property type</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Type">Unit type</div>
+                                                </th>
+                                                <aura:if isTrue="{!v.leasingType == 'Commercial Unit'}">
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Type">Price per sqft</div>
+                                                </th>
+                                                </aura:if>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Type">Leasable Area</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Type">Renewal Rent</div>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        
+                                        <tbody>
+                                            <aura:iteration items="{!v.PaginationListT2}" var="obj">
+                                                <tr>
+                                                    <th scope="row" class="slds-text-align_right" style="width:3.25rem;">
+                                                        
+                                                        <div class="slds-form-element__control">
+                                                            
+                                                            <lightning:input  type="checkbox-button" name="input2"
+                                                                             checked="{!obj.isChecked}"
+                                                                             onchange="{!c.checkboxSelectT2}" disabled="{!obj.propFlagT2}"></lightning:input>
+                                                        </div>
+                                                        
+                                                    </th>
+                                                     <th scope="row">
+                                                        <div class="slds-truncate slds-cell-wrap" title="{!obj.unitName}">
+                                                            <a data-caseid="{!obj.unitId}" onclick="{!c.navigateToRecord}">{!obj.unitName}</a>
+                                                        </div>
+                                                    </th> 
+                                                    <th scope="row">
+                                                        <div class="slds-truncate slds-cell-wrap" title="{!obj.dealId}">
+                                                            {!obj.building_Floor}
+                                                        </div>
+                                                    </th>
+                                                     <aura:if isTrue="{!v.leasingType != 'Commercial Unit'}">
+                                                    <th scope="row">
+                                                        <div class="slds-truncate slds-cell-wrap" title="{!obj.SpaceType}">
+                                                            {!obj.noOfBedrooms}
+                                                        </div>
+                                                    </th>
+                                                    </aura:if>
+                                                     <th scope="row">
+                                                        <div class="slds-truncate slds-cell-wrap" title="{!obj.UnitType}">
+                                                            {!obj.propertyType}
+                                                        </div>
+                                                    </th>
+                                                    <th scope="row">
+                                                        <div class="slds-truncate slds-cell-wrap" title="{!obj.UnitType}">
+                                                            {!obj.unitType}
+                                                        </div>
+                                                    </th>
+                                                    <aura:if isTrue="{!v.leasingType == 'Commercial Unit'}">
+                                                		<th scope="col">
+                                                         <div class="slds-truncate slds-cell-wrap" title="{!obj.RenewalRent}">
+                                                            {!obj.pricePerSqft}
+                                                        </div>
+                                               			 </th>
+                                                	</aura:if>
+                                                    <th scope="row">
+                                                        <div class="slds-truncate slds-cell-wrap" title="{!obj.leasableArea}">
+                                                            {!obj.leasableArea}
+                                                        </div>
+                                                    </th>
+                                                    <th scope="row">
+                                                        <div class="slds-truncate slds-cell-wrap" title="{!obj.RenewalRent}">
+                                                            {!obj.rent}
+                                                        </div>
+                                                    </th>
+                                                </tr>
+                                            </aura:iteration>
+                                        </tbody>
+                                    </table> 
+                                    <!-- DataTable End -->
+                                    
+                                    <!--  Pagination Buttons Start -->
+                                    <div class="slds-align_absolute-center">         
+                                        <lightning:button variant="brand"
+                                                          label="Previous Page"
+                                                          disabled="{!v.startPageT2 == 0}" 
+                                                          class="{!v.startPageT2 == 0 ? '' : 'buttonColor' }"
+                                                          onclick="{!c.navigationT2}"
+                                                          iconName="utility:back"
+                                                          name="previous"/>
+                                        
+                                        <span class="slds-badge slds-badge_lightest"
+                                              style="margin-right: 10px;margin-left: 10px;">
+                                            Page {!v.currentPageT2} out of {!v.totalPagesCountT2}
+                                        </span>
+                                        
+                                        <lightning:button variant="brand"
+                                                          label="Next Page"
+                                                          disabled="{!(v.endPageT2 + 1) >= v.totalRecordsCountT2}" 
+                                                          class="{!(v.endPageT2 + 1) >= v.totalRecordsCountT2  ? '' : 'buttonColor' }"
+                                                          onclick="{!c.navigationT2}"
+                                                          iconName="utility:forward"
+                                                          iconPosition="right"
+                                                          name="next"/>
+                                    </div>  
+                                </div>
+                            </aura:if>
+                            <!--new renewal table component-->
+                            <!--c:UnitTableWithPagination listOfProperty="{!v.projectUnitList}"/-->
+                        </lightning:tab>
+                        <lightning:tab label="Summary" aura:id="tab3" tabindex="3" id="tab3" title="Summary">
+                            <aura:if isTrue='{!v.isTab3}'>
+                                <c:SummaryUnitTableComp listOfProperty="{!v.completePropertyList}" renewalDate="{!v.renewalDate}" noOfCheques="{!v.noOfCheques}" renewalType="{!v.renewalType}" leasingType="{!v.leasingType}"
+                                                        renewalEndDate="{!v.renewalEndDate}" ejariNeeded="{!v.ejariNeeded}"  terminationUnitsList="{!v.terminationUnitsList}" flag="{!v.flag}" rentPerDay="{!v.rentPerDay}" renewalEndDateDefault="{!v.renewalEndDateDefault}"/>
+                            </aura:if> 
+                        </lightning:tab>    
+                    </lightning:tabset>
+                </aura:if>
+                <aura:if isTrue="{!v.isSingleUnitAcc}">
+                    <lightning:tabset variant="scoped" >
+                        <lightning:tab label="Summary" aura:id="sumryTab1" tabindex="1" id="sumryTab1" title="Summary">
+                            <c:SummaryUnitTableComp listOfProperty="{!v.totalList}" renewalDate="{!v.renewalDate}" noOfCheques="{!v.noOfCheques}" renewalType="{!v.renewalType}" leasingType="{!v.leasingType}"
+                                                    renewalEndDate="{!v.renewalEndDate}" ejariNeeded="{!v.ejariNeeded}"  flag="{!v.flag}"  rentPerDay="{!v.rentPerDay}" renewalEndDateDefault="{!v.renewalEndDateDefault}"/>    
+                        </lightning:tab>
+                    </lightning:tabset>
+                </aura:if>
+            </lightning:card>
+        </div>
+        <aura:if isTrue="{!!v.isSingleUnitAcc}">
+            <aura:if isTrue="{!v.selTabId!='tab3' }">
+                <footer class="slds-modal__footer">
+                    
+                    <!-- commenting the next button -->
+                    <!--lightning:button variant="brand"
+                                      label="Next"
+                                      title="Next"
+                                      onclick="{!c.next}"
+                                      class="buttonColor"/-->
+                    
+                    <!--lightning:button variant="brand"
+                          label="Cancel"
+                          title="Cancel"
+                          onclick="{! c.closeModel }"
+                          class="buttonColor"/>
+         
+        <lightning:button variant="brand"
+                          aura:id="AddSelectRecords"
+                          label="Save"
+                          title="Add Selected Records"
+                          onclick="{!c.addSelectedRecords}"
+                          class="{!v.selectedCount!=0  ? 'buttonColor' : '' }"
+                          disabled="{!v.selectedCount == 0}"
+                          /-->
+                </footer>
+            </aura:if>
+        </aura:if>
+    </aura:if>
+</aura:component>

@@ -1,0 +1,807 @@
+<!--
+  @description       : 
+  @author            : ChangeMeIn@UserSettingsUnder.SFDoc
+  @group             : 
+  @last modified on  : 05-26-2022
+  @last modified by  : ChangeMeIn@UserSettingsUnder.SFDoc
+-->
+<template>
+    <template if:true={isLoading}>
+        <lightning-spinner alternative-text="Loading" variant="brand" size="large">
+        </lightning-spinner>
+    </template>
+    <div class="slds-box slds-theme_default">
+        <div class="slds-grid slds-wrap">
+            <div class="slds-col slds-size_4-of-12 slds-p-around_x-small">
+                <lightning-combobox name="buPicklist" label="Business Unit" options={buPicklistValues}
+                    placeholder="Select Business Unit" onchange={buChange} disabled={isDisabled}></lightning-combobox>
+
+            </div>
+            <div class="slds-col slds-size_4-of-12 slds-p-around_x-small">
+                <lightning-combobox name="projectPicklist" label="Project" options={projectPicklistValues}
+                    placeholder="Select Project" onchange={projectChange} disabled={isDisabled}></lightning-combobox>
+            </div>
+            <div class="slds-col slds-size_4-of-12 slds-p-around_x-small">
+                <lightning-combobox name="buildingPicklist" label="Building" options={buildingPicklistValues}
+                    placeholder="Select Building" onchange={buildingChange} disabled={isDisabled}></lightning-combobox>
+            </div>
+            <template if:false={addUnitOptionsVisibilityFlag}>
+                <div class="slds-col slds-size_4-of-12 slds-p-around_x-small">
+                    <lightning-combobox name="salesEventPicklist" label="Sales Event" options={salesEventPicklistValues}
+                        placeholder="Select Sales Event" onchange={salesEventChange} disabled={isDisabled}>
+                    </lightning-combobox>
+                </div>
+            </template>
+
+            <div class="slds-col slds-size_4-of-12 slds-p-around_x-small">
+                <lightning-combobox name="spaceTypePicklist" label="Bedrooms" options={spaceTypePicklistValues}
+                    placeholder="Select Bedroom" onchange={spaceTypeChange} disabled={isDisabled}></lightning-combobox>
+            </div>
+            <!--   <div class="slds-col slds-size_4-of-12 slds-p-around_x-small">
+                <lightning-combobox
+                    name="noOfBedroomsPicklist"
+                    label="No. of Bedrooms"
+                    placeholder="Select No. of Bedrooms"
+                    options={bedroomPicklist}
+                    onchange={bedroomChange}
+                    disabled={isDisabled}></lightning-combobox>
+            </div> -->
+            <div class="slds-col slds-size_4-of-12 slds-p-around_x-small">
+                <lightning-combobox name="statusPicklist" label="Status" placeholder="Select Status"
+                    options={unitStatusPicklistValuesTemp} onchange={unitStatusChange} disabled={isDisabled}>
+                </lightning-combobox>
+            </div>
+            <div if:false={disableBlockedReason} class="Blockedreason slds-col slds-size_4-of-12 slds-p-around_x-small">
+                <lightning-combobox name="blockedReasonPicklist" label="Blocked Status"
+                    placeholder="Select Blocked Status" options={blockedStatusPicklistNEW}
+                    onchange={blockedReasonChange} disabled={isDisabled}></lightning-combobox>
+            </div>
+            <div if:true={disableBlockedReason} class="Blockedreason slds-col slds-size_4-of-12 slds-p-around_x-small">
+                <lightning-combobox name="blockedReasonPicklist" label="Blocked Status"
+                    placeholder="Select Blocked Status" options={blockedStatusPicklistNEW}
+                    onchange={blockedReasonChange} disabled=true></lightning-combobox>
+            </div>
+            <div class="slds-col slds-size_4-of-12 slds-p-around_x-small">
+                <lightning-input type="search" onchange={handleUnitCodeChange} class="slds-m-bottom_small"
+                    label="Location Code" value={searchKey} disabled={isDisabled}>
+                </lightning-input>
+            </div>
+            <div if:true={searchData}>
+                <lightning-datatable data={searchData} class="wrapped-header-datatable" columns={columns} key-field="id"
+                    onrowaction={callRowAction} hide-checkbox-column="true">
+                </lightning-datatable>
+            </div>
+
+            <div class="slds-col slds-size_4-of-12 slds-p-around_x-small">
+                <div if:true={isdisableRecentlyUploaded}>
+                    <lightning-input type="checkbox" label="Click to Search Recently Uploaded/Updated Units"
+                        onchange={handleChangeCheck}></lightning-input>
+                </div>
+                <template if:true={areDetailsVisible}>
+                    <div class="slds-m-vertical_medium">
+                        <lightning-combobox name="recentlyUploadedPicklist" label="Recently Uploaded/Updated Units"
+                            placeholder="Select Time Frame" options={recentlyUploadedUnits}
+                            onchange={recentlyUploadedChange}></lightning-combobox>
+                    </div>
+                </template>
+            </div>
+
+            <!-- <div class="slds-col slds-size_4-of-12 slds-p-around_x-small">
+                <lightning-combobox
+                    name="spaceTypePicklist"
+                    label="Space Type"
+                    options={spaceTypePicklistValues}
+                    placeholder="Select Space Type"
+                    onchange={spaceTypeChange}
+                    disabled={isDisabled}></lightning-combobox>
+            </div> -->
+        </div>
+        <div class="slds-align_absolute-center slds-p-around_x-small slds-m-around_medium">
+            <template if:true={searchAndResetButtonFlag}>
+                <lightning-button label="Search Units" onclick={searchUnits}></lightning-button>
+                &nbsp; &nbsp;
+                <lightning-button label="Reset Selection" onclick={resetPicklistValues}></lightning-button>
+                <template if:true={searchUnitByCSVButtonFlag}>
+                    &nbsp; &nbsp;
+                    <lightning-button class="CSVButton" label="Unit Search by CSV" onclick={unitSearchbyCSV}>
+                    </lightning-button>
+                </template>
+            </template>
+            <template if:false={searchAndResetButtonFlag}>
+                <lightning-button label="Search Units" disabled onclick={searchUnits}></lightning-button>
+                &nbsp; &nbsp;
+                <lightning-button label="Reset Selection" disabled onclick={resetPicklistValues}></lightning-button>
+                <template if:true={searchUnitByCSVButtonFlag}>
+                    &nbsp; &nbsp;
+                    <lightning-button class="CSVButton" label="Unit Search by CSV" onclick={unitSearchbyCSV}>
+                    </lightning-button>
+                </template>
+            </template>
+
+        </div>
+    </div>
+
+    <!-- Cart Logic -->
+    <!--template if:true={hasValue}>
+        <div class="CartClass slds-box slds-theme_default slds-p-top_x-small">
+            <div class="slds-float_left">
+            <lightning-card  variant="Narrow"  title="Units's Cart" icon-name="custom:custom63"></lightning-card>
+        </div>
+            <div class="slds-grid slds-grid_align-end">
+                <template if:true={removeFromCartButtonFlag}>
+                    <lightning-button variant='brand' label="Remove From Cart" class="slds-var-m-around_large" onclick={removeSelectedUnitsFromCart}></lightning-button>
+                </template>
+                <template if:false={removeFromCartButtonFlag}>
+                    <lightning-button variant='brand' label="Remove From Cart" class="slds-var-m-around_large" disabled onclick={removeSelectedUnitsFromCart}></lightning-button>
+                </template>
+                <lightning-button variant='brand' label="Hide Cart" class="slds-var-m-around_large" onclick={hideCartFromTheLayout}></lightning-button>
+                <template if:true={emptyCartButtonFlag}>
+                    <lightning-button variant='brand' label="Empty Cart" class="slds-var-m-around_large" onclick={removeAllRecordsFromCart}></lightning-button>
+                </template>
+                <template if:false={emptyCartButtonFlag}>
+                    <lightning-button variant='brand' label="Empty Cart" class="slds-var-m-around_large" disabled onclick={removeAllRecordsFromCart}></lightning-button>
+                </template>
+                <lightning-button variant='brand' label="Add Selection" class="slds-var-m-around_large" onclick={addSelectedUnitsToBucket}></lightning-button>
+            </div>
+            <lightning-datatable
+                    key-field="Id"
+                    data={cartData}
+                    columns={columns}
+                    onrowselection={getSelectedUnitFromCart}
+                    ></lightning-datatable>
+                    
+        </div>
+    </template-->
+    <!-- CSV Upload Logic-->
+    <template if:true={showCSVUploadBox}>
+        <section aria-modal="true" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container ">
+                <header class="slds-modal__header">
+                    <h2 class="slds-text-heading_small">Unit Search by CSV</h2>
+                    <lightning-icon class="slds-modal__close" icon-name="utility:close" size="small"
+                        onclick={closeModal}></lightning-icon>
+                </header>
+                <div class="slds-modal__content">
+                    <div class="slds-p-around_small">
+                        <p>Please upload data in CSV UTF-8 format having only a single column of unit codes*</p><br />
+
+                        <input type="file" multiple accept=".csv" onchange={readFiles} />
+                    </div>
+                </div>
+                <footer class="slds-modal__footer">
+                    <!-- <lightning-button variant="brand" label="Search" onclick={searchUnits} class="slds-p-around_x-small"></lightning-button> -->
+                    <lightning-button variant="brand" label="Cancel" onclick={closeModal} class="slds-p-around_x-small">
+                    </lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
+
+    <div class="unitSearch slds-box slds-theme_default slds-p-top_x-small slds-hide">
+        <div class="slds-float_left">
+            <!--<lightning-card  variant="Narrow"  title="Search Results" icon-name="custom:custom63"> </lightning-card>-->
+            <div>
+                <lightning-icon icon-name="custom:custom63"></lightning-icon><b> Search Results</b>
+            </div>
+            </br>
+            <b>Search Count - {totalRecountCount}</b>
+        </div>
+        </br>
+        </br>
+        <div class="slds-grid slds-grid_align-end">
+            <lightning-button variant='brand' label="Add Selection" class="slds-var-m-around_large"
+                onclick={addSelectedUnitsToBucket}></lightning-button>
+            <template if:true={cartToggle}>
+                <lightning-button variant='brand' label="Show Cart" class="slds-var-m-around_large"
+                    onclick={renderCartOnLayout}></lightning-button>
+            </template>
+            <!-- <lightning-button variant='brand' label="Add To Bucket" class="slds-var-m-around_large" onclick={addSelectedUnitsToBucket}></lightning-button> -->
+        </div>
+        <lightning-datatable key-field="Id" data={unitData} columns={columns} onrowselection={getSelectedUnitFromSearch}
+            class="wrapped-header-datatable" onrowaction={callRowAction} hidecheckboxcolumn="true">
+        </lightning-datatable>
+        <div if:true={dataSpinner} class="slds-spinner_inline spinner-padding">
+            <lightning-spinner variant="brand" alternative-text="Loading Data" size="medium">
+            </lightning-spinner>
+        </div>
+
+        <div class="slds-align_absolute-center">
+            <p class="slds-m-vertical_medium content">
+
+                <b>Displaying {page} of {totalPage} Page </b>
+            </p>
+        </div>
+
+        <div class="slds-m-around_medium">
+            <c-paginator onprevious={previousHandler} onnext={nextHandler}></c-paginator>
+        </div>
+    </div>
+
+    <div class="unitBucket slds-box slds-theme_default slds-p-top_x-small slds-hide">
+        <div class="slds-float_left">
+            <!--<lightning-card  variant="Narrow"  title="Unit's Basket" icon-name="custom:custom93"></lightning-card>-->
+            <div>
+                <lightning-icon icon-name="custom:custom93"></lightning-icon><b> Unit's Basket</b>
+            </div>
+            <br />
+            <b>Basket Count - {totalBasketCount}</b>
+        </div>
+        <br />
+        <br />
+        <div class="slds-grid slds-grid_align-end slds-var-m-around_large">
+            <lightning-button-group>
+
+                <template if:true={inventoryApprovalVisibilityFlag}>
+                    <lightning-button variant='brand-outline' label="Submit For Release Approval"
+                        onclick={submitForInventoryApproval}></lightning-button>
+                </template>
+                <template if:true={downloadTemplateVisibilityFlag}>
+                    <lightning-button variant='brand-outline' label="Generate Pricing Template"
+                        onclick={showDownloadTemplate}></lightning-button>
+                </template>
+                <!--<template if:true={addUnitOptionsVisibilityFlag}>
+                    <lightning-button variant='brand-outline' label="Add Unit Options" onclick={showUnitOptions} ></lightning-button>
+                </template>-->
+                <template if:true={salesEventVisibilityFlag}>
+                    <lightning-button variant='brand-outline' label="Add Units to Sales Event" onclick={showSalesEvent}>
+                    </lightning-button>
+                </template>
+                <template if:true={specialOfferVisibilityFlag}>
+                    <lightning-button variant='brand-outline' label="Add Units to Special Offer"
+                        onclick={showSpecialOffer}></lightning-button>
+                </template>
+                <!--   <template if:true={addAmenitiesVisibilityFlag}>
+                    <lightning-button variant='brand-outline' label="Add Amenities" onclick={showAmenity} ></lightning-button>
+                </template> -->
+
+                <template if:true={updateUnitsVisibilityFlag}>
+                    <lightning-button variant='brand-outline' label="Update Units" onclick={showPopup}>
+                    </lightning-button>
+                </template>
+                <template if:true={initiateHandoverVisibilityFlag}>
+                    <!--Added By Anshita 06 April 2022-->
+                    <lightning-button variant='brand-outline' label="Initiate Handover" onclick={showHandoverPopup}>
+                    </lightning-button>
+                </template>
+                <template if:true={salesOfferVisibilityFlag}>
+                    <lightning-button variant='brand-outline' label="Sales Offer" onclick={showSalesOffer}>
+                    </lightning-button>
+                </template>
+                <template if:true={bulkOfferVisibilityFlag}>
+                    <!--Added By Anshita 06 April 2022-->
+                    <lightning-button variant='brand-outline' label="Bulk Offer" onclick={showBulkOffer}>
+                    </lightning-button>
+                </template>
+                <template if:false={removeFromBucketFlag}>
+                    <lightning-button variant='destructive' label="Remove From Bucket" disabled
+                        onclick={removeUnitsFromBucket}></lightning-button>
+                </template>
+                <template if:true={removeFromBucketFlag}>
+                    <lightning-button variant='destructive' label="Remove From Bucket" onclick={removeUnitsFromBucket}>
+                    </lightning-button>
+                </template>
+            </lightning-button-group>
+            &nbsp;
+
+
+            <!-- <lightning-button-menu alternative-text="Show menu" icon-name="utility:add" onselect={handleMenuItem} class="slds-var-m-around_large">
+                <lightning-menu-item label="Update Units" icon-name="utility:record_update" value="Update"></lightning-menu-item>
+                <lightning-menu-item label="Remove From Bucket" icon-name="utility:record_delete" value="Remove"></lightning-menu-item> 
+             </lightning-button-menu> -->
+
+            <!-- <div class="dropdown">
+                <button class="dropbtn">Action Items</button>
+                <div class="dropdown-content">
+                  <a href="#">Update Units</a>
+                  <a href="#">Remove From Bucket</a>
+                  <a href="#">Link 3</a>
+                </div>
+              </div> -->
+
+        </div>
+        <lightning-datatable key-field="Id" data={basketData} columns={columns} class="wrapped-header-datatable"
+            onrowselection={getSelectedUnitFromBucket} onrowaction={callRowAction}>
+        </lightning-datatable>
+        <div class="slds-align_absolute-center">
+            <p class="slds-m-vertical_medium content">
+
+                <b>Displaying {basketPage} of {totalBasketPage} Page </b>
+            </p>
+        </div>
+
+        <div class="slds-m-around_medium">
+            <c-paginator onprevious={previousBasketHandler} onnext={nextBasketHandler}></c-paginator>
+        </div>
+    </div>
+    <!-- Initiate Handover Modal Popup   Added By Anshita on 06 Apr 2022-->
+    <template if:true={unitUpdateHandoverModal}>
+        <!-- Modal/Popup Box LWC starts here -->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- Modal/Popup Box LWC header here -->
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick={closeModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse"
+                            size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="modal-heading-30" class="slds-text-heading_medium slds-hyphenate">Initiate Handover</h2>
+                </header>
+                <!-- Modal/Popup Box LWC body starts here -->
+                <div class="slds-modal__content slds-p-around_medium slds-grid slds-wrap" id="modal-content-id-30">
+                    <template if:true={showUnitUpdateHandoverLoader}>
+                        <lightning-spinner alternative-text="Loading" size="medium" class="spinnerClass">
+                        </lightning-spinner>
+                    </template>
+                    <div class="slds-col slds-size_6-of-12 slds-p-around_x-small">
+                        <!-- <lightning-combobox name='Handover Status'
+                                            label="Handover Status"
+                                            value={unitHandoverStatus}
+                                            options={unitHandoverStatusPicklistValues}
+                                            onchange={unitHandoverStatusChange}></lightning-combobox> -->
+                        <lightning-input type="text" label="Handover Status" disabled="true"
+                            value="Ready for Inspection"></lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_6-of-12 slds-p-around_x-small">
+                        <lightning-input type="date" name="inspectionDate" required label="Enter Inspection date"
+                            value={unitInspectionTargetDate} min={todaysDate} onchange={unitInspectionTargetDateChange}>
+                        </lightning-input>
+                    </div>
+                </div>
+                <!-- Modal/Popup Box LWC footer starts here -->
+                <footer class="slds-modal__footer">
+                    <button class="slds-button slds-button_neutral" onclick={closeModal} title="Cancel">Cancel</button>
+                    <button class="slds-button slds-button_brand" onclick={updateUnitsReadyTobeInspected}
+                        title="Update">Save</button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+    <!--template if:true={unitUpdateFlag}>
+        <c-sales-event-unit-update onismodalopen={unitUpdateFlag}></c-sales-event-unit-update>
+    </template-->
+    <template if:true={unitUpdateModalFlag}>
+        <!-- Modal/Popup Box LWC starts here -->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- Modal/Popup Box LWC header here -->
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick={closeModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse"
+                            size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Update Units</h2>
+                </header>
+                <!-- Modal/Popup Box LWC body starts here -->
+                <div class="slds-modal__content slds-p-around_medium slds-grid slds-wrap" id="modal-content-id-1">
+                    <template if:true={unitUpdateModalSpinnerFlag}>
+                        <lightning-spinner alternative-text="Loading" size="medium" class="spinnerClass">
+                        </lightning-spinner>
+                    </template>
+                    <div class="slds-col slds-size_6-of-12 slds-p-around_x-small">
+                        <lightning-combobox name='Status' label="Status" value="" placeholder="Select Status"
+                            options={unitStatusPicklistValuesForUpdateOperation} onchange={selectedStatusToUpdate}>
+                        </lightning-combobox>
+                    </div>
+                    <div class="slds-col slds-size_6-of-12 slds-p-around_x-small-blocked-status bb">
+                        <lightning-combobox name='Blocked Status' label="Blocked Status" value={blockedStatusDefault}
+                            placeholder="Select Blocked Status" options={blockedStatus}
+                            onchange={selectedBlockedStatusToUpdate} disabled={isDisabledBlocked}></lightning-combobox>
+                    </div>
+                    <div class="slds-col slds-size_6-of-12 slds-p-around_x-small">
+                        <lightning-combobox name='Blocked Sub Status' label="Blocked Sub Status"
+                            value={blockedSubStatusDefault} placeholder="Select Blocked Sub Status"
+                            options={blockedSubStatus} onchange={selectedBlockedSubStatusToUpdate}
+                            disabled={isDisabledBlocked}></lightning-combobox>
+                    </div>
+                    <div class="slds-col slds-size_6-of-12 slds-p-around_x-small">
+                        <lightning-textarea name='remarks' label="Remarks" onchange={updateRemarks}>
+                        </lightning-textarea>
+                    </div>
+                    <!-- <div class="slds-col slds-size_6-of-12 slds-p-around_x-small">
+                        <lightning-record-edit-form object-api-name="Sales_Event_Unit__c">
+                            <lightning-input-field field-name='Sales_Event__c' onchange={selectedSalesEvent}></lightning-input-field>
+                          </lightning-record-edit-form>
+                    </div> -->
+
+                </div>
+                <!-- Modal/Popup Box LWC footer starts here -->
+                <footer class="slds-modal__footer">
+                    <button class="slds-button slds-button_neutral" onclick={closeModal} title="Cancel">Cancel</button>
+                    <button class="slds-button slds-button_brand" onclick={submitUpdateDetails}
+                        title="Update">Update</button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
+    <!--New Add Sales Event Modal Flag-->
+
+    <template if:true={salesEventModalFlag}>
+        <!-- Modal/Popup Box LWC starts here -->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- Modal/Popup Box LWC header here -->
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick={closeModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse"
+                            size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="modal-heading-02" class="slds-text-heading_medium slds-hyphenate">Add Units to Sales Event
+                    </h2>
+                </header>
+                <!-- Modal/Popup Box LWC body starts here -->
+                <div class="slds-modal__content slds-p-around_medium slds-grid slds-wrap" id="modal-content-id-2">
+                    <div class="slds-col slds-size_12-of-12 slds-p-around_x-small">
+                        <lightning-combobox name='SalesEvent' label="Sales Event" value=""
+                            placeholder="Select Sales Event" options={salesEventPicklistValues}
+                            onchange={salesEventChange}></lightning-combobox>
+                    </div>
+                    <template if:true={hasEventSelected}>
+                        <lightning-card>
+                            <div class="slds-p-around_x-small">
+                                <b>Start Date :</b> {salesEventStartDate}
+                            </div>
+
+                            <div class="slds-p-around_x-small">
+                                <b>End Date :</b> {salesEventEndDate}
+                            </div>
+
+                        </lightning-card>
+                    </template>
+
+                </div>
+
+                <!-- Modal/Popup Box LWC footer starts here -->
+                <footer class="slds-modal__footer">
+                    <button class="slds-button slds-button_neutral" onclick={closeModal} title="Cancel">Cancel</button>
+                    <button class="slds-button slds-button_brand" onclick={addSalesEvent} title="Add">Add</button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
+
+    <!-- New Add Special Offer Modal Flag -->
+
+    <template if:true={specialOfferModalFlag}>
+        <!-- Modal/Popup Box LWC starts here -->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- Modal/Popup Box LWC header here -->
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick={closeModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse"
+                            size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="modal-heading-03" class="slds-text-heading_medium slds-hyphenate">Add Special Offer on Unit
+                    </h2>
+                </header>
+                <!-- Modal/Popup Box LWC body starts here -->
+                <div class="slds-modal__content slds-p-around_medium slds-grid slds-wrap" id="modal-content-id-3">
+                    <div class="slds-col slds-size_12-of-12 slds-p-around_x-small">
+                        <lightning-combobox name='SpecialOffer' label="Special Offer" value=""
+                            placeholder="Select Special Offer" options={specialOfferPicklistValues}
+                            onchange={specialOfferChange}></lightning-combobox>
+                    </div>
+                    <template if:true={hasEventSelected}>
+                        <div class="slds-col slds-size_6-of-12 slds-p-around_x-small">
+                            <lightning-card>
+                                <div class="slds-p-around_x-small">
+                                    <b>Start Date :</b> {salesEventStartDate}
+                                </div>
+
+                                <div class="slds-p-around_x-small">
+                                    <b>End Date :</b> {salesEventEndDate}
+                                </div>
+
+                            </lightning-card>
+                        </div>
+                    </template>
+
+                </div>
+
+                <!-- Modal/Popup Box LWC footer starts here -->
+                <footer class="slds-modal__footer">
+                    <button class="slds-button slds-button_neutral" onclick={closeModal} title="Cancel">Cancel</button>
+                    <button class="slds-button slds-button_brand" onclick={addSpecialOffer} title="Add">Add</button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
+    <!-- New Add Amenities Modal Flag-->
+
+    <template if:true={amenitiesModalFlag}>
+        <!-- Modal/Popup Box LWC starts here -->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- Modal/Popup Box LWC header here -->
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick={closeModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse"
+                            size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="modal-heading-04" class="slds-text-heading_medium slds-hyphenate">Add Amenity on Unit</h2>
+                </header>
+                <!-- Modal/Popup Box LWC body starts here -->
+
+
+                <div class="slds-modal__content slds-p-around_medium slds-grid slds-wrap">
+                    <div class="slds-col slds-size_12-of-12 slds-p-around_x-small">
+
+
+                        <lightning-dual-listbox name="languages" label="Select Amenities" source-label="Available"
+                            selected-label="Selected" field-level-help="Select your preferred languages"
+                            options={amenitiesPicklistValues} onchange={amenityListboxChange}></lightning-dual-listbox>
+
+
+                    </div>
+
+
+                </div>
+
+
+                <!-- Modal/Popup Box LWC footer starts here -->
+                <footer class="slds-modal__footer">
+                    <button class="slds-button slds-button_neutral" onclick={closeModal} title="Cancel">Cancel</button>
+                    <template if:false={addAmenityFlag}>
+                        <button class="slds-button slds-button_brand" disabled onclick={addAmenity}
+                            title="Add">Add</button>
+                    </template>
+                    <template if:true={addAmenityFlag}>
+                        <button class="slds-button slds-button_brand" onclick={addAmenity} title="Add">Add</button>
+                    </template>
+
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
+
+    <!-- New Approval Modal Flag-->
+
+    <template if:true={approvalModalFlag}>
+        <!-- Modal/Popup Box LWC starts here -->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- Modal/Popup Box LWC header here -->
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick={closeModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse"
+                            size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="modal-heading-05" class="slds-text-heading_medium slds-hyphenate">Submit for Approval</h2>
+                </header>
+                <!-- Modal/Popup Box LWC body starts here -->
+                <div class="slds-modal__content slds-p-around_medium slds-grid slds-wrap" id="modal-content-id-5">
+                    <!--  <div class="slds-col slds-size_12-of-12 slds-p-around_x-small">
+                    <lightning-combobox name='Amenities'
+                                        label="Amenities"
+                                        value=""
+                                        placeholder="Select Amentiy"
+                                        options={amenitiesPicklistValues}
+                                        onchange={amenityChange}></lightning-combobox>
+                </div> -->
+                    <template if:true={showLoadingApproval}>
+                        <lightning-spinner alternative-text="Loading" size="medium" class="spinnerClass">
+                        </lightning-spinner>
+                    </template>
+                    <div class="slds-col slds-size_6-of-12 slds-p-around_x-small">
+                        <lightning-record-edit-form object-api-name="Approval__c">
+                            <lightning-input-field field-name='Approval_Type__c' onchange={selectedApprovalType}
+                                value="Inventory Onboarding" readonly="true"></lightning-input-field>
+                        </lightning-record-edit-form>
+                    </div>
+                    <div class="slds-col slds-size_6-of-12 slds-p-around_x-small">
+                        <lightning-record-edit-form object-api-name="Approval__c">
+                            <lightning-input-field field-name='Comments__c' onchange={selectedComments}>
+                            </lightning-input-field>
+                        </lightning-record-edit-form>
+                    </div>
+
+                </div>
+
+                <!-- Modal/Popup Box LWC footer starts here -->
+                <footer class="slds-modal__footer">
+                    <button class="slds-button slds-button_neutral" onclick={closeModal} title="Cancel">Cancel</button>
+                    <button class="slds-button slds-button_brand" onclick={submitForApproval}
+                        title="Submit">Submit</button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
+    <!-- Add Unit Options -->
+
+    <template if:true={unitOptionsModalFlag}>
+        <!-- Modal/Popup Box LWC starts here -->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container" style="max-width: 90rem !important;width: 90% !important;">
+                <!-- Modal/Popup Box LWC header here -->
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick={closeModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse"
+                            size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="modal-heading-06" class="slds-text-heading_medium slds-hyphenate">Add Unit Options</h2>
+                </header>
+                <div class="slds-modal__content modalBody">
+                    <template if:true={showMasterOptionsLoading}>
+                        <lightning-spinner alternative-text="Loading" size="medium" class="spinnerClass">
+                        </lightning-spinner>
+                    </template>
+                    <!-- Tabular Data -->
+                    <div class="slds-table--header-fixed_container" style="height:350px;">
+                        <div class="slds-scrollable_y" style="height:100%;">
+                            <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                                <thead>
+                                    <tr class="slds-line-height_reset">
+                                        <th class="" scope="col">
+                                            <div class="slds-truncate">
+                                                <lightning-input onchange={allUnitOptionsSelected} type="checkbox">
+                                                </lightning-input>
+                                            </div>
+                                        </th>
+                                        <template for:each={addUnitOptionsColumns} for:item="unitoption">
+                                            <th class="" scope="col" key={unitoption.fieldName}>
+                                                <div class="slds-truncate" title="Name">{unitoption.label}</div>
+                                            </th>
+                                        </template>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={addUnitOptionsData} for:item="unitoptiondata">
+                                        <tr key={unitoptiondata.Id}>
+                                            <th scope="col">
+                                                <div>
+                                                    <lightning-input type="checkbox"
+                                                        data-id={unitoptiondata.MasterOption.Id}
+                                                        checked={unitoptiondata.isSelected}
+                                                        onchange={handleUnitOptionCheckChange}
+                                                        value={unitoptiondata.index}></lightning-input>
+                                                </div>
+                                            </th>
+                                            <th scope="col">
+                                                <div>
+                                                    {unitoptiondata.MasterOption.Name}
+                                                </div>
+                                            </th>
+                                            <th scope="col">
+                                                <div>{unitoptiondata.MasterOption.Type__c}</div>
+                                            </th>
+                                            <th scope="col">
+                                                <div if:true={unitoptiondata.displayPrice}>
+                                                    <lightning-input type="number" name="Price" label="Price"
+                                                        value={unitoptiondata.price}
+                                                        data-id={unitoptiondata.MasterOption.Id}
+                                                        message-when-value-missing={unitoptiondata.priceMissingErrorMsg}
+                                                        required={unitoptiondata.isSelected}
+                                                        onchange={handlePriceChangeForUnit}></lightning-input>
+                                                </div>
+                                                <div if:false={unitoptiondata.displayPrice}>
+                                                    Not Required
+                                                </div>
+                                            </th>
+                                            <th scope="col">
+                                                <div if:true={unitoptiondata.MasterOption.Additional_Area_Required__c}>
+                                                    <lightning-input type="number" name="AdditionalArea"
+                                                        label="Area Required[SQFT]"
+                                                        data-id={unitoptiondata.MasterOption.Id}
+                                                        value={unitoptiondata.additionalAreaRequired}
+                                                        required={unitoptiondata.isSelected}
+                                                        message-when-value-missing={unitoptiondata.areaMissingErrorMsg}
+                                                        onchange={areaRequiredChange}></lightning-input>
+                                                </div>
+                                                <div if:false={unitoptiondata.MasterOption.Additional_Area_Required__c}>
+                                                    Not Required
+                                                </div>
+                                            </th>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- Modal/Popup Box LWC body ends here -->
+
+                <!-- Modal/Popup Box LWC footer starts here -->
+                <footer class="slds-modal__footer">
+                    <button class="slds-button slds-button_neutral" onclick={closeModal} title="Cancel">Cancel</button>
+                    <button class="slds-button slds-button_brand" onclick={submitUnitOptionsSelected}
+                        title="Submit">Submit</button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
+    <!-- download template-->
+    <template if:true={downloadTemplateModalFlag}>
+        <!-- Modal/Popup Box LWC starts here -->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- Modal/Popup Box LWC header here -->
+                <header class="slds-modal__header">
+
+                    <div class="slds-p-around_medium">
+                        <a target="_self" class="slds-text-heading_small slds-m-bottom_small" download="ExportToCSV.csv"
+                            href={hrefdata} onclick={exportToCSV}>Download Excel</a>
+                    </div>
+
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick={closeModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse"
+                            size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="modal-heading-07" class="slds-text-heading_medium slds-hyphenate">Generate Pricing Template
+                    </h2>
+                </header>
+                <!-- Modal/Popup Box LWC body starts here -->
+                <div class="slds-modal__content slds-p-around_medium slds-grid slds-wrap" id="modal-content-id-7">
+                    <lightning-datatable key-field="Id" data={genratePricingTemplate} columns={excelColumns}
+                        class="wrapped-header-datatable" hide-checkbox-column="true"></lightning-datatable>
+
+                </div>
+                <!-- Modal/Popup Box LWC footer starts here -->
+                <footer class="slds-modal__footer">
+
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
+    <!-- Unit Details-->
+    <template if:true={isShowUnitDetails}>
+        <c-unit-details modalcheck={isShowUnitDetails} unitid={unitRecordId} onclosepopup={closeViewDetails}>
+        </c-unit-details>
+    </template>
+
+    <!-- Sales Offer-->
+    <template if:true={showSalesOfferModel}>
+        <c-draw-loop-document-genration modalcheck={showSalesOfferModel} documentpackageid='a1z3M000000MtkEQAS'
+            deliveryoptionid='a1x3M0000009NrUQAU' recordids={salesOfferId} sobjecttype='Sales_Offer__c'
+            source='salesOffer'>
+        </c-draw-loop-document-genration>
+    </template>
+
+    <!-- Sales Bulk Offer-->
+    <template if:true={showBulkOfferModel}>
+        <c-draw-loop-document-genration modalcheck={showBulkOfferModel} documentpackageid='a1z3M000000MtkFQAS'
+            deliveryoptionid='a1x3M0000009NrVQAU' recordids={salesOfferId} sobjecttype='Sales_Offer__c'
+            source='salesOffer'>
+        </c-draw-loop-document-genration>
+    </template>
+</template>

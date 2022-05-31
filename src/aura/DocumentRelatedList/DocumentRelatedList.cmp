@@ -1,0 +1,172 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" controller="Broker_Portal_FileUploadController" >
+    <aura:dependency resource="markup://force:showToast" type="EVENT" />
+    <aura:handler event="force:showToast" action="{!c.doInit}" />
+    <aura:handler name="init" value="{!this }" action="{!c.doInit }"/>
+    <!-- 'parentId' Aura Attribute for store the Id for Parent Record where we are attach our file -->  
+    <aura:attribute name="parentId" type="Id" default="{!v.recordId}"/>
+    <aura:attribute name="files" type="ContentDocument[]"/>  
+    <!-- 'showLoadingSpinner' attribute for show/hide the uploading image and msg in aura:if-->
+    <aura:attribute name="showLoadingSpinner" type="boolean" default="false" />
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="cusRecList" type="Document__c[]"/>
+    <aura:attribute name="recId" type="string"/>
+    <aura:attribute name="isModalOpen" type="Boolean" default="false"/>  
+    <aura:attribute name="hasModalOpen" type="boolean" default="false"/>
+     <aura:attribute name="custDoc" type="Document__c" default="{'sobjectType': 'Document__c'}" />
+    <aura:attribute name="docEdit" type="Document__c" default="{'sobjectType': 'Document__c'}" />
+    <aura:attribute name="selectedDocumentId" type="string"/>
+    <aura:attribute name="mdtDocumentList" type="List" />
+     <aura:attribute name="docType" type="Document__c" />
+    <aura:attribute name="requiredDocList" type="List"/> 
+    
+    <div class="docviewtable">
+        <table class="slds-table">
+            <thead>
+                <tr class="slds-line-height_reset">
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Opportunity Name">Document Type</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Document No">Document No</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Account Name">Place of Issue</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Close Date">Expiry Date</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Stage">Issue Date</div>
+                    </th>
+                    
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Stage">Approval Status</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Confidence">Remark</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Confidence">View</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Confidence">Edit</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Confidence">Delete</div>
+                    </th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                <aura:iteration items="{!v.cusRecList}" var="col">
+                    <tr class="slds-hint-parent">
+                        <td data-label="DocumentType" scope="row">
+                            <div class="slds-truncate" title="DocumentType">{!col.Document_Type__c}
+                                
+                            </div>
+                        </td>
+                        <td data-label="DocumentName">
+                            <div class="slds-truncate" title="DocumentName">{!col.Name}</div>
+                        </td>
+                        <td data-label="Account">
+                            <div class="slds-truncate" title="Account">{!col.Place_of_Issue__c}</div>
+                        </td>
+                        <td data-label="ExpiryDate">
+                            <div class="slds-truncate" title="ExpiryDate">{!col.Expiry_Date__c}</div>
+                        </td>
+                        <td data-label="IssueDate">
+                            <div class="slds-truncate" title="IssueDate">{!col.Issue_Date__c}</div>
+                        </td>
+                        <td data-label="ApprovalStatus">
+                            <div class="slds-truncate" title="IssueDate">{!col.Approval_Status__c}</div>
+                        </td>
+                        <td data-label="Remark">
+                            <div class="slds-truncate" title="Remark">{!col.Remark__c}</div>
+                        </td>
+                        <td data-label="Confidence">
+                            
+                            <a onclick="{!c.getSelected}" data-Id="{!col.Attachment_Id__c}">View</a>
+                        </td>
+                        <td data-label="Confidence">
+                            <a onclick="{!c.editRecord}"  id="{!col.Id}" data-Id="{!col.Attachment_Id__c}">Edit</a>
+                        </td>
+                        <td data-label="Confidence">
+                            <a onclick="{!c.doDelete}" id="{!col.Id}" value="{!col.Id}"> 
+                                <i class="fa fa-download" aria-hidden="true">Delete</i>
+                            </a>
+                        </td> </tr>
+                </aura:iteration>
+            </tbody>
+        </table>
+    </div>
+    <aura:if isTrue="{!v.isModalOpen}">
+        
+        <!-- Modal/Popup Box starts here-->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- Modal/Popup Box Header Starts here-->
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close"
+                                          onclick="{!c.stopModal}"
+                                          alternativeText="close"
+                                          variant="bare-inverse"
+                                          class="slds-modal__close"/>
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Document Edit</h2>
+                </header>
+                <!--Modal/Popup Box Body Starts here-->
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    <lightning:recordEditForm aura:id="form"
+                                              recordId="{!v.recId}"
+                                              objectApiName="Document__c"
+                                              onsuccess="{!c.handleOnSuccess}"
+                                              class="">
+                        
+                        <lightning:messages/>
+                        <lightning:inputField fieldName="Name" disabled="true"/>
+                        <lightning:inputField fieldName="Document_Type__c" aura:id="doctype" readonly="true" disabled="true" />
+                        <lightning:inputField fieldName="Issue_Date__c" aura:id="issueDate"/>
+                        <lightning:inputField fieldName="Expiry_Date__c" aura:id="expiryDate"/>
+                        <lightning:inputField fieldName="Place_of_Issue__c" aura:id="placeOfIssue"/>
+                        <lightning:inputField fieldName="Approval_Status__c" aura:id="approvalStatus"/>
+                        <lightning:inputField fieldName="Remark__c" aura:id="remark"/>
+                        
+                        <lightning:button type="submit" label="Submit" variant="brand"/>
+                    </lightning:recordEditForm>
+                    
+                   <!--<lightning:input type="text" name="input1" value="{!v.docEdit.Name}"  label="Document ID" disabled="true"/>
+                   <lightning:input type="text" name="input2" value="{!v.docEdit.Document_Type__c}"  label="Document Type" disabled="true"/>
+                   <lightning:input type="Date" name="input3" value="{!v.docEdit.Issue_Date__c}"  label="Issue Date"/>
+                   <lightning:input type="Date" name="input4" value="{!v.docEdit.Expiry_Date__c}"  label="Expiry Date"/>
+                   <lightning:input type="text" name="input5" value="{!v.docEdit.Place_of_Issue__c}"  label="Place of Issue"/>
+                    <lightning:input type="text" name="input6" value="{!v.docEdit.Approval_Status__c}"  label="Approval"/>
+                    <lightning:input type="text" name="input7" value="{!v.docEdit.Remark__c}"  label="Remark"/>-->
+                 
+                </div>
+                <!--Modal/Popup Box Footer Starts here-->
+                <!--<footer class="slds-modal__footer">
+                    <button class="slds-button slds-button_neutral">Cancel</button>
+                    <button class="slds-button slds-button_brand" onclick="{!c.handleOnSuccess}">Submit</button>
+                </footer>-->
+                
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+    <aura:if isTrue="{!v.hasModalOpen}">
+        <section onclick="{!c.closeModel}"
+                 role="dialog"
+                 aria-modal="true"
+                 class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <div class="slds-modal__content slds-p-around_medium slds-text-align_center"
+                     style="background: transparent;">
+                    <div class="imgview">
+                        <!--<lightning:fileCard> to preview file using content document Id -->
+                        <lightning:fileCard fileId="{!v.selectedDocumentId}"/>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+</aura:component>

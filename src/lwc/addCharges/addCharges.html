@@ -1,0 +1,47 @@
+<!--********************************************************************************************
+* Name			: addCharges.html
+* Description	: LWC component to add Charges                               
+* Created Date	: 20/01/2022
+* Created By	: Cloudworks
+* **********************************************************************************************
+* Version		Author	    Date		    Comment   
+* 1.0           Rohit       20/01/2022      Initial Draft
+*********************************************************************************************-->
+<template>
+    <lightning-quick-action-panel header="Add Charges">
+        <div>
+            <!-- show spinner -->
+            <div if:true={isLoading} class="slds-is-relative">
+                <lightning-spinner alternative-text="Loading..." variant="brand" style="top:50px;"></lightning-spinner>
+            </div>
+        
+            <!-- show error -->
+            <template if:true={errorMessage}>
+                <p class="message"> {errorMessage} </p>
+            </template>
+
+            <template if:true={noUnitAvailable}>
+                <p class="message"> No Unit linked to this deal. </p>
+            </template>
+
+            <template if:true={noChargesAvailable}>
+                <p class="message"> No Additional Charges Available. </p>
+            </template>
+
+            <template if:true={chargesAvailable}>
+                <lightning-datatable
+                        key-field="id"
+                        data={data}
+                        columns={columns}
+                        onrowselection={handleRowSelection}>
+                </lightning-datatable>
+            </template>
+        </div>
+        <div slot="footer">
+            <lightning-button variant="neutral" label="Cancel" onclick={handleCancel}></lightning-button>
+            <template if:true={selectedData}>
+                <lightning-button variant="brand" label="Save" class="slds-m-left_x-small" onclick={handleSave}></lightning-button>
+            </template>
+        </div>
+      </lightning-quick-action-panel>
+</template>

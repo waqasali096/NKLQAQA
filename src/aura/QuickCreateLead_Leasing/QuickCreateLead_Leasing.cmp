@@ -1,0 +1,133 @@
+<!--Author Mamta Gupta-->
+<!-- Purpose Quick Lead creation for Leasing -->
+<aura:component controller="QuickCreateLead_Ctrl" implements="flexipage:availableForRecordHome,force:lightningQuickActionWithoutHeader,flexipage:availableForAllPageTypes">
+    <aura:attribute name="leasingtype" type="String" default=""/>  
+    <aura:attribute name="propertyType" type="String" default=""/> 
+    <aura:attribute name="leasingTypeMap" type="Map"/>
+    <aura:attribute name="recordtypeID" type="String"/>
+    <aura:attribute name="isDisabled" type="boolean" default="true"/>
+    <aura:attribute name="displayedsqft" type="string" default="false"/>
+    <aura:attribute name="displayedNoOfBedrooms" type="string" default="false"/>
+    
+    
+    <aura:attribute name="spinner" type="boolean" default="FALSE"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    
+    <!--loading spinner start-->
+    <aura:if isTrue="{!v.spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container">
+            <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                <span class="slds-assistive-text">Loading...</span>
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </aura:if>
+    <lightning:card iconName="standard:lead" title="Create Lead">
+        <lightning:recordEditForm
+                                  aura:id="leadCreateForm"
+                                  objectApiName="Lead"
+                                  onerror="{!c.handleError}"
+                                  onsubmit="{!c.onRecordSubmit}" 
+                                  onsuccess="{!c.handleOnSuccess}"
+                                  recordTypeId="{!v.recordtypeID}"
+                                  class="slds-card__body_inner">
+            
+            <!--<lightning:messages aura:id="messages" />-->
+            
+            <div class="slds-section slds-is-open">
+                <h3 class="slds-section__title slds-theme_shade slds-m-top_small">
+                    <span class="slds-truncate slds-p-horizontal_small">Lead Information</span>
+                </h3>
+                <div class="slds-section__content" >
+                    
+                    <div class="slds-grid">
+                        
+                        <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="Salutation"></lightning:inputField>
+                        </div>
+                        
+                        
+                        <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="FirstName"></lightning:inputField>
+                        </div>
+                    </div>
+                    
+                    <div class="slds-grid">
+                        <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="LastName"></lightning:inputField>
+                        </div>
+                        
+                        <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="Email" required="true"></lightning:inputField>
+                        </div>
+                    </div>
+                    
+                    <div class="slds-grid">
+                        
+                        <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="Interested_In__c" value="Leasing" disabled="true"></lightning:inputField>
+                        </div>
+                        
+                        <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:select label="Leasing Type" value="{!v.leasingtype}"  aura:id="field1" required="true"  onchange="{!c.callGetRecordType}">
+                                <option text="" value=""  ></option>
+                                <aura:iteration items="{!v.leasingTypeMap}" var="item" indexVar="index">
+                                    <option text="{!item.value}" value="{!item.key}"   selected="{!item.key == v.leasingtype}"></option>
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+                    </div>  
+                    <div class="slds-grid">
+                        
+                        <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="Country_Code__c"></lightning:inputField>
+                        </div>
+                        
+                        
+                        <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="MobilePhone" required="true"></lightning:inputField>
+                        </div>
+                        
+                    </div>
+                    
+                    <div class="slds-grid">
+                        
+                        <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="Inventory_Project__c" required="true"></lightning:inputField>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="Property_Type_1__c" required="true" disabled="{!v.isDisabled}">
+                                
+                            </lightning:inputField>
+                        </div>
+                        
+                    </div>
+                    
+                    <div class="slds-grid">
+                        <!-- fields have changed from Property_Type__c to Property_Type_1__c    -->
+                        <aura:if isTrue="{!v.displayedNoOfBedrooms}">
+                            <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                                <lightning:inputField fieldName="No_of_Bedrooms__c"></lightning:inputField>
+                            </div>
+                        </aura:if>
+                        
+                      <aura:if isTrue="{!v.displayedsqft}">
+                            <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                                <lightning:inputField fieldName="Area_requirement_SQFT__c"></lightning:inputField>
+                            </div>
+                     </aura:if>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="slds-m-top_medium" style="margin-left:15px;">
+                <lightning:button type="submit" label="Save" variant="brand"/>
+                
+            </div>
+        </lightning:recordEditForm>
+    </lightning:card>
+    
+</aura:component>

@@ -1,0 +1,34 @@
+.THIS .slds-cell-fixed.slds-has-button-menu {
+    color: white !important;
+    background-color: #36628B !important;
+}
+.THIS .slds-cell-fixed.slds-has-button-menu :hover{
+    color: white !important;
+    background-color: #36628B !important;
+}
+.THIS .slds-button.slds-button_icon-bare {
+     Visibility :hidden;
+}
+.THIS .slds-th__action.slds-th__action_form.slds-cell-fixed {
+    color: white !important;
+    background-color: #36628B !important;
+}
+
+.THIS .slds-card__header.slds-grid {
+    height: 3.2rem;
+    background-color: #f0f0f0;
+    margin-top: -1rem;
+    width: 102.5%;
+    margin-left: -1rem;
+}
+.THIS .slds-icon-standard-entity.slds-icon_container {
+    background-color: #36628B !important;
+    margin-left: 0.7rem;
+}
+.THIS .btnSize {
+    margin-left: 45%;
+     background-color: #36628B !important;
+}
+.THIS .slds-cell-fixed {
+     background-color: #36628B !important;
+}

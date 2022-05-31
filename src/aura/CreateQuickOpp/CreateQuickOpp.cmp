@@ -1,0 +1,70 @@
+<aura:component controller="CreateQuickOppController" implements="force:hasRecordId,force:hasSObjectName,flexipage:availableForRecordHome,force:lightningQuickActionWithoutHeader,flexipage:availableForAllPageTypes" access="global" >
+    
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="defaults" type="Object" />
+    <aura:attribute name="projectsList" type="List"/>
+    <aura:attribute name="selectedProject" type="string" />
+    <aura:attribute name="availableUnitsCount" type="string" default='Please select a Project'/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="spinner" type="boolean" default="FALSE"/>
+    
+    <aura:if isTrue="{!v.spinner}">
+        <lightning:spinner class="spins" size="medium" variant="brand" alternativeText="Loading" />
+    </aura:if>
+    
+    <lightning:card iconName="custom:custom95" title="Quick Booking">
+            <!--<div class="slds-section slds-is-open">
+                <div class="slds-m-top_medium slds-text-align_center" style="margin-left:15px;">
+                    <span class="slds-page-header slds-theme_alt-inverse slds-text-title_caps 
+                                 slds-text-color_inverse slds-text-align_center slds-m-top_medium">Booking Information</span>
+                </div>
+                <br></br>
+                <div class="slds-grid">
+                    <div class="slds-col slds-size_1-of-2" >
+                        <div style="margin-left:20px;" padding="around-small">
+                            <lightning:select class="slds-m-right_small" aura:id="Projects" value="{!v.selectedProject}" 
+                                              label="Project" onchange="{!c.handleProjectOnChange}" required="true">
+                                <option value="">Please select a Project</option>
+                                <aura:iteration items="{!v.projectsList}" var="prj" indexVar="key">
+                                    <option text="{!prj.Name}" value="{!prj.Id}" />
+                                </aura:iteration>
+                            </lightning:select>
+                            <aura:if isTrue="{!v.availableUnitsCount == 0}">
+                                <p class="slds-m-around_medium slds-text-align_center">
+                                    <span class="slds-badge slds-theme_error" >
+                                        AVAILABLE UNITS : {!v.availableUnitsCount}
+                                    </span>
+                                </p>
+                            </aura:if>
+                            <aura:if isTrue="{!v.availableUnitsCount > 0}">
+                                <p class="slds-m-around_medium slds-text-align_center">
+                                    <span class="slds-badge slds-theme_success" style="display:inline-block;background:teal;">
+                                        AVAILABLE UNITS : {!v.availableUnitsCount}
+                                    </span>
+                                </p>
+                            </aura:if>
+                            <aura:if isTrue="{!v.availableUnitsCount == 'Please select a Project'}">
+                                <p class="slds-m-around_medium slds-text-align_center">
+                                    <span class="slds-badge slds-theme_warning">
+                                        {!v.availableUnitsCount}
+                                    </span>
+                                </p>
+                            </aura:if>
+                            
+                        </div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2">
+                        <lightning:input style="margin-right:20px;" padding="around-small" class="slds-m-right_small" 
+                                         label="Name" aura:id="myInputField" fieldName="Name" 
+                                         value="{!v.defaults.Name}"  disabled="true" />
+                        <lightning:input style="margin-right:20px;" padding="around-small" class="slds-m-right_small" 
+                                         label="Close Date"  aura:id="myInputField" fieldName="CloseDate" 
+                                         value="{!v.defaults.CloseDate}"  disabled="true" />
+                    </div>                    
+                </div>
+            </div>-->
+            <div class="slds-m-top_medium slds-text-align_center"> 
+                <lightning:button variant="brand" label="Book" type="submit" onclick="{!c.handleOnSubmit}"/>
+            </div>
+    </lightning:card>
+</aura:component>

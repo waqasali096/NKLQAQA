@@ -1,0 +1,15 @@
+<template>
+    <lightning-file-upload 
+            name="Campaign upload"
+            accept={acceptedFormats}
+            record-id={myRecordId}
+            onuploadfinished={handleUploadFinished}
+            single>
+    </lightning-file-upload>
+    <template if:true ={success} >
+    </template>
+    <template if:true={failure}>
+    
+    </template>
+    
+    </template>

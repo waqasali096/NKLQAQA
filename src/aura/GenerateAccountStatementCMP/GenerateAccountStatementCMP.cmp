@@ -1,0 +1,16 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction" access="global" controller="CreateAccountSOACtrl">
+    <aura:attribute name="opportunities" type="List"/>
+    <aura:attribute name="selOpportunity" type="String"/>
+    
+    <aura:handler name="init" action="{!c.doInit}" value="{!this}"/>
+    
+    <lightning:radioGroup name="radioGroup"
+                          label="Select Opportunity"
+                          options="{! v.opportunities }"
+                          value="{! v.selOpportunity }"
+                          type="radio"/>
+    <br/>
+    <center>
+        <lightning:button variant="brand" label="Generate Statement" title="Generate Account Statement" onclick="{! c.generateStatement }" />
+    </center>
+</aura:component>

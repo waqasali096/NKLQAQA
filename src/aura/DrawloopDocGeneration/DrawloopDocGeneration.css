@@ -1,0 +1,13 @@
+.THIS.videoWrapper {
+	position: relative;
+	padding-top: 25px;
+	height: auto;
+    width: auto;
+}
+.THIS.iframe {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 60%;
+	height: 60%;
+}

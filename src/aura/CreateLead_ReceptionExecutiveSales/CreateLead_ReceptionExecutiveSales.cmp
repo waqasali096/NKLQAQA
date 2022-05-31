@@ -1,0 +1,115 @@
+<!--Author Mamta Gupta-->
+<!-- Purpose Quick Lead creation-->
+<aura:component implements="flexipage:availableForRecordHome,force:lightningQuickActionWithoutHeader,flexipage:availableForAllPageTypes">
+       <aura:attribute name="spinner" type="boolean" default="FALSE"/> 
+
+     <!--loading spinner start-->
+    <aura:if isTrue="{!v.spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container">
+            <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                <span class="slds-assistive-text">Loading...</span>
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </aura:if>
+    <lightning:card iconName="standard:lead" title="Create Lead">
+       <lightning:recordEditForm
+            aura:id="leadCreateForm"
+             objectApiName="Lead" onsubmit="{!c.onRecordSubmit}"  onsuccess="{!c.handleOnSuccess}"
+              class="slds-card__body_inner">
+            
+            <!--<lightning:messages aura:id="messages" />-->
+            
+            <div class="slds-section slds-is-open">
+                <h3 class="slds-section__title slds-theme_shade slds-m-top_small">
+                    <span class="slds-truncate slds-p-horizontal_small">Lead Information</span>
+                </h3>
+                <div class="slds-section__content" >
+                       
+                    <div class="slds-grid">
+                        
+                         <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="Salutation"></lightning:inputField>
+                        </div>
+                        
+                     
+                        <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="FirstName"></lightning:inputField>
+                        </div>
+                        
+                        
+                       
+                        
+                    </div>
+                    
+                    <div class="slds-grid">
+                        
+                         <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="LastName"></lightning:inputField>
+                        </div>
+                        
+                         <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="Email" required="true"></lightning:inputField>
+                        </div>
+                        
+                        
+                        
+                    </div>
+                                        
+                    
+                    <div class="slds-grid">
+                        
+                       <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="Country_Code__c"></lightning:inputField>
+                        </div>
+                        
+                        
+                        <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="MobilePhone" required="true"></lightning:inputField>
+                        </div>
+                        
+                    </div>
+                    
+                      <div class="slds-grid">
+                       <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="Inventory_Project__c" required="true"></lightning:inputField>
+                        </div>
+                         <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="Lead_Channel__c" required="false"></lightning:inputField>
+                        </div>
+                        
+                          <!--<div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="No_of_Bedrooms__c" required="true"></lightning:inputField>
+                        </div>-->
+                    </div>
+                    
+                     <div class="slds-grid">
+                      
+                        
+                          <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="Lead_Channel_Sources__c" required="false"></lightning:inputField>
+                        </div>
+                    </div>
+
+                    
+                    
+                    
+                    
+                   <!-- <div class="slds-grid">
+                        
+                        <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                            <lightning:inputField fieldName="Company"></lightning:inputField>
+                        </div>
+                    </div>-->
+                    </div>
+            </div>
+            <div class="slds-m-top_medium" style="margin-left:15px;">
+                <lightning:button type="Reset" label="Reset" variant="neutral"  onclick="{!c.onRecordRefresh}" />
+                <lightning:button type="submit" label="Save" variant="brand"/>
+
+            </div>
+        </lightning:recordEditForm>
+    </lightning:card>
+ 
+</aura:component>

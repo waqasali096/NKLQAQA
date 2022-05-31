@@ -1,0 +1,13 @@
+.THIS .modal-body.scrollable.slds-modal__content.uiModal--recordActionWrapper{
+        width: 42% !important;
+    margin-left: 25% !important;
+}
+
+.THIS .customButton {
+    color: white !important;
+    background-color: #36628B !important;
+}
+
+.THIS .buttonPosition {
+    margin-top : 4rem !important;
+}

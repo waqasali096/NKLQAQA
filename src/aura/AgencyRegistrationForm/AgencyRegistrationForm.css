@@ -1,0 +1,620 @@
+/* GRAVITYALPHA EDITS-1 [S] */
+
+
+
+.THIS * {
+    font-family: 'Open Sans', sans-serif !important; /*rtl:prepend:"HS-Ishraq-Bold",;; */;
+}
+
+.THIS .input-group.input-group-seamless>.form-control {
+    border-radius: .375rem !important;
+}
+
+.THIS .fa {
+    font: normal normal normal 14px/1 FontAwesome !important;
+}
+
+.THIS .form-control:focus {
+    border-color: #003F71;
+}
+.THIS .red-text-css{
+    color: red;
+}
+.THIS .green-text-css{
+    color: green;
+}
+
+
+.THIS  input, .THIS  optgroup, .THIS  select, .THIS  textarea {
+    margin: 0;
+    font-family: inherit;
+    font-size: 13px;;
+    line-height: inherit;
+}
+
+
+.THIS .steps li h3 {
+    
+    font-size: 14px;
+    font-weight: 400;
+}
+
+
+
+
+@media only screen and (max-width : 600px) {
+    
+    .THIS .slds-col-section {
+        width: 100%; 
+    }
+    
+}
+
+
+/*
+.THIS .slds-has-error .slds-input{
+border-color: #dc3545;
+padding-right: calc(1.5em + .75rem);
+background-image: url({! $Resource.ga_ui_library + '/icons/input-error.svg'});
+background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Flat_cross_icon.svg/1200px-Flat_cross_icon.svg.png');
+background-repeat: no-repeat;
+background-position: center right calc(.375em + .1875rem);
+background-size: calc(.75em + .375rem) calc(.75em + .375rem);
+}
+
+.THIS .form-control.is-invalid, .THIS .was-validated .form-control:invalid {
+border-color: #dc3545;
+padding-right: calc(1.5em + .75rem);
+background-image: url({! $Resource.ga_ui_library + '/icons/input-error.svg'});
+background-image: url(https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Flat_cross_icon.svg/1200px-Flat_cross_icon.svg.png);
+background-repeat: no-repeat;
+background-position: center right calc(.375em + .1875rem);
+background-size: calc(.75em + .375rem) calc(.75em + .375rem);
+}
+
+*/
+
+
+.THIS .slds-modal__content:last-child, .THIS .slds-modal__content_has-hidden-footer {
+    border-bottom-right-radius: var(--sds-c-modal-radius-border, var(--lwc-borderRadiusMedium,0.25rem));
+                border-bottom-left-radius: var(--sds-c-modal-radius-border, var(--lwc-borderRadiusMedium,0.25rem));
+                        box-shadow: none;
+                    }
+                    
+                    .THIS .btn-primary:not(:disabled):not(.disabled).active, .THIS .btn-primary:not(:disabled):not(.disabled):active, .THIS .show>.btn-primary.dropdown-toggle {
+                        color: #fff;
+                        background-color: #204d74;
+                        border-color: #204d74;
+                        background-image: none;
+                        box-shadow: inset 0 3px 5px rgba(0,0,0,.125)!important;
+                    }
+                    
+                    /*                    
+                    .THIS .btn {
+                    font-weight: 300;
+                    font-family: inherit;
+                    border: 1px solid transparent;
+                    padding: 0rem 0rem;
+                    font-size: .875rem;
+                    line-height: 1.125;
+                    border-radius: .375rem;
+                    transition: all 250ms cubic-bezier(.27,.01,.38,1.06);
+                }
+                    */
+                    
+                    /* GRAVITYALPHA EDITS-1 [E] */
+                    
+                    
+                    /*
+                    
+                    .THIS .next {
+                    margin-left: 15px !important;
+                    left: -10px!important;
+                    background-color: #003f71;
+                    border-color: #043c74;
+                    border-radius: 0px 20px;
+                    width: 10em;
+                    line-height: 2.6em;
+                }
+                    
+                    */
+                    
+                    .THIS .next {
+                        
+                        
+                        background-color: rgb(149, 138, 85);
+                        border-color: rgb(149, 138, 85);
+                        border-radius: 0px;
+                        width: 11em;
+                        line-height: 2.6em;
+                    }
+                    
+                    .THIS .addRowButton {
+                        margin-left: 15px!important;
+                        left: -10px!important;
+                        background-color: rgb(149, 138, 85);
+                        border-color: rgb(149, 138, 85);
+                        font-weight: bold;
+                        border-radius: 0px;
+                        width: 10em;
+                        line-height: 2.6em;
+                    }
+
+                    .THIS .popupBtnCss{
+                        border-radius: 0px;
+                    }
+
+                    .THIS .brandBtn{
+                        background-color: rgb(149, 138, 85);
+                    }
+                    
+                    /*
+                    .THIS .slds-card {
+                    padding: 0px !important;
+                    margin: 0em auto;
+                    background-color: #fff;
+                    border-radius: 4.2px;
+                    box-shadow: 0px 3px 10px -2px rgb(0 0 0 / 20%);
+                    margin-top: -5%;
+                }
+                    */
+                    
+                    .THIS .slds-card {
+                        border:none;
+                    }
+                    
+                    
+                    .THIS .slds-card__header {
+                        padding: 0px !important;
+                        display: none;
+                        
+                    }
+                    
+                    .THIS .slds-media_center {
+                        align-items: center !important;
+                        background: #95A5A6 !important;
+                        color: #fff !important;
+                        padding: 10px !important;
+                        border-radius: 5px 5px 0px 0px !important;
+                    }
+                    
+                    .THIS .slds-icon-standard-form {
+                        background-color: #b59458 !important;
+                    }
+                    
+                    /*
+                    .THIS .uiInput--select.select:not([multiple]) {
+                    border-color: #174c7c;
+                }
+                    */
+                    
+                    .THIS .slds-section {
+                        margin-top: 0 !important;
+                        border-radius: 10px !important;
+                    }
+                    
+                    .THIS .slds-section__title {
+                        /*border-radius: 7px 7px 0 0!important;*/
+                        color: #003f71!important;
+                        padding: 5px!important;
+                        font-size: 16px;
+                        /* background: #003f71!important; */
+                        /* border-color: #003f71!important; */
+                        border-bottom: 1px solid #003f71;
+                    }
+                    
+                    
+                    
+                    
+                    .THIS .agencyDetails, .THIS .bankDetails {
+                        padding-left: 0px;
+                        margin-right: 0px;
+                        margin-bottom: 0px;
+                    }
+                    
+                    .THIS .slds-form-element__label, .THIS .selectAgency {
+                        color: #33261e !important;
+                        font-weight:  400;
+                        font-size: 14px;
+                    }
+                    
+                    
+                    
+                    .THIS .slds-select_container .slds-select {
+                        border-color: #174c7c;
+                    }
+                    
+                    .THIS .slds-wrap {
+                        padding: 10px;
+                    }
+                    
+                    .THIS .slds-card__body {
+                        padding: 10px;
+                        padding-top: 10px;
+                    }
+                    
+                    .THIS .slds-tabs_card {
+                        border-color: #174c7c;
+                        border: 2px solid #174c7c;
+                        padding: 0px;
+                        box-shadow: 0 3px 10px -2px rgb(53 40 32);
+                    }
+                    
+                    .THIS .slds-section-title--divider {
+                        background: #f3f2f2;
+                        color: black;
+                        padding: 10px;
+                        
+                    }
+                    
+                    .THIS .slds-icon-standard-user {
+                        background-color: #b69357;
+                    }
+                    
+                    .THIS .slds-table {
+                        border: 1px solid #352820;
+                    }
+                    
+                    .THIS .slds-table thead th {
+                        border-bottom: 1px solid #352820;
+                        background:darkgray;
+                        color: #fff;
+                    }
+                    
+                    .THIS .container {
+                        position: relative;
+                        text-align: left;
+                        color: white;
+                    }
+                    
+                    .THIS .centered {
+                        width: 50%;
+                        position: absolute;
+                        top: 50%;
+                        left: 30%;
+                        transform: translate(-50%, -50%);
+                    }
+                    
+                    .THIS .greetingImage {
+                        padding: 0px !important;
+                        margin-top: -2% !important;
+                    }
+                    
+                    .THIS .greeting .slds-card__header {
+                        display: none;
+                    }
+                    
+                    .THIS .greetingMessage {
+                        color: #003f71 !important;
+                        text-align: center;
+                        font-size: 1.4em;
+                    }
+                    
+                    .THIS .greetingMessagePara {
+                        color: #003f71 !important;
+                        text-align: center;
+                        font-size: 0.9em;
+                    }
+                    
+                    .THIS .docList {
+                        border: 3px solid #003f71;
+                        padding: 10px;
+                        border-radius: 5px;
+                    }
+                    
+                    .THIS .docUpload .slds-table thead th {
+                        background: #958a55  !important;
+                    }
+                    
+                    .THIS .docUpload .slds-table thead th .slds-truncate {
+                        color: #fff !important;
+                    }
+                    
+                    
+                    /*------- Steps CSS ------*/
+                    
+                    .THIS .wrapper {
+                        max-width: 1170px;
+                        margin: 0 auto;
+                    }
+                    
+                    .THIS .steps {
+                        counter-reset: counter;
+                        list-style: none;
+                        padding-left: 0;
+                        margin-bottom: 0;
+                        margin-left: 15px;
+                    }
+                    .THIS .steps li {
+                        margin: 10px 0;
+                    }
+                    .THIS .steps li:before {
+                        content: "\2713";
+                        counter-increment: counter;
+                        float: left;
+                        margin-right: -50px;
+                        box-sizing: border-box;
+                        display: inline-block;
+                        width: 50px;
+                        height: 50px;
+                        border-radius: 100%;
+                        color: #FFF;
+                        text-align: center;
+                        font-size: 28px;
+                        line-height: 20px;
+                        padding-top: 15px;
+                        padding-bottom: 15px;
+                        background-color: #c5973f;
+                    }
+                    .THIS .steps li.active:before {
+                        background-color: rgb(149, 138, 85);
+                        content: counter(counter);
+                        counter-increment: counter;
+                        font-size: 20px;
+                    }
+                    .THIS .steps li.active ~ li:before {
+                        background-color: #95a5a6;
+                        content: counter(counter);
+                        counter-increment: counter;
+                        font-size: 20px;
+                    }
+                    .THIS .steps li a, .THIS .steps li span {
+                        text-decoration: none;
+                        display: inline-block;
+                        padding-left: 60px;
+                        color: #333;
+                        font-size: 16px;
+                        line-height: 16px;
+                        padding-top: 17px;
+                        padding-bottom: 17px;
+                    }
+                    .THIS .steps li a:hover, .THIS .steps li a:active, .THIS .steps li a:focus {
+                        color: #4aa3df;
+                    }
+                    @media (min-width: 768px) {
+                        .THIS .steps {
+                            display: flex;
+                            flex-wrap: wrap;
+                        }
+                        .THIS .steps li {
+                            width: calc(90% / 2);
+                            position: relative;
+                            z-index: 1;
+                        }
+                        
+                        .THIS .steps li h3 {
+                            position: absolute;
+                            top: 55px;
+                            left: -35px;
+                            line-height: 15px;
+                            font-size: 14px;
+                            color: #174c7c;
+                            text-transform: uppercase;
+                            text-align: center;
+                            width: 120px;
+                            font-weight: 400;
+                        }
+                        
+                        .THIS .steps li:before {
+                            float: none;
+                            margin-right: 0;
+                        }
+                        .THIS .steps li:after {
+                            content: "";
+                            display: inline-block;
+                            position: absolute;
+                            top: 25px;
+                            left: 45px;
+                            transform: translateY(-50%);
+                            z-index: -1;
+                            height: 15px;
+                            width: calc(100% - 40px);
+                            border-radius: 5px;
+                            background-color: #c5973f;
+                        }
+                        .THIS .steps li:last-of-type {
+                            width: fit-content;
+                        }
+                        .THIS .steps li:last-of-type:after {
+                            display: none;
+                        }
+                        .THIS .steps li.active:after {
+                            background-color: #bdc3c7;
+                        }
+                        .THIS .steps li.active ~ li:after {
+                            background-color: #ecf0f1;
+                        }
+                        .THIS .steps li a, .THIS .steps li span {
+                            display: block;
+                            padding-left: 10px;
+                            padding-right: 10px;
+                        }
+                        
+                        .THIS .label-hidden > label {
+                            display: none;
+                        }
+                        
+                        
+                        
+                        
+                    }
+                    
+                    .THIS .goToHome p {
+                        width: max-content;
+                        padding: 6px 15px;
+                        border: 1px solid #003f71;
+                        border-radius: 0 20px;
+                        background: #003f71 !important;
+                        color: #fff;
+                        text-shadow: 0px 0px 5px #111;
+                        box-shadow: 0px 0px 5px #8e8d8d;
+                    }
+                    
+                    .THIS .goToHome p:hover {
+                        color: #f71c5c;
+                    }
+                    
+                    .THIS .goToHome p a {
+                        color: #fff;
+                    }
+                    
+                    .THIS .redirectSection p {
+                        padding-top: 15%;
+                        font-weight: 400;
+                        font-size: 14px;
+                        text-shadow: 0px 0px 5px #111;
+                    }
+                    
+                    .THIS .redirectSection p a {
+                        color: #f70c51;
+                        text-shadow: 0px 0px 6px #111;
+                    }
+                    
+                    .THIS .redirectSection p a:hover {
+                        color: #f71c5c !important;
+                        text-shadow: 0px 0px 6px #111;
+                    }
+                    
+                    .THIS .sectionHeading h2 {
+                        text-shadow: 0px 0px 10px #111;
+                        color: #fff;
+                    }
+                    
+                    .THIS .sectionName span {
+                        text-shadow: 0px 0px 5px #111;
+                        color: #fff;
+                    }
+                    
+                    .THIS .sectionMessage {
+                        text-shadow: 0px 0px 3px #111;
+                    }
+                    
+                    .THIS .whoWeAre {
+                        align-items: center !important;
+                    }
+                    
+                    .THIS .slds-modal__container {
+                        margin: 0 auto !important;
+                        width: 80% !important;
+                        max-width: 70rem !important;
+                        min-width: 20rem !important;
+                    }
+                    
+                    .THIS .docUploadFor {
+                        font-size: 17px;
+                        font-weight: 600;
+                        margin: auto;
+                        border: 2px solid #34271C;
+                        width: fit-content;
+                        padding: 10px;
+                        border-radius: 5px;
+                        background: grey ;
+                        color: #fff;
+                        text-shadow: 0px 0px 2px #174c7c;
+                        box-shadow: 1px 1px 5px #174c7c;
+                    }
+                    
+                    .THIS .agentName {
+                        color: #fff;
+                        text-shadow: 0px 0px 2px #174c7c;
+                    }
+                    
+                    .THIS .slds-form-element__label {
+                        padding-left:10px
+                    }
+                    
+                    
+                    /* GRAVITYALPHA EDITS-2 [S] */
+                    
+                    
+                    @media (min-width: 48em) {
+                        .THIS .slds-form-element_horizontal .slds-form-element__label, .THIS .slds-form_horizontal .slds-form-element .slds-form-element__label, .THIS .slds-form_stacked .slds-form-element_horizontal .slds-form-element__label 
+                        {
+                            float: left;
+                            max-width: calc(50% - var(--lwc-squareIconUtilityMedium,1.25rem));
+                        flex-basis: calc(33% - var(--lwc-squareIconUtilityMedium,1.25rem));
+                    margin-bottom: 0;
+                    position: relative;
+                    z-index: 1;
+                    padding-left: 10%;            
+                }
+            }
+            
+            @media (min-width: 48em) {
+                .THIS .slds-form-element_horizontal .slds-form-element__control, .THIS .slds-form_horizontal .slds-form-element .slds-form-element__control, .THIS .slds-form_stacked .slds-form-element_horizontal .slds-form-element__control 
+                {
+                    padding-left: 50%;
+                    clear: none;
+                }
+            }
+            
+            .THIS .slds-text-color_error, .THIS  .slds-text-color--error {
+                text-align:end;
+            }
+            
+            
+            .THIS  .slds-card__footer {
+                text-align: left;
+                border: 1px solid #efefef;
+            }
+            
+            .THIS .galpha_btn_grp_align_right {       
+                margin-top: -6px;
+                margin-right: -14px;
+                
+                float: right;
+                font-weight:300;
+                
+            }
+            
+            
+            @media only screen and (max-width: 600px) {
+                
+                .THIS .galpha_btn_grp_align_right {       
+                    margin-top: 10px;
+                    margin-right: -14px;
+                    float:none;
+                    text-align: end;
+                    
+                }
+            }
+            
+            .THIS .card-title {
+                margin-bottom: .75rem;
+                font-size: 14px;
+                font-weight: 400;
+            } 
+            .THIS abbr[title] {
+                cursor: help;
+                float: right;
+            }
+            .THIS.slds-spinner_container {  
+                z-index: 10000;
+                position: fixed;   
+            }
+            
+            .THIS .popover {
+                float: left;
+                
+            }            
+            
+            
+            .THIS .slds-tabs_card {
+  background-color: #fff;
+    border: 1px solid #d2d0d0;
+    border-radius: .625rem;
+    box-shadow: 0 0.46875rem 0.1875rem rgb(90 97 105 / 0%), 0 -0.0625rem 0.20625rem rgb(90 97 105 / 7%), 0 0.25rem 0.53125rem rgb(90 97 105 / 12%), 0 0.125rem 0.1875rem rgb(90 97 105 / 10%);
+}
+            
+    .THIS .slds-table {
+    border: 1px solid #d2d0d0;
+}
+            
+            .THIS .docList {
+    border: 1px solid #958a55;
+    padding: 10px;
+    border-radius: 5px;
+}
+ 
+            
+            /* GRAVITYALPHA EDITS-2 [E] */

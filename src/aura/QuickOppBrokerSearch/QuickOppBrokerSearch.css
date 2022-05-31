@@ -1,0 +1,61 @@
+/*.THIS .textColor{
+    color: white !important;
+    background-color: #05628a !important;
+    border: 1px solid rgb(243 243 243) !important;
+}
+.THIS.headcls {
+    color: white !important;
+    background-color: #707B7C  !important;
+    border: 1px solid rgb(243 243 243) !important;
+    font-size: 13pt;
+    padding: 2px !important;
+}
+
+.THIS .slds-button_brand {
+    color: white !important;
+    background-color: #2980B9 !important;
+    border: 1px solid rgb(243 243 243) !important;
+}
+.THIS .slds-button.slds-button_inverse {
+    color: white !important;
+    background-color: #A93226  !important;
+    border: 1px solid rgb(243 243 243) !important;
+}
+.THIS .slds-button.slds-button_neutral {
+    color: white !important;
+    background-color: #A93226!important;
+    border: 1px solid rgb(243 243 243) !important;
+}
+.THIS .slds-cell-fixed.slds-has-button-menu {
+    color: white !important;
+    background-color: #05628a !important;
+}
+.THIS .slds-cell-fixed.slds-has-button-menu :hover{
+    color: white !important;
+    background-color: #05628a !important;
+}*/
+.THIS .slds-th__action.slds-th__action_form.slds-cell-fixed {
+    color: white !important;
+    background-color: #05628a !important; 
+}
+.THIS .slds-th__action {
+    color: white !important;
+    background-color: #05628a !important; 
+}
+.THIS * {
+    font-family: 'Open Sans', sans-serif !important; /*rtl:prepend:"HS-Ishraq-Bold",;; */;
+}
+
+
+@media (min-width: 48em) {
+    .THIS .slds-form-element_horizontal .slds-form-element__label, .THIS .slds-form_horizontal .slds-form-element .slds-form-element__label, .THIS .slds-form_stacked .slds-form-element_horizontal .slds-form-element__label 
+    {
+        float: left;
+        max-width: calc(50% - var(--lwc-squareIconUtilityMedium,1.25rem));
+    flex-basis: calc(33% - var(--lwc-squareIconUtilityMedium,1.25rem));
+margin-bottom: 0;
+position: relative;
+z-index: 1;
+padding-left: 10%;
+}
+}

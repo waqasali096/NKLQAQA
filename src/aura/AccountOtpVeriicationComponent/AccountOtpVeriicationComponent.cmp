@@ -1,0 +1,139 @@
+<aura:component controller="AccountOtpVerificationController" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionWithoutHeader" access="global" >
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:attribute name="recordId" type="String"/>
+    <aura:attribute name="accLst" type="List"/>
+    
+    <!-- <aura:handler event="aura:waiting" action="{!c.showSpinner}"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/>	-->
+    <aura:attribute name="Spinner" type="boolean" default="false"/>
+    
+    <aura:attribute name="mobileVerifyContainer" type="Boolean" default="true" />
+    <aura:attribute name="primaryMobileNumber" type="String" />
+    <aura:attribute name="primaryEmail" type="String" />
+    <aura:attribute name="customerName" type="String" default=""/>
+    <aura:attribute name="sendOTPButton" type="Boolean" default="true" />
+    <aura:attribute name="resendOTPButton" type="Boolean" default="false" />
+    <aura:attribute name="sendButtonDisabled" type="Boolean" default="false" />
+    <aura:attribute name="resendButtonDisabled" type="Boolean" default="false" />
+    <aura:attribute name="OTP" type="String"/>
+    <aura:attribute name="showVerifyOTP" type="Boolean" default="false" />
+    <aura:attribute name="showTimeLeft" type="Boolean" default="false" />
+    <aura:attribute name="isSave" type="Boolean" default="false" />
+    <aura:attribute name="otpNumber" type="String" />
+    <aura:attribute name="otpVerified" type="Boolean" default="false" />
+    <aura:attribute name="otpNotVerified" type="Boolean" default="false" />
+    <aura:attribute name="otpExpired" type="Boolean" default="false" />
+    <aura:attribute name="updateMobileCheckbox" type="Boolean" default="false" />
+    <aura:attribute name="isPersonAccount" type="Boolean" default="false" />
+    <aura:attribute name="updateMobileNumber" type="Boolean" default="false" />
+    <aura:attribute name="selectedNumber" type="String" />
+    <aura:attribute name="reloadForm" type="boolean" default="true" />
+    <aura:attribute name="primarySelected" type="boolean" default="false" />
+    <aura:attribute name="secondarySelected" type="boolean" />
+    <aura:attribute name="tertiarySelected" type="boolean" />
+    <aura:attribute name="mobileCategorySelectedSaveButton" type="boolean" />
+    
+    <aura:attribute name="endTime" type="String"/>
+    <aura:attribute name="minutes" type="Integer" default="1"/> 
+    <aura:attribute name="countDownMinutes" type="Integer" default="0"/> 
+    <aura:attribute name="countDownSeconds" type="Integer" default="0"/> 
+    <aura:attribute name="timeLeft" type="String"/>
+    <aura:attribute name="calledFromNewDeal" type="Boolean" default="false"/>
+    
+    <aura:registerEvent name="leasingOppAccountOTPVerificationEvent" type="c:LeasingOppAccountOTPVerificationEvent"/>
+    
+    <aura:html tag="style">
+        .slds-modal__container{
+        	max-width: 25% !important;
+        }
+        
+    </aura:html>
+    
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container">
+            <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                <span class="slds-assistive-text">Loading</span>
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </aura:if>
+    
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container">
+            <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                <span class="slds-assistive-text">Loading</span>
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </aura:if>
+    
+    <lightning:layout multipleRows="true">
+        <lightning:layoutItem size="12" flexibility="auto" class="cssCenter" padding="around-small">
+            <h1 class="slds-text-heading--medium" style="font-weight: bold;">Customer Verification</h1>
+        </lightning:layoutItem>
+        
+        <lightning:layoutItem size="12" flexibility="auto" class="cssCenter" padding="around-small">
+            <aura:if isTrue="{!v.showTimeLeft}">
+                <lightning:tile class="slds--header">
+                    <h3 style="color:#0176d3;fpageont-size: 1.1em;">Time Left : <span style="color:#ff332b;">{!v.timeLeft}</span></h3>
+                </lightning:tile>
+            </aura:if>
+            
+            <aura:if isTrue="{!v.otpExpired}">
+                <span style="color:#ff332b;"> OTP Expired! Please Resend OTP and Try Again </span>
+            </aura:if>
+        </lightning:layoutItem>
+        
+        <lightning:layoutItem size="12" flexibility="auto" class="cssCenter" padding="around-small">
+            <img style="height: 100px !important;" src="{!$Resource.mobile_sms}"/>
+        </lightning:layoutItem>
+        
+        <lightning:layoutItem size="12" flexibility="auto" class="cssCenter" padding="around-small">
+            <h1 class="slds-text-heading--medium">Enter a verification code</h1>
+        </lightning:layoutItem>
+        
+        <lightning:layoutItem size="12" flexibility="auto" class="cssCenter" padding="around-small">
+            <span style="font-size: 14px;">A text message with verification code will send to {!v.primaryMobileNumber}</span>
+        </lightning:layoutItem>
+                
+        <aura:if isTrue="{!v.showVerifyOTP}">
+            <lightning:layoutItem size="7" flexibility="auto" class="cssCenter" padding="around-small">
+                <lightning:input type="string" placeholder="Enter the 6 digit code" name="input1" label="Verify OTP" value="{!v.otpNumber}" aria-autocomplete="none" variant="label-hidden" autocomplete="off"/>
+            </lightning:layoutItem>
+            
+            <lightning:layoutItem size="5" flexibility="auto" class="cssCenter" padding="around-small">
+                <lightning:button variant="brand" label="Verify OTP" title="Verify OTP" onclick="{!c.verifyOTP}" />
+            </lightning:layoutItem>
+            
+            <aura:if isTrue="{!v.otpVerified}">
+                <span class="slds-p-left_small" style="color:#3c763d;">OTP Verified. <br/> Your mobile number is verified!</span>
+            </aura:if>
+            
+            <aura:if isTrue="{!v.otpNotVerified}">
+                <span class="slds-p-left_small" style="color:#ff332b;">Please Enter Correct OTP.</span>
+            </aura:if>
+        </aura:if>  
+        
+        <aura:if isTrue="{!v.resendOTPButton}">
+                <lightning:layoutItem size="12" flexibility="auto" class="cssCenter" padding="around-small">
+                    <lightning:button variant="brand" label="Resend OTP" title="Resend OTP" onclick="{!c.sendOTP}" class="slds-button_stretch"/>
+                </lightning:layoutItem>
+        </aura:if>
+        
+        <aura:if isTrue="{!v.sendOTPButton}">
+                <lightning:layoutItem size="12" flexibility="auto" class="cssCenter" padding="around-small">
+                    <lightning:button variant="brand" label="Send OTP" title="Send OTP" onclick="{!c.sendOTP}" class="slds-button_stretch" />
+                </lightning:layoutItem>
+        </aura:if>  
+        
+        <lightning:layoutItem size="12" flexibility="auto" class="cssCenter" padding="around-small">
+            <lightning:button label="Close" class="slds-button_stretch" onclick="{!c.cancel}"/>
+        </lightning:layoutItem>
+        
+    </lightning:layout>
+    
+    
+
+</aura:component>

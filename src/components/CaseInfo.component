@@ -1,0 +1,76 @@
+<!--
+* @description       Contract table for VF Template 
+* @param            ConrtactId
+* @return           List<Lease_Contract__c>
+* @throws           NA
+* @author Kshitij Tiwari
+--> 
+<apex:component controller="CaseTemplate" access="global">
+    <apex:attribute name="RecId" type="Id" description="Id of the Case" assignTo="{!CaseId}"/>
+    <style>
+        table {
+        border-collapse: collapse;
+        width: 100%;
+        }
+        
+        td  {
+        border: 1px solid;
+        text-align: left;
+        padding: 8px;
+        }
+        
+        tr:nth-child(even) {
+        background-color: #dddddd;
+        }
+    </style>
+    <table  border="1" cellspacing = "0">
+        <tr>
+            <td><b>Location Code</b></td>
+            <td><b>Project</b></td>
+            <td><b>Service Request Status</b></td> 
+            <td><b>Lease Start Date</b></td>
+            <td><b>Lease End Date</b></td>
+            <td><b>Termination Date </b><br/>(Estimated dt. for PMT / Actual dt. for Legal Eviction)</td>
+        </tr>
+        <!--commented by karishma 18th May 2022-->
+      <!--<apex:repeat value="{!ServiceRequest}" var="s">
+            <tr>
+                <td>{!s.Unit__r.Unit_Code__c}</td>
+                <td>{!s.Deal__r.Project__r.name}</td>
+                <td>{!s.status}</td>
+                <td>    <apex:outputText value="{0,date,EE MM/dd/yyyy}">
+                    <apex:param value="{!s.Deal__r.Lease_Start_Date__c}" /> 
+                    </apex:outputText></td>
+                <td><apex:outputText value="{0,date,EE MM/dd/yyyy}">
+                    <apex:param value="{!s.Deal__r.Lease_End_Date__c}" /> 
+                    </apex:outputText>
+                </td>
+                <td>{!s.Lease_Amount__c}</td>
+            </tr>
+        </apex:repeat> -->
+    <apex:repeat value="{!CaseUnits}" var="unit"> <!--added by karishma-->
+        <tr>
+                <td>{!unit.Unit__r.Unit_Code__c}</td>
+                <td>{!unit.Case__r.Deal__r.Project__r.name}</td>
+                <td>{!unit.Case__r.Status}</td>
+                <td>
+                    <apex:outputText value="{0,date,EE MM/dd/yyyy}">
+                    	<apex:param value="{!unit.Case__r.Lease_Start_Date__c}" /> 
+                    </apex:outputText>
+            	</td>
+                <td><apex:outputText value="{0,date,EE MM/dd/yyyy}">
+                    <apex:param value="{!unit.Case__r.Lease_End_Date__c}" /> 
+                    </apex:outputText>
+                </td>
+            	<td><apex:outputText value="{0,date,EE MM/dd/yyyy}" rendered="{!IF(unit.Case__r.Expected_Termination_Date__c != null ,true,false)}">
+                    <apex:param value="{!unit.Case__r.Expected_Termination_Date__c}" /> 
+                    </apex:outputText>
+                    <apex:outputText value="{0,date,EE MM/dd/yyyy}" rendered="{!IF(unit.Case__r.Actual_Termination_Date__c != null ,true,false)}">
+                    <apex:param value="{!unit.Case__r.Actual_Termination_Date__c}" /> 
+                    </apex:outputText>
+                </td>
+            </tr>
+        </apex:repeat>
+        
+    </table>
+</apex:component>

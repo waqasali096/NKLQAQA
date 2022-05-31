@@ -1,0 +1,121 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes" access="global" >
+	<aura:handler name="init" value="{! this }" action="{! c.init }"/>
+    <!--Force:refreshView is an event that can be used to refresh the view.-->
+    <aura:handler event="force:refreshView" action="{!c.init}" />
+    <aura:registerEvent name="cmpEvent" type="c:RefreshParentComponent"/>
+    <aura:attribute name="columns" type="List"/>
+    <aura:attribute name="data" type="Object"/>
+    <aura:attribute name="selectedRecord" type="List"/>
+    <aura:attribute name="selectedRecordIndex" type="List"/>
+    <aura:attribute name="selectedRowsCount" type="Integer" default="0"/>
+    <aura:attribute name="showDeleteBox" type="boolean" default="false"/>
+    <aura:attribute name="ButtonShow" type="boolean" default="false"/>
+    <aura:attribute name="PaginationList" type="list"/> 
+    <aura:attribute name="selectedCount" type="integer" default="0"
+                    description="selected Records Count"/>
+    <aura:attribute name="startPage" type="Integer" />
+    <aura:attribute name="endPage" type="Integer"/>
+    <aura:attribute name="totalRecordsCount" type="Integer"/>
+    <aura:attribute name="pageSize" type="Integer" default="5"
+                    description="number of records to be display on per page"/>
+    <aura:attribute name="currentPage" type="integer" default="1"/>
+    <aura:attribute name="showCharges" type="boolean" default="false"/>
+    <aura:attribute name="unitSearchScreenDisable" type="Boolean" default="false"/>
+    <aura:attribute name="totalPagesCount" type="integer"/>
+    <aura:attribute name="isSpinner" type="Boolean" default="false" />
+    <aura:attribute name="hideCheckbox" type="Boolean" default="false"/>
+    <aura:attribute name="maxRowSelection" type="Integer" default="5"/>
+     
+    <aura:if isTrue = "{!v.showCharges}">
+    <lightning:card title="Additional Charges" iconName="standard:products">
+        
+        <div class="slds-clearfix">
+            <div class="slds-float_left">
+                <p class="slds-m-around_small slds-float--left">
+                    
+                    <span class="slds-badge slds-badge_lightest" style="display:inline-block;background: aliceblue;">
+                        
+                        
+                        Total Records : {!v.selectedRowsCount > 0 ? v.selectedRowsCount + '/' : ''} {!v.totalRecordsCount} 
+                        
+                    </span>
+                </p>
+            </div>
+            <div class="slds-float_right" style="margin:10px">
+                <aura:if isTrue="{!v.ButtonShow}">
+                     
+                    <lightning:button variant="brand" label="Remove" title="Brand action" onclick="{!c.handleClick }" class="buttonColor"/>
+                </aura:if>
+            </div>
+        </div>
+        
+        <div style="margin:10px"><!-- style="height: 300px">-->
+
+
+
+           
+            <lightning:datatable aura:id="ltngCmp"
+                                 columns="{! v.columns }"
+                                 data="{! v.data }"
+                                 keyField="Id"
+                                 onrowselection="{! c.updateSelectedText}"
+                                 hideCheckboxColumn="{!v.hideCheckbox}"/>
+                                 <!--maxRowSelection = "{!v.maxRowSelection}"
+                                 />-->
+        
+      <!--  Pagination Buttons Start -->
+                       <!-- <div class="slds-align_absolute-center">         
+                            <lightning:button variant="brand"
+                                              label="Previous"
+                                              disabled="{!v.startPage == 0}" 
+                                              class="{!v.startPage == 0 ? '' : 'buttonColor' }"
+                                              onclick="{!c.navigation}"
+                                              iconName="utility:back"
+                                              name="previous"/>
+                            
+                            <span class="slds-badge slds-badge_lightest"
+                                  style="margin-right: 10px;margin-left: 10px;">
+                                Page {!v.currentPage} out of {!v.totalPagesCount}
+                            </span>
+                            
+                            <lightning:button variant="brand"
+                                              label="Next"
+                                              disabled="{!(v.endPage + 1) >= v.totalRecordsCount}" 
+                                              class="{!(v.endPage + 1) >= v.totalRecordsCount  ? '' : 'buttonColor' }"
+                                              onclick="{!c.navigation}"
+                                              iconName="utility:forward"
+                                              iconPosition="right"
+                                              name="next"/>
+                        </div>  -->
+                   
+                <!--  Pagination Buttons End -->
+               </div>
+        
+    </lightning:card> 
+</aura:if>
+    <!--Added if to render the modal for confirmation.-->
+    <aura:if isTrue="{!v.showDeleteBox}">
+        
+        <div  class="slds-modal slds-fade-in-open ">
+            <div class="slds-modal__container">
+                
+                <header class="slds-modal__header">
+                    <h1 class="slds-text-heading--medium">Confirmation to Remove Selected Records.</h1>
+                </header>
+                <div class="slds-modal__content slds-p-around--medium">
+                    <aura:if isTrue="{!v.isSpinner}">
+                    <lightning:spinner class="spins" size="medium" variant="brand" alternativeText="Loading" />
+                </aura:if>
+                    <div>
+                        <b>If you click Remove, Units selected will be Removed or else select Cancel to stay on this page.</b>
+                    </div>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning:button name='Cancel' class="buttonColor" label='Cancel' onclick='{!c.handleConfirmDialogCancel}'/>
+                    <lightning:button variant="brand" class="buttonColor" name='Remove' label='Delete' onclick='{!c.handleClick}'/>
+                </footer>
+            </div>
+        </div>
+        <div class="slds-backdrop slds-backdrop--open"></div> 
+    </aura:if>
+</aura:component>

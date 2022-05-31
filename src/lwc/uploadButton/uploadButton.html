@@ -1,0 +1,130 @@
+<template>
+    <div
+        class="slds-page-header slds-page-header_joined slds-page-header_bleed slds-shrink-none test-headerRegion slds-is-relative">
+        <h3>
+            <strong>Documents</strong>
+            <template if:false={hildUploadOtherDoc}>
+                <lightning-button variant="neutral" 
+                                  class="slds-float_right" 
+                                  label="Upload Other Documents"
+                                  onclick={openModalForOtherDoc}>
+                </lightning-button>
+            </template>
+             
+        </h3>
+        <br />
+        
+    </div>
+    <lightning-datatable data={Document__c} columns={columns} onrowaction={callRowAction} key-field="Id" 
+            hide-checkbox-column>
+        </lightning-datatable>
+    <template if:true={openModal}>
+        <section aria-modal="true" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container ">
+                <header class="slds-modal__header">
+                    <h2 class="slds-text-heading_small">Please enter below details</h2>
+                    <lightning-icon class="slds-modal__close" id="idClose" icon-name="utility:close" size="small"
+                        onclick={closeModal}></lightning-icon>
+                </header>
+                <div class="slds-modal__content">
+                    <div class="slds-p-around_small">
+                        <lightning-record-edit-form object-api-name="Document__c" id="recordViewForm"
+                            record-id={subRecordId} onsuccess={handleSuccess} onsubmit={handleClick}>
+                            <template if:true={isDocumentNumberRequired}>
+                                <abbr title="required" class="slds-required">*</abbr>
+                                <label for="fieldid">{documentNumberLabel}</label>
+                                <lightning-input-field id="fieldid" field-name="Document_ID_Number__c" variant="label-hidden" aria-required="true" onchange={emirateIdValidation}>
+                                </lightning-input-field>
+                            </template>
+                            <template if:true={isDocumentNumberDisabled}>
+                                <abbr title="required" class="slds-required">*</abbr>
+                                <label for="labelId">{documentNumberLabel}</label>
+                                <lightning-input-field id="labelId" field-name="Document_Number__c" variant="label-hidden" aria-required="true" disabled="true"> </lightning-input-field>
+                            </template>
+                            <template if:true={isIssueDateRequired}>
+                                <lightning-input-field field-name="Issue_Date__c" label="Issue Date" required="true"
+                                onchange={handleIssueDateFieldValidation}></lightning-input-field>
+                            </template>
+                            <template if:true={isExpiryDateRequired}>
+                                <lightning-input-field field-name="Expiry_Date__c" label="Expiry Date" required="true"
+                                    onchange={handleFieldValidation}> </lightning-input-field>
+                            </template>
+                            <template if:false={isIssueDateRequired}>
+                                <lightning-input-field field-name="Issue_Date__c" label="Issue Date"
+                                onchange={handleIssueDateFieldValidation}></lightning-input-field>
+                            </template>
+                            <template if:false={isExpiryDateRequired}>
+                                <lightning-input-field field-name="Expiry_Date__c" label="Expiry Date"
+                                    onchange={handleFieldValidation}> </lightning-input-field>
+                            </template>
+                            <lightning-input-field field-name="Is_Document_Uploaded__c" value={dataUploaded}
+                                class="slds-hide"></lightning-input-field>
+                            <!-- <lightning-file-upload label="Attach receipt" name="fileUploader" accept={acceptedFormats} record-id={subRecordId} required="true">-->
+                            <lightning-input type="file" accept=".xlsx, .xls, .csv, .png, .doc, .docx, .pdf"
+                                label="Attachment" onchange={openfileUpload} record-id={subRecordId}></lightning-input>
+                            <template if:true={fileData}>
+                                <p>{fileData.filename}</p>
+                            </template>
+                            <!-- </lightning-file-upload>-->
+                            <footer class="slds-modal__footer">
+                                <lightning-button variant="brand" id="submit" type="submit" label="Save"
+                                    class="slds-p-around_x-small" disabled={disableSave}></lightning-button>
+                                <lightning-button variant="brand" label="Cancel" onclick={closeModal}
+                                    class="slds-p-around_x-small"></lightning-button>
+                            </footer>
+                        </lightning-record-edit-form>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
+
+    <template if:true={openModal1}>
+        <section aria-modal="true" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container ">
+                <header class="slds-modal__header">
+                    <h2 class="slds-text-heading_small">Please enter below details</h2>
+                    <lightning-icon class="slds-modal__close" id="idClose1" icon-name="utility:close" size="small"
+                        onclick={closeModal1}></lightning-icon>
+                </header>
+                <div class="slds-modal__content">
+                    <div class="slds-p-around_small">
+                        <lightning-record-edit-form object-api-name="Document__c" id="recordViewForm1"
+                            record-id={subRecordId} onsuccess={uploadFileOnDoc} onsubmit={createDocRecord}>
+
+                            <lightning-input-field field-name="Document_Name__c" required="true" label="Document Name">
+                            </lightning-input-field>
+
+                            <lightning-input-field field-name="Remark__c" label="Remark"> </lightning-input-field>
+
+                            <lightning-input-field field-name="Is_Account_Linked__c" label="Is Account Linked?">
+                            </lightning-input-field>
+                            <template if:true={inputBoxShowHide}> <!-- //Edit By Vipul 10/05/2022 For Leasing -->
+                                Upload to related Units as well
+                              <lightning-input type="checkbox"  variant-label="hidden" onchange={relatedUnitsAsWell}></lightning-input>
+                            </template>
+                            <lightning-input-field field-name="Is_Document_Uploaded__c" value={dataUploaded}
+                                class="slds-hide"></lightning-input-field>
+                            <lightning-input type="file" accept=".xlsx, .xls, .csv, .png, .doc, .docx, .pdf"
+                                label="Attachment" onchange={openfileUpload}></lightning-input>
+                            <template if:true={fileData}>
+                                <p>{fileData.filename}</p>
+                            </template>
+
+                            <!-- </lightning-file-upload>-->
+                            <footer class="slds-modal__footer">
+                                <lightning-button variant="brand" id="submit1" type="submit" label="Save"
+                                    class="slds-p-around_x-small" disabled={isLoaded}></lightning-button>
+                                <lightning-button variant="brand" label="Cancel" onclick={closeModal1}
+                                    class="slds-p-around_x-small"></lightning-button>
+                            </footer>
+                        </lightning-record-edit-form>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+</template>

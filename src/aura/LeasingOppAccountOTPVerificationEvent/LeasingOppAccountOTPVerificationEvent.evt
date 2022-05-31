@@ -1,0 +1,4 @@
+<aura:event type="COMPONENT">
+    <aura:attribute name="showOTPModal" type="Boolean" default="false"/>
+    <aura:attribute name="validOTP" type="Boolean" default="false"/>
+</aura:event>

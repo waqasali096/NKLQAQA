@@ -1,0 +1,405 @@
+<aura:component controller="RevisedPaymentPlanCtrl" implements="force:lightningQuickActionWithoutHeader,force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes" access="global" >
+    <aura:html tag="style">
+        .slds-modal__container{
+        max-width: 100rem !important;
+        width:95% !important;
+        }
+        .cuf-content {
+        padding: 0 0rem !important;
+        }
+        .slds-p-around--medium {
+        padding: 0rem !important;
+        }       
+        .slds-modal__content{
+        overflow-y:hidden !important;
+        height:unset !important;
+        max-height:unset !important;
+        }
+        .slds-form-element__label{
+        display:none;
+        }
+    </aura:html>
+    <aura:attribute name="isSpinner" type="Boolean" default="false" />
+    <!--Declare Attributes-->
+    <aura:attribute name="selectedRecordId" type="Id" />
+    <aura:attribute name="paymentMilestones" type="Object[]"/>
+    <!-- data table for existing mile stone -->
+    <aura:attribute name="existingUnit" type="List"/>
+    <aura:attribute name="columnsforexistingUnit" type="List"/>
+    <aura:attribute name="deleteList" type="List"/>
+    <aura:attribute name="existingPaymentMilestones" type="List"/>
+    <aura:attribute name="columnsforexistingPayment" type="List"/>
+    <aura:attribute name="requestedPaymentMilestones" type="List"/>
+    <aura:attribute name="originalPaymentMilestones" type="List"/>
+    <aura:attribute name="documentId" type="String"/>
+    <aura:attribute name="fileName" type="String"/>
+    <aura:attribute name="conDocId" type="String"/>
+    <aura:attribute name="acceptedFormats" type="List" default="['.pdf', '.png', '.jpg']"/>
+    <aura:attribute name="UnitList" type="List"/>
+    <aura:attribute name="draftValues" type="Object" default="[]"/>
+    <aura:attribute name="totalPrice" type="Decimal" />
+    <aura:attribute name="bookingReservationDate" type="Date" />
+    <aura:attribute name="hasUnit" type="boolean" default = "true" />
+    <aura:attribute name="showFileName" type="boolean" default = "false" />
+    <aura:attribute name="todayDate" type="date"/>
+    <aura:attribute name="discountApproved" type="boolean" default = "true" />
+    <aura:attribute name="hasExistingReqPlans" type="boolean" />
+    <aura:attribute name="installmentMap" type="Map"/>
+    <aura:attribute name="milestonesMap" type="Map"/>
+    <aura:attribute name="expectedPaymentMap" type="Map"/>
+    <aura:attribute name="daysMasterPayMilestoneENMap" type="Map"/>
+    <aura:attribute name="nameMasterMilestoneMap" type="Map"/>
+    <aura:attribute name="ACD" type="Date"/>
+    <aura:attribute name="numofInstallments" type="Decimal"/>
+    <aura:attribute name="finalInstallmentDate" type="Date"/>
+    <aura:attribute name="finalnumDays" type="Integer"/>
+    <aura:attribute name="milestoneIndexMap" type="Map"/>
+    <aura:attribute name="totalPaymentPercent" type="Integer"/>
+    <aura:attribute name="bookingList" type="List"/>
+    <aura:attribute name="masterPayMilesLst" type="List"/>
+    <aura:attribute name="createdNewrequestedPaymentMilestones" type="List"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <div class="modal-header slds-modal__header slds-size_1-of-1">
+        <h4 class="title slds-text-heading--medium" >Revise Payment Plan</h4>
+    </div>
+    <!-- Code to display spinner -->
+    <aura:if isTrue="{!v.isSpinner}">
+        <!--<lightning:spinner style="display:contents;" alternativeText="Loading" variant="brand" size="medium" />-->
+        <div class="demo-only" >
+            <div class="slds-spinner_container ">
+                <div role="status" class="slds-spinner slds-spinner_medium slds-spinner_brand">
+                    <span class="slds-assistive-text">Loading</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+            </div>
+        </div>
+    </aura:if>
+    <div class="slds-modal__content slds-p-around--x-small slds-align_absolute-center slds-size_1-of-1 slds-is-relative" aura:id="modalbody" id="modalbody" style="max-height:500px;">
+        <form class="slds-form--stacked" style="overflow-y: auto;max-height: 416px;padding:20px;">
+            
+            <aura:if isTrue="{!!v.hasUnit}">
+                <div>
+                    <center>No Unit has been assigned to this Deal to request Payment Plans</center>   
+                </div>
+            </aura:if>  
+            
+            <aura:if isTrue="{!and(v.hasUnit)}">
+                <aura:if isTrue ="{!v.discountApproved}">
+                    <lightning:card class="slds-text-heading_small slds-card_boundary" variant="Narrow" title="Units" iconName="standard:products" >
+                        <table style="width:100%" class="slds-table slds-table_bordered slds-table_col-bordered">
+                            <thead>
+                                <tr class="slds-text-title--caps">
+                                    <th scope="col">
+                                        <div class="slds-truncate">Unit Name</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Selling Price">Selling Price</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Discount Amount">Discount Amount</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Net Selling Price">Net Selling Price</div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <aura:iteration items="{!v.bookingList}" var="unit" indexVar="index">
+                                    <tr>
+                                        <td>
+                                            {!unit.unitName}
+                                        </td> 
+                                        
+                                        <td scope="row">
+                                            <lightning:formattedNumber value="{!unit.sellingPrice}" style="currency"  minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                        </td>
+                                        <td>
+                                            <lightning:formattedNumber value="{!unit.discountAmount}" style="currency"  minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                        </td>
+                                        <td scope="row">
+                                            <lightning:formattedNumber value="{!unit.netSellingPrice}" style="currency"  minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                        </td>
+                                    </tr>
+                                </aura:iteration>
+                            </tbody>
+                        </table>  
+                    </lightning:card>
+                    
+                    <br/><br/>
+                    
+                    <lightning:card class="slds-text-heading_small slds-card_boundary" variant="Narrow" title="Original Payment Milestones" iconName="standard:products" >
+                        <table style="width:100%" class="slds-table slds-table_bordered slds-table_col-bordered">
+                            <thead>
+                                <tr class="slds-text-title--caps">
+                                    <th scope="col">
+                                        <div class="slds-truncate">#</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate">INSTALLMENT</div>
+                                    </th>
+                                    <!--<th scope="col">
+                                    <div class="slds-truncate">MILESTONES</div>
+                                </th>-->
+                                    <th scope="col">
+                                        <div class="slds-truncate">DUE DATE</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate">DUE IN DAYS</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate">PERCENTAGE</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate">AMOUNT</div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <aura:iteration items="{!v.originalPaymentMilestones}" var="req" indexVar="index">
+                                    <tr>
+                                        <td> 
+                                            {!index+1 }
+                                        </td>
+                                        <td>
+                                            {!req.installment}
+                                        </td> 
+                                        <!--<td>
+                                        {!req.milestone}
+                                    </td>-->
+                                        <td>
+                                            <lightning:formattedDateTime value="{!req.dueDate}" year="numeric" month="short" day="2-digit"/>      
+                                        </td>
+                                        <td>
+                                            {!req.dueInDays}
+                                        </td>
+                                        <td>
+                                            {!req.amountPercent} %
+                                        </td>
+                                        <td scope="row">
+                                            <lightning:formattedNumber value="{!req.amount}" style="currency"  minimumFractionDigits="2" maximumFractionDigits="3"/>
+                                        </td>
+                                    </tr>
+                                </aura:iteration>
+                            </tbody>
+                        </table>  
+                    </lightning:card>
+                    
+                    <br/><br/>
+                    
+                    <div style="text-align:left;width:15%;font-weight: bold;">
+                        <span >  
+                            <ui:inputText class="slds-input" label="Number of Installments"  value="{!v.numofInstallments}"  change="{!c.addInstallmentsInRow}"/> 
+                        </span> 
+                        <br/>     
+                    </div>     
+                    <lightning:card class="slds-text-heading_small slds-card_boundary" variant="Narrow" title="Revised Payment Plan" iconName="standard:products" >
+                        <aura:set attribute="actions">
+                            <div style="font-size:small; width:60px"> 
+                                <lightning:button class="slds-m-left_x-small" variant="brand" label="Add" onclick="{!c.addRow}"> </lightning:button>
+                            </div>   
+                        </aura:set>    
+                        <table style="width:100%" class="slds-table slds-table_bordered slds-table_col-bordered" id="myTable">
+                            <thead>
+                                <tr class="slds-text-title--caps">
+                                    <th scope="col">
+                                        <div class="slds-truncate">#</div>
+                                    </th>
+                                    
+                                    <th width="240px;">
+                                        <span class="slds-truncate">Installment</span>      
+                                    </th>
+                                    <!--<th width="240px;">
+                                    <span class="slds-truncate">Milestones</span>      
+                                </th>-->
+                                    <!--<th width="90px;">       
+                                    <span class="slds-truncate">Milestone description(AR)</span>
+                                </th>-->
+                                    <th width="380px;">
+                                        <span class="slds-truncate">Due Date</span>      
+                                    </th>
+                                    <th width="90px;">
+                                        <span class="slds-truncate">Due In days</span>
+                                    </th>
+                                    <th width="120px;">       
+                                        <span class="slds-truncate">Percentage</span>
+                                    </th>
+                                    <th width="350px;">       
+                                        <span class="slds-truncate">Amount</span>
+                                    </th>
+                                    
+                                    <th scope="col">
+                                        <a onclick="{!c.deleteAllRows}" data-record="{!index}">
+                                            <lightning:icon iconName="utility:delete" size="small" alternativeText="Delete"/>
+                                            <span class="slds-assistive-text">Delete</span>
+                                        </a>
+                                    </th>
+                                    
+                                    <!--<th>       
+                                    <span class="slds-truncate">Expected payment method</span>
+                                </th>-->
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <aura:iteration items="{!v.requestedPaymentMilestones}" var="req" indexVar="index">
+                                    <tr>
+                                        <td> 
+                                            <!-- {!index + 1} -->
+                                            {!index+1 }
+                                        </td>
+                                        
+                                        <td scope="row">
+                                            <!--<lightning:input variant="label-hidden" type="text" value="{!req.Name}"/>-->
+                                            <lightning:select label="{!index}" value="{!req.installment}"   variant="label-hidden" onchange="{!c.onInstallmentPickChange}">
+                                                <option value="">--None--</option>
+                                                <aura:iteration items="{!v.installmentMap}" var="item" indexVar="index">
+                                                    <option variant="label-hidden" text="{!item.value}" value="{!item.key}"  index="{!index}"  selected="{!item.key==req.installment}"></option>
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </td>
+                                        <!--<td scope="row">
+                                        <lightning:select label="{!index}" value="{!req.milestone}"   variant="label-hidden" onchange="{!c.onInstallmentChange}">
+                                            <option value="">None</option>
+                                            <aura:iteration items="{!v.milestonesMap}" var="item" indexVar="index">
+                                                <option variant="label-hidden" text="{!item.value}" value="{!item.key}"  index="{!index}"  selected="{!item.key==req.milestone}"></option>
+                                            </aura:iteration>
+                                        </lightning:select>
+                                    </td>-->
+                                        <!--<td scope="row">
+                                        <ui:inputText class="slds-input" value="{!req.Milestone_description_AR__c}"/> 
+                                    </td>-->
+                                        <td scope="row">
+                                            <td style="border-top:none;">
+                                                <lightning:input label="{!index}" type="date" variant="label-hidden" onchange="{!c.onDateChange}" value="{!req.dueDate}" year="numeric" month="short" day="2-digit"/>      
+                                                <aura:if isTrue="{!not(greaterthan(req.dueDate,v.todayDate))}">
+                                                    <div class="slds-text-color_error slds-p-left_x-small">
+                                                        Enter future date
+                                                    </div> 
+                                                </aura:if>
+                                                <aura:if isTrue="{!req.maxDate}">
+                                                    <div class="slds-text-color_error slds-p-left_x-small">
+                                                        Date must be greater than previous milestones
+                                                    </div> 
+                                                </aura:if>
+                                            </td>
+                                        </td>
+                                        <td scope="row">
+                                            <span  onchange="{!c.onDueDaysChange}"  data-row-index="{!index}">
+                                                <lightning:input variant="label-hidden" type="decimal" value="{!req.dueInDays}"  name="{!index}"/>
+                                                <aura:if isTrue="{!not(greaterthan(req.dueInDays,0))}">
+                                                    <div class="slds-text-color_error slds-p-left_x-small">
+                                                        Enter future days
+                                                    </div> 
+                                                </aura:if>
+                                            </span>
+                                        </td>
+                                        <td scope="row">
+                                            <lightning:input label="{!index}" type="number" formatter="percent-fixed" variant="label-hidden" 
+                                                             value="{!req.amountPercent}" onchange="{!c.calculateMilestone}" step="0.01" >
+                                            </lightning:input>
+                                            <aura:if istrue="{not(greaterthan(req.amountPercent,0))}">
+                                                <div class="slds-text-color_error slds-p-left_x-small">
+                                                    Enter value more than zero
+                                                </div> 
+                                            </aura:if>
+                                            <aura:if isTrue="{!or(req.amountPercent=='',req.amountPercent==null)}">
+                                                <div class="slds-text-color_error slds-p-left_x-small">
+                                                    Enter Percentage
+                                                </div> 
+                                            </aura:if>
+                                        </td>
+                                        <td scope="row">
+                                            <lightning:input label="{!index}" type="number" formatter="currency" variant="label-hidden" 
+                                                             value="{!req.amount}" onchange="{!c.calculatePercentage}" step="0.01" disabled="true">
+                                            </lightning:input>
+                                            <aura:if isTrue="{!or(req.amount=='',req.amount==null)}">
+                                                <div class="slds-text-color_error slds-p-left_x-small">
+                                                    Amount should be greater than 0
+                                                </div> 
+                                            </aura:if>
+                                        </td>
+                                        
+                                        <td>
+                                            <a onclick="{!c.removeRow}" data-record="{!index}">
+                                                <lightning:icon iconName="utility:delete" size="small" alternativeText="Delete"/>
+                                                <span class="slds-assistive-text">Delete</span>
+                                            </a>
+                                        </td>
+                                        <!--<td scope="row">
+                                        <lightning:select label="" value="{!req.Expected_payment_method__c}" >
+                                            <option text="" value=""></option>
+                                            <aura:iteration items="{!v.expectedPaymentMap}" var="item" indexVar="index">
+                                                <option text="{!item.value}" value="{!item.key}"></option>
+                                            </aura:iteration>
+                                        </lightning:select>
+                                    </td> -->
+                                    </tr>
+                                </aura:iteration>
+                                <tr><td></td><td></td><td></td> <td></td><td>&nbsp;&nbsp;{!v.totalPaymentPercent} %</td><td></td></tr>
+                                <!-- <tr><td></td><td></td><td></td><td></td><td></td><td></td><td>Total Amount:</td></tr>-->
+                            </tbody>
+                        </table>
+                        <div class="slds-p-around_small slds-align_absolute-center" style="width:100%;">
+                            <aura:if isTrue ="{!!v.showFileName}">
+                                <aura:if isTrue ="{!v.documentId}">
+                                    <div class="slds-form-element">
+                                        <span style="font-size: 12px;">Approval Document</span> 
+                                        <lightning:fileUpload  label="Approval Document"
+                                                                name="fileUploader"
+                                                                accept="{!v.acceptedFormats}"
+                                                                recordId="{!v.documentId}"
+                                                                onuploadfinished="{!c.onFileUpload}"
+                                                            >
+                                        </lightning:fileUpload>
+                                    </div>
+                                </aura:if>
+                            </aura:if>
+                            <aura:if isTrue ="{!v.showFileName}">
+                                <div class="slds-grid slds-gridpull-padded" style="margin-top:15px;"> 
+                                    <div class="slds-col slds-grid icon-secondary slds-m-left_medium slds-grid_vertical-align-center">
+                                        <lightning:icon iconName="utility:page" 
+                                                        alternativeText="{!v.fileName}" 
+                                                        size="x-small"
+                                                        title="{!v.fileName}">
+                                        </lightning:icon>
+                                        <span class="slds-m-left--xx-small slds-truncate" style="max-width: 150px;">{!v.fileName}</span>
+                                    </div>
+                                    <div class="slds-col slds-m-left_small">
+                                        <button class="slds-button icon-secondary slds-grid_align-center slds-grid_vertical-align-center" type="button"  onclick="{!c.handleRemoveDoc}">
+                                            <div class="slds-button__icon1 slds-button__icon_left" aria-hidden="true">
+                                                <lightning:icon iconName="utility:close" 
+                                                                alternativeText="Remove" 
+                                                                size="xx-small"
+                                                                title="Remove">
+                                                </lightning:icon>
+                                            </div>
+                                            Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            </aura:if>
+                        </div>
+                    </lightning:card>            
+                    <aura:set attribute="else">
+                        <div>
+                            <center>Discount approval is pending, you can not revise payment plan </center>   
+                        </div>
+                    </aura:set>
+                </aura:if>
+                
+            </aura:if> 
+        </form> 
+    </div>  
+    <div class="modal-footer slds-modal__footer slds-size_1-of-1">
+        <div class="forceChangeRecordTypeFooter">
+            <ui:button class="slds-button slds-button_neutral slds-m-left_x-small" label="Cancel" press="{! c.cancel}" /> 
+            <aura:if isTrue="{!and(v.hasUnit)}">
+                <aura:if isTrue ="{!v.discountApproved}">
+                    <ui:button class="slds-button slds-button--brand slds-m-left_x-small"
+                               label="Save" press="{!c.SaveReqMilestones}"/>
+                </aura:if>
+            </aura:if>
+        </div>
+    </div>
+</aura:component>

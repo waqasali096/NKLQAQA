@@ -1,0 +1,449 @@
+<!--
+  @description       : 
+  @author            : Ashams
+  @group             : 
+  @last modified on  : 03-23-2022
+  @last modified by  : Ashok
+-->
+<aura:component controller="QuickOppJointOwnerController" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >  
+    <aura:attribute name="openNewAcc" type="boolean" default="FALSE"/>
+    <aura:attribute name="options"   
+                    type="List"   
+                    default="[{'label': 'Individual', 'value': 'Individual'},  
+                             {'label': 'Organization', 'value': 'Organization'},
+                             {'label': 'Capture from Emirates Id', 'value': 'Capture from Emirates Id'}]"/> 
+    <aura:attribute name="accSelection" type="String" />
+    <aura:attribute name="isPerson" type="boolean" default="FALSE"/>
+    <aura:attribute name="isOrg" type="boolean" default="FALSE"/>
+    <aura:attribute name="accName" type="String" />
+    <aura:attribute name="accNum" type="String" />
+    <aura:attribute name="accEmail" type="String" />
+    <aura:attribute name="accMob" type="String" />
+    <aura:attribute name="accEID" type="String" />
+    <aura:attribute name="accTDN" type="String" />
+    <aura:attribute name="relationMap" type="Map"/>
+    <aura:attribute name="countryMap" type="Map"/>
+    <aura:attribute name="countryResMap" type="Map"/>
+    <aura:attribute name="nationalityMap" type="Map"/>
+    <aura:attribute name="showSearchErr" type="boolean" default="FALSE"/>
+    <aura:attribute name="data" type="Account[]" />  
+    <aura:attribute name='displayAccTable' type='Boolean' default="FALSE"/>
+    <aura:attribute name='accExist' type='Boolean' default="FALSE"/>
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="accountId" type="String" />
+    <aura:attribute name="jointOwnerList" type="List" />
+    <aura:attribute name='joCount' type='Decimal' default="FALSE"/>
+    <aura:attribute required="true" name="selectedValue" type="String" default=""/>
+    <aura:attribute required="true" name="selectedSecValue" type="String" default=""/>
+    <aura:attribute name="displayVisaFields" type="Boolean" default="false"/>
+    <aura:attribute name="isDisplayingForCase" type="Boolean" default="false"/>
+    <aura:attribute name="hasCustomerAndUnit" type = "Boolean" default = "FALSE"/>
+    <aura:attribute name="makePassportsMandatory" type="Boolean" default="FALSE"/>
+
+    <aura:attribute name="newAccount" type="Account" default="{'sObjectType' : 'Account'}"/>
+    <aura:attribute name="primaryAddress" type="Address__c" default="{'sObjectType' : 'Address__c'}"/>
+    <aura:attribute name="secAddress" type="Address__c" default="{'sObjectType' : 'Address__c'}"/>
+    <aura:attribute name="recordType" type="String" default="PersonAccount"/>
+    
+    <!--spinner attributs -->
+    <aura:attribute name="spinner" type="boolean" default="FALSE"/>
+    <aura:if isTrue="{!v.spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container">
+            <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                <span class="slds-assistive-text">Loading...</span>
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </aura:if>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler event="force:refreshView" action="{!c.doInit}" />
+    
+    <!--Added Joint Owners Sections-->
+    <aura:if isTrue="{!and(v.joCount>0,!v.isDisplayingForCase)}">
+        <div class="slds-table-header-fixed_container">
+            <div class="slds-scrollable_y" style="height:100%;">
+                <table class="slds-table slds-table_bordered slds-table_col-bordered slds-table_fixed-layout slds-table-header-fixed">
+                    <thead class="header">
+                        <tr class="slds-text-title_caps">
+                            <th  scope="col">
+                                <div class="slds-truncate" title="Name">Secondary Joint Buyer Name</div>
+                            </th>
+                            <th  scope="col">
+                                <div class="slds-truncate" title="Owner">Primary Owner</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Relationship">Relationship</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Percentage">Share Percentage</div>
+                            </th>
+                            <th  scope="col">
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <aura:iteration items="{!v.jointOwnerList}" var="req" indexVar="index">
+                            <tr class="slds-hint-parent slds-text-align_center" >
+                                <td data-label="Name" scope="col" >
+                                    <div class="slds-truncate" title="Name">
+                                        <lightning:formattedUrl value="{!'/' + req.Id}"  label="{!req.Name__c}" target="_blank" />
+                                    </div>
+                                </td>
+                                <td data-label="Passpost" >
+                                    {!req.Primary_Account__r.Name}
+                                </td>
+                                <td data-label="Passpost" >
+                                    <div class="slds-truncate" title="Cloudhub">{!req.Relationship_with_Owner__c}</div>
+                                </td>
+                                <td data-label="Passpost" >
+                                    <div class="slds-truncate" title="Cloudhub">{!req.Share_Percentage__c}</div>
+                                </td>
+                                <td data-label="Removal" >
+                                    <div class="slds-truncate" title="{!req.index}" >
+                                        <lightning:button name="{!index}" variant="brand" label="Remove" 
+                                                          onclick="{!c.removeJointOwner}"></lightning:button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </aura:iteration>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </aura:if>
+    
+    <!--Account Type Selection Buttons-->
+    <aura:if isTrue="{!!v.openNewAcc}">
+        <div class="slds-box slds-m-left_x-small slds-text-align_center">  
+            <lightning:radioGroup options="{!v.options}"  
+                                  value="{!v.accSelection}"  
+                                  type="button" 
+                                  onchange="{!c.handleTypeChange}"
+                                  />
+        </div>
+    </aura:if>
+    
+    <aura:if isTrue="{!v.hasCustomerAndUnit}">
+        <!--Account Search Filters-->
+        <aura:if isTrue="{!!v.openNewAcc}">
+            <div class="slds-text-align_center slds-m-top_medium">SEARCH JOINT OWNERS</div>
+            <lightning:layout verticalAlign="end">
+                <lightning:layoutItem flexibility="auto" padding="around-small">
+                    <lightning:input type="search" name="x" value="{!v.accName}" aura:id="accName" placeholder="Customer Name"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem flexibility="auto" padding="around-small">
+                    <lightning:input type="search" name="x" value="{!v.accNum}" aura:id="accNum" placeholder="Account Number"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem flexibility="auto" padding="around-small">
+                    <lightning:input type="search" name="x" value="{!v.accEmail}" aura:id="accEmail" placeholder="Email"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem flexibility="auto" padding="around-small">
+                    <lightning:input type="search" name="x" value="{!v.accMob}" aura:id="accMob" placeholder="Mobile"/>
+                </lightning:layoutItem>
+                <aura:if isTrue="{!!v.isOrg}">
+                    <lightning:layoutItem flexibility="auto" padding="around-small">
+                        <lightning:input type="search" name="x" value="{!v.accEID}" aura:id="accEID" placeholder="EID"/>
+                    </lightning:layoutItem>
+                </aura:if>
+                <aura:if isTrue="{!v.isOrg}">
+                    <lightning:layoutItem flexibility="auto" padding="around-small">
+                        <lightning:input type="search" name="x" value="{!v.accTDN}" aura:id="accTDN" placeholder="Trade License Number"/>
+                    </lightning:layoutItem>
+                </aura:if>
+            </lightning:layout>
+            <!--Buttons to Search, reset, new Customer-->
+            <div class="slds-m-left_x-small slds-text-align_center">  
+                <lightning:button variant="brand" label="{!v.spinner == true ? 'Searching...' : 'Search'}" onclick="{!c.search}"></lightning:button>
+                <lightning:button variant="brand" label="Reset" onclick="{!c.reset}"></lightning:button>
+                <lightning:button variant="brand" label="New Joint Owner" onclick="{!c.createNewAcc}"></lightning:button>
+            </div> 
+            <br></br>
+            
+            <!--Search Results for Accounts-->
+            <aura:if isTrue="{!v.displayAccTable}">
+                <div class="slds-table-header-fixed_container" style="height:450px;">
+                    <div class="slds-scrollable_y" style="height:100%;">
+                        <!--Person Account Table-->
+                        <aura:if isTrue="{!v.isPerson}">
+                            <table class="slds-table slds-table_bordered slds-table_fixed-layout slds-table-header-fixed">
+                                <thead class="header">
+                                    <tr class="slds-text-title_caps">
+                                        <th  scope="col">
+                                            <div class="slds-truncate" title="Name">Name</div>
+                                        </th>
+                                        <th  scope="col">
+                                            <div class="slds-truncate" title="Emirates Id">Emirates Id</div>
+                                        </th>
+                                        <th scope="col">
+                                            <div class="slds-truncate" title="Passport">Passport</div>
+                                        </th>
+                                        <th scope="col">
+                                            <div class="slds-truncate" title="Nationality">Nationality</div>
+                                        </th>
+                                        <th  scope="col">
+                                            <div class="slds-truncate" title="Country of Residence">Country of Residence</div>
+                                        </th>
+                                        <th  scope="col">
+                                            <div class="slds-truncate" title="Relationship">Relationship</div>
+                                        </th>
+                                        <th  scope="col">
+                                            <div class="slds-truncate" title="Percentage">Share Percentage</div>
+                                        </th>
+                                        <th  scope="col">
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <aura:iteration items="{!v.data}" var="req" indexVar="index">
+                                        <tr class="slds-hint-parent" >
+                                            <td data-label="Name" scope="col">
+                                                <div class="slds-truncate" title="Name">
+                                                    {!req.Name}
+                                                </div>
+                                            </td>
+                                            <td data-label="Passpost" >
+                                                <div class="slds-truncate" title="Emiartes Id">{!req.Emirates_Ids__c}</div>
+                                            </td>
+                                            <td data-label="Passpost" >
+                                                <div class="slds-truncate" title="Apssport Number">{!req.Passport_Number__c}</div>
+                                            </td>
+                                            <td data-label="Passpost" >
+                                                <div class="slds-truncate" title="Nationality">{!req.Nationality__c}</div>
+                                            </td>
+                                            <td data-label="Passpost">
+                                                <div class="slds-truncate" title="Country of Residence">{!req.Country_Of_Residence__c}</div>
+                                            </td>
+                                            <td data-label="Relation" padding="around-small">
+                                                <div class="slds-truncate slds-form--stacked" title="Relationship">
+                                                    <!--<lightning:select label="" value="{!req.Relationship_with_Owner__c}">-->
+                                                    <ui:inputSelect value="{!req.Relationship_with_Owner__c}">
+                                                        <option text="" value=""  ></option>
+                                                        <aura:iteration items="{!v.relationMap}" var="item" >
+                                                            <option text="{!item.value}" value="{!item.key}"  selected="{!item.key==req.Installment__c}" ></option>
+                                                        </aura:iteration>
+                                                    </ui:inputSelect>
+                                                </div>
+                                            </td>
+                                            <td data-label="Percentage" >
+                                                <div class="slds-truncate slds-form--stacked" title="Percentage">
+                                                    <ui:inputNumber  value="{!req.Percentage__c}"/>
+                                                </div>
+                                            </td>
+                                            <td data-label="Selection">
+                                                <div class="slds-truncate" title="{!req.index}" >
+                                                    <lightning:button name="{!index}" label="Select Joint Owner" 
+                                                                      onclick="{!c.addJointOwner}"></lightning:button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </aura:iteration>
+                                </tbody>
+                            </table>
+                        </aura:if>
+                        <!--Org Account Table-->
+                        <aura:if isTrue="{!v.isOrg}">
+                            <table class="slds-table slds-table_bordered slds-table_col-bordered slds-table_fixed-layout slds-table-header-fixed">
+                                <thead class="header">
+                                    <tr class="slds-text-title_caps">
+                                        <th  scope="col">
+                                            <div class="slds-truncate" title="Name">Name</div>
+                                        </th>
+                                        <th  scope="col">
+                                            <div class="slds-truncate" title="Trade License Number">Trade License Number</div>
+                                        </th>
+                                        <th  scope="col">
+                                            <div class="slds-truncate" title="Country">Country</div>
+                                        </th>
+                                        <th  scope="col">
+                                            <div class="slds-truncate" title="Relationship">Relationship</div>
+                                        </th>
+                                        <th  scope="col">
+                                            <div class="slds-truncate" title="Country of Residence">Share Percentage</div>
+                                        </th>
+                                        <th  scope="col">
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <aura:iteration items="{!v.data}" var="req" indexVar="index">
+                                        <tr class="slds-hint-parent slds-text-align_center" >
+                                            <td data-label="Name" scope="col" >
+                                                <div class="slds-truncate" title="Cloudhub">
+                                                    {!req.Name}
+                                                </div>
+                                            </td>
+                                            <td data-label="Passpost" >
+                                                <div class="slds-truncate" title="Cloudhub">{!req.Trade_License_Number__c}</div>
+                                            </td>
+                                            <td data-label="Passpost" >
+                                                <div class="slds-truncate" title="Cloudhub">{!req.Country__c}</div>
+                                            </td>
+                                            <td data-label="Relation"  padding="around-small">
+                                                <div class="slds-truncate slds-form--stacked" title="4/14/2015">
+                                                    <!--<lightning:select label="" value="{!req.Relationship_with_Owner__c}">-->
+                                                    <ui:inputSelect value="{!req.Relationship_with_Owner__c}">
+                                                        <option text="" value=""  ></option>
+                                                        <aura:iteration items="{!v.relationMap}" var="item" >
+                                                            <option text="{!item.value}" value="{!item.key}"  selected="{!item.key==req.Installment__c}" ></option>
+                                                        </aura:iteration>
+                                                    </ui:inputSelect>
+                                                </div>
+                                            </td>
+                                            <td data-label="Percentage" >
+                                                <div class="slds-truncate slds-form--stacked" title="Prospecting">
+                                                    <ui:inputNumber  value="{!req.Percentage__c}"/>
+                                                    <!--<lightning:input type="number" value="{!req.Percentage__c}" name="{!index}"/>-->
+                                                </div>
+                                            </td>
+                                            <td data-label="Selection" >
+                                                <div class="slds-truncate" title="{!req.index}" >
+                                                    <lightning:button name="{!index}" variant="brand" label="Select Joint Owner" 
+                                                                      onclick="{!c.addJointOwner}"></lightning:button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </aura:iteration>
+                                </tbody>
+                            </table>
+                        </aura:if>
+                    </div>
+                </div>
+            </aura:if>
+            <!--Search Results Error-->
+            <aura:if isTrue="{!v.showSearchErr}">
+                <div class="slds-text-align_center slds-text-heading_medium">No Customer Found. Please create or change filters.</div>
+            </aura:if>
+        </aura:if>
+        &nbsp;
+        
+        <!--New Joint Owner Section-->
+        <aura:if isTrue="{!v.openNewAcc}">
+            <lightning:card variant="Narrow" title="Customer Details" iconName="standard:account">
+                <lightning:layout>
+                    <lightning:layoutItem padding="around-small" size="12" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="6">
+                        <aura:if isTrue="{!or(v.newAccount.accType=='PersonAccount',v.recordType=='PersonAccount')}"> 
+                            <lightning:input aura:id="fieldId" type="Text" value="{!v.newAccount.FirstName}" label="First Name" class="slds-form-element_stacked" variant="label-inline" required="true"/>
+                            <lightning:input aura:id="fieldId" type="Text" value="{!v.newAccount.LastName}" label="Last Name" class="slds-form-element_stacked" variant="label-inline" required="true"/>
+                            <lightning:input aura:id="fieldId" type="Text" value="{!v.newAccount.Emirates_Ids__c}" label="Emirates Id"  pattern="^784-[0-9]{4}-[0-9]{7}-[0-9]{1}$" messageWhenPatternMismatch="Please enter the Emirates Id in the proper format: 784-XXXX-XXXXXXX-X" class="slds-form-element_stacked" variant="label-inline"/>
+                            <div class="slds-form_horizontal">
+                                <lightning:select aura:id="fieldId" value="{!v.newAccount.Nationality__c}" label="Nationality" required="true" class="slds-form-element_stacked" variant="label-inline">
+                                    <option value="UAE National"></option>
+                                    <aura:iteration items="{!v.nationalityMap}" var="item">
+                                        <option text="{!item.value}" value="{!item.key}" selected="{!item.key==v.newAccount.Nationality__c}"></option>
+                                    </aura:iteration>
+                                </lightning:select>
+                            </div>
+                        </aura:if>
+                        <aura:if isTrue="{!or(v.newAccount.accType=='Business_RecordType',v.recordType=='Business_RecordType')}">
+                            <lightning:input aura:id="fieldId" type="Text" value="{!v.newAccount.Name}" label="Company Name"  class="slds-form-element_stacked" variant="label-inline" required="true"/>
+                            <lightning:input aura:id="fieldId" type="Text" value="{!v.newAccount.Trade_License_Number__c}"  required="true" label="Trade License Number" pattern="[a-zA-z0-9]+" messageWhenPatternMismatch="Special Characters are not Allowed"  class="slds-form-element_stacked" variant="label-inline"/>
+                        </aura:if>
+                        <lightning:input aura:id="fieldId" type="Text" value="{!v.newAccount.Arabic_Name__c}" label="Arabic Name" class="slds-form-element_stacked" variant="label-inline"/>
+                        <lightning:input aura:id="fieldId" type="email" value="{!v.newAccount.Primary_Email__c}" label="Primary Email" required="true" class="slds-form-element_stacked" variant="label-inline"/>
+                        <div class="slds-form_horizontal">
+                            <lightning:select aura:id="fieldId" value="{!v.newAccount.Primary_Country_Code__c}" label="Primary Country Code" required="true" class="slds-form-element_stacked" variant="label-inline">
+                                <option text="UAE(+971)" value="971"></option>
+                                <aura:iteration items="{!v.countryCodeMap}" var="item">
+                                    <option text="{!item.value}" value="{!item.key}" ></option>
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+                        <lightning:input aura:id="fieldId" type="Text" value="{!v.newAccount.Primary_Mobile__c}" label="Primary Mobile"  pattern="[0-9]+" messageWhenPatternMismatch="Please enter numbers only" required="true" class="slds-form-element_stacked" variant="label-inline"/>
+                        <div class="slds-form_horizontal">
+                            <lightning:select aura:id="fieldId" value="{!v.newAccount.Relationship_with_Owner__c}" label="Relationship with Owner" class="slds-form-element_stacked" variant="label-inline">
+                                <aura:iteration items="{!v.relationMap}" var="item">
+                                    <option text="{!item.value}" value="{!item.key}" ></option>
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+                        <lightning:input aura:id="fieldId" type="Text" value="{!v.newAccount.Percentage__c}" label="Percentage"  class="slds-form-element_stacked" variant="label-inline"/>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem padding="around-small" size="12" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="6">
+                        <aura:if isTrue="{!or(v.newAccount.accType=='PersonAccount',v.recordType=='PersonAccount')}"> 
+                            <div class="slds-form_horizontal">
+                                <lightning:select aura:id="fieldId"  value="{!v.newAccount.Country_Of_Residence__c}" label="Country of Residence" required="true" class="slds-form-element_stacked" variant="label-inline" onchange="{!c.handleCountryofResidenceChange}">
+                                    <option value="AE"></option>
+                                    <aura:iteration items="{!v.countryResMap}" var="item">
+                                        <option text="{!item.value}" value="{!item.key}" selected="{!item.key == v.account.Country_Of_Residence__c}" ></option>
+                                    </aura:iteration>
+                                </lightning:select>
+                            </div>
+                            <aura:if isTrue="{!v.makePassportsMandatory}"> 
+                                <lightning:input aura:id="fieldId" type="Text" value="{!v.newAccount.Passport_Number__c}"  required="true" pattern="[a-zA-z0-9]+" messageWhenPatternMismatch="Special Characters are not Allowed" label="Passport Number" class="slds-form-element_stacked" variant="label-inline"/>
+                                <lightning:input aura:id="fieldId" type="Date" value="{!v.newAccount.Passport_Issue_Date__c}"  required="true" label="Passport Issue Date"  class="slds-form-element_stacked" variant="label-inline"/>
+                                <lightning:input aura:id="fieldId" type="Date" value="{!v.newAccount.Passport_Expiry_Date__c}"  required="true" label="Passport Expiry Date"  class="slds-form-element_stacked" variant="label-inline"/>
+                                <lightning:input aura:id="fieldId" type="Text" value="{!v.newAccount.Passport_Issue_Place__c}" label="Passport Issue Place" class="slds-form-element_stacked" variant="label-inline"/>
+                            </aura:if>
+                            <aura:if isTrue="{!!v.makePassportsMandatory}"> 
+                                <lightning:input aura:id="fieldId" type="Text" value="{!v.newAccount.Passport_Number__c}" pattern="[a-zA-z0-9]+" messageWhenPatternMismatch="Special Characters are not Allowed" label="Passport Number" class="slds-form-element_stacked" variant="label-inline"/>
+                                <lightning:input aura:id="fieldId" type="Date" value="{!v.newAccount.Passport_Issue_Date__c}" label="Passport Issue Date"  class="slds-form-element_stacked" variant="label-inline"/>
+                                <lightning:input aura:id="fieldId" type="Date" value="{!v.newAccount.Passport_Expiry_Date__c}" label="Passport Expiry Date"  class="slds-form-element_stacked" variant="label-inline"/>
+                                <lightning:input aura:id="fieldId" type="Text" value="{!v.newAccount.Passport_Issue_Place__c}" label="Passport Issue Place" class="slds-form-element_stacked" variant="label-inline"/>
+                            </aura:if>
+                            <aura:if isTrue="{!v.displayVisaFields}"> 
+                                <lightning:input aura:id="fieldId" type="Text" value="{!v.newAccount.Visa_Number__c}" pattern="[a-zA-z0-9]+" messageWhenPatternMismatch="Special Characters are not Allowed" label="Visa Number" required="true" class="slds-form-element_stacked" variant="label-inline"/>
+                                <lightning:input aura:id="fieldId" type="Date" value="{!v.newAccount.Visa_Start_Date__c}" label="Visa Start Date" required="true" class="slds-form-element_stacked" variant="label-inline"/>
+                                <lightning:input aura:id="fieldId" type="Date" value="{!v.newAccount.Visa_End_Date__c}" label="Visa End Date" required="true" class="slds-form-element_stacked" variant="label-inline"/>
+                            </aura:if>
+                        </aura:if>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </lightning:card>
+            <lightning:layout>
+                <lightning:layoutItem padding="around-small" size="12" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="6">
+                    <lightning:card variant="Narrow" title="Primary Address" iconName="standard:account">
+                        <lightning:input aura:id="fieldId" type="Text" value="{!v.primaryAddress.City__c}" label="City" required="true" class="slds-form-element_stacked" variant="label-inline"/>
+                        <lightning:input aura:id="fieldId" type="Text" value="{!v.primaryAddress.Postal_Code__c}" label="Postal Code" required="true" class="slds-form-element_stacked" variant="label-inline"/>
+                        <lightning:input aura:id="fieldId" type="Text" value="{!v.primaryAddress.Street_Name__c}" label="Street Name" class="slds-form-element_stacked" variant="label-inline"/>
+                        <lightning:input aura:id="fieldId" type="Text" value="{!v.primaryAddress.House_Apartment_No__c	}" label="House/Aprtment No" class="slds-form-element_stacked" variant="label-inline"/>
+                        <lightning:input aura:id="fieldId" type="Text" value="{!v.primaryAddress.Arabic_Address__c}" label="Arabic Address" class="slds-form-element_stacked" variant="label-inline"/>
+                        <div class="slds-form_horizontal">
+                            <lightning:select aura:id="fieldId" value="{!v.primaryAddress.Country_New__c}" label="Country" required="true" class="slds-form-element_stacked" variant="label-inline">
+                                <option value="United Arab Emirates"></option>
+                                <aura:iteration items="{!v.countryMap}" var="item">
+                                    <option text="{!item.value}" value="{!item.key}" selected="{!item.key==v.primaryAddress.Country_New__c}"></option>
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+                    </lightning:card>
+                </lightning:layoutItem>
+                <lightning:layoutItem padding="around-small" size="12" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="6">
+                    <lightning:card variant="Narrow" title="Secondary Address" iconName="standard:account">
+                        <lightning:input aura:id="fieldId" type="Text" value="{!v.secAddress.City__c}" label="City" class="slds-form-element_stacked" variant="label-inline"/>
+                        <lightning:input aura:id="fieldId" type="Text" value="{!v.secAddress.Postal_Code__c}" label="Postal Code" class="slds-form-element_stacked" variant="label-inline"/>
+						<lightning:input aura:id="fieldId" type="Text" value="{!v.secAddress.Street_Name__c}" label="Street Name" class="slds-form-element_stacked" variant="label-inline"/>
+                        <lightning:input aura:id="fieldId" type="Text" value="{!v.secAddress.House_Apartment_No__c}" label="House/Apartment No" class="slds-form-element_stacked" variant="label-inline"/>
+                        <lightning:input aura:id="fieldId" type="Text" value="{!v.secAddress.Arabic_Address__c}" label="Arabic Address" class="slds-form-element_stacked" variant="label-inline"/>
+                        <div class="slds-form_horizontal">
+                            <lightning:select aura:id="fieldId" value="{!v.secAddress.Country_New__c}" label="Country">
+                                <option value=""></option>
+                                <aura:iteration items="{!v.countryMap}" var="item">
+                                    <option text="{!item.value}" value="{!item.key}" selected="{!item.key==v.secAddress.Country_New__c}"></option>
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+                    </lightning:card>
+                </lightning:layoutItem>
+            </lightning:layout>
+            <div class="slds-m-top_medium slds-text-align_center">
+                <lightning:button type="submit" label="Save" variant="brand" onclick="{!c.handleAccountSave}">  </lightning:button>
+                <lightning:button variant="brand" label="Cancel" onclick="{!c.closeAction}"> </lightning:button>
+            </div>
+        </aura:if>
+        <aura:set attribute="else">
+            <lightning:layout verticalAlign="end" >
+                <lightning:layoutItem flexibility="auto" padding="around-small">
+                    <div class="custom-box"></div>
+                </lightning:layoutItem>
+                <lightning:layoutItem flexibility="auto" padding="around-small">
+                    <div class="slds-text-align_center slds-m-top_medium"><b>Please add Customer Details.</b></div>
+                </lightning:layoutItem>
+                <lightning:layoutItem flexibility="auto" padding="around-small">
+                    <div class="custom-box"></div>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </aura:set>
+    </aura:if>
+</aura:component>

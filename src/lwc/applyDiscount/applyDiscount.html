@@ -1,0 +1,83 @@
+<!--********************************************************************************************
+* Name			: applyDiscount.html
+* Description	: LWC component to applyDiscount                               
+* Created Date	: 22/03/2022
+* Created By	: Cloudworks
+* **********************************************************************************************
+* Version		Author	    Date		    Comment   
+* 1.0           Rohit       22/03/2022      Initial Draft
+*********************************************************************************************-->
+<template>
+    <lightning-quick-action-panel header="Apply Discount">
+        <article class="slds-card">
+            <div class="slds-card__body slds-card__body_inner">
+                <!-- show spinner -->
+                <div if:true={isLoading} >
+                    <lightning-spinner alternative-text="Loading..." variant="brand"></lightning-spinner>
+                </div>
+                <!-- show error panel -->
+                <template if:true={errorMessage}>
+                    <p style="text-align:center; color:red;">{errorMessage}</p>
+                </template>
+                <div style="display:flex; justify-content:space-between; width:100%">
+                    <div style="width:49%;">
+                        <lightning-combobox value={discountType} 
+                                            label="Discount Type" 
+                                            options={discountOption} 
+                                            onchange={handleTypeChange}>
+                                </lightning-combobox>
+                    </div>
+                    <div style="width:49%;">
+                        <lightning-input type="number" 
+                                        label="Discount Percentage / Amount"
+                                        field-level-help="Enter percentage if discount type is selected as Percentage else add discount amount."
+                                        value={discount}
+                                        onchange={handleDiscountChange}>
+                        </lightning-input>
+                    </div>
+                </div>
+                <div class="slds-p-around_small slds-align_absolute-center" style="width:100%;">
+                    <template if:false={showFileName}>
+                        <template if:true={documentId}>
+                            <lightning-file-upload 
+                                                label="Approval Document"
+                                                name="fileUploader"
+                                                record-id={documentId}
+                                                onuploadfinished={onFileUpload}
+                                                >
+                            </lightning-file-upload>
+                        </template>
+                    </template>
+                    
+                    <div if:true={showFileName} class="slds-grid slds-gridpull-padded" style="margin-top:15px;"> 
+                        <div class="slds-col slds-grid icon-secondary slds-m-left_medium slds-grid_vertical-align-center">
+                            <lightning-icon icon-name="utility:page" 
+                                            alternative-text={fileName} 
+                                            size="x-small"
+                                            title={fileName}>
+                            </lightning-icon>
+                            <span class="slds-m-left--xx-small slds-truncate" style="max-width: 150px;">{fileName}</span>
+                        </div>
+                        <div class="slds-col slds-m-left_small">
+                            <button class="slds-button icon-secondary slds-grid_align-center slds-grid_vertical-align-center" type="button"  onclick={handleRemoveDoc}>
+                                <div class="slds-button__icon1 slds-button__icon_left" aria-hidden="true">
+                                    <lightning-icon icon-name="utility:close" 
+                                                    alternative-text="Remove" 
+                                                    size="xx-small"
+                                                    title="Remove">
+                                    </lightning-icon>
+                                </div>
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div slot="footer" class="slds-align_absolute-center slds-p-top_small">
+                    <lightning-button variant="brand" label="Save" onclick={handleSave}></lightning-button>
+                    <lightning-button label="Cancel" onclick={handleCancel} class="slds-m-left_medium"></lightning-button>
+                </div>
+            </div>
+        </article>
+    </lightning-quick-action-panel>
+    
+</template>

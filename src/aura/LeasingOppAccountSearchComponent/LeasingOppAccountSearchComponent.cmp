@@ -1,0 +1,904 @@
+<aura:component controller="LeasingOppAccountSearchCtrl"
+    implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction"
+    access="global">
+    <aura:attribute name="data" type="Account[]" />
+    <aura:attribute name="accName" type="String" />
+    <aura:attribute name="recordData" type="Object" />
+    <aura:attribute name="accNum" type="String" />
+    <aura:attribute name="accEmail" type="String" />
+    <aura:attribute name="blnMobileUpdated" type='Boolean' default="FALSE"/>
+    <aura:attribute name="accountPrimaryMobileOld" type="String" />
+    <aura:attribute name="accountPrimaryMobileCountryCodeOld" type="String" />
+    <aura:attribute name="accountPrimaryMobile" type="String" />
+    <aura:attribute name="accountPrimaryMobileCountryCode" type="String" />
+    <aura:attribute name="accMob" type="String" />
+    <aura:attribute name="accEID" type="String" />
+    <aura:attribute name="accTDN" type="String" />
+    <aura:attribute name="searchKey" type="String" />
+    <aura:attribute name="accountId" type="String" />
+    <aura:attribute name="maxRowSelection" type="Integer" default="1" />
+    <aura:attribute name='columns' type='List' />
+    <aura:attribute name='selectedAccts' type='List' />
+    <aura:attribute name='displayAccTable' type='Boolean' default="FALSE" />
+    <aura:attribute name='accExist' type='Boolean' default="FALSE" />
+    <aura:attribute name='accEdit' type='Boolean' default="FALSE" />
+    <aura:attribute name="indfields" type="List" />
+    <aura:attribute name="orgAccfields" type="List" />
+    <aura:attribute name="existingAccAddressfields" type="Object" />
+    <aura:attribute name="addressColumns" type="List" />
+    <aura:attribute name="Brandingfields" type="List" />
+    <aura:attribute name="signatoryfields" type="List" />
+    <aura:attribute name="displayAccTabl" type="Boolean" default="true" />
+    <aura:attribute name="spinner" type="boolean" default="FALSE" />
+    <aura:attribute name="newAcc" type="boolean" default="FALSE" />
+    <aura:attribute name="mapOfflagCheck" type="Map" />
+    <aura:attribute name="Iscompany" type="boolean" />
+    <aura:attribute name="IsUnit" type="boolean" />
+    <aura:attribute name="isBusinessConcept" type="boolean" default="true" />
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="accountRecordId" type="String" />
+    <aura:attribute name="buttons" type="List" default="[{'label': 'Individual', 'value': 'Individual'},  
+                             {'label': 'Organization', 'value': 'Organization'},  
+                             {'label': 'Capture from Emirates Id', 'value': 'Capture from Emirates Id'}]" />
+    <aura:attribute name="buttonsCompany" type="List" default="[  
+                             {'label': 'Organization', 'value': 'Organization'},  
+                             ]" />
+    <aura:attribute name="isPerson" type="boolean" default="FALSE" />
+    <aura:attribute name="isBusiness" type="boolean" default="FALSE" />
+    <aura:attribute name="primaryAddress" type="Address__c" default="{'sObjectType' : 'Address__c'}" />
+    <!--<aura:attribute name="secAddress" type="Address__c" default="{'sObjectType' : 'Address__c'}"/>-->
+    <aura:attribute name="secAddress" type="List" />
+    <aura:attribute name="countryMap" type="Map" />
+    <aura:attribute name='addrColumns' type='List' />
+    <aura:attribute name='addrData' type='List' />
+    <aura:attribute name="buttonSelection" type="String" />
+    <aura:attribute name="transactionId" type="String" />
+    <aura:attribute name="showError" type="Boolean" />
+    <lightning:empApi aura:id="empApi" />
+    <aura:attribute name="channel" type="String" default="/event/Emirates_Id__e" />
+    <aura:attribute name="subscription" type="Map" />
+    <aura:attribute name="showAddressTable" type="Boolean" default="false" />
+    <aura:attribute name="allowAddAddress" type="Boolean" default="false" />
+    <aura:attribute name="showOTPVerificationCmpt" type="Boolean" default="false" />
+    <aura:attribute name="custmerNameParam" type="String" />
+    
+    <aura:handler name="leasingOppAccountOTPVerificationEvent" event="c:LeasingOppAccountOTPVerificationEvent"
+                  action="{!c.handleOTPVerificationEvent}"/>
+
+    <aura:if isTrue="{!v.spinner}">
+        <lightning:spinner class="spins" size="large" variant="brand" alternativeText="Loading" />
+    </aura:if>
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:if isTrue="{!and(!v.accExist, !v.newAcc)}">
+        <div class="slds-box">
+            <div class="slds-theme_default slds-m-left_x-small slds-text-align_center">
+                <aura:if isTrue="{!v.IsUnit}">
+                    <lightning:radioGroup name="radioButtonGroup" options="{!v.buttons}" value="{!v.buttonSelection}"
+                        type="button" onchange="{!c.onTypeChange}" />
+                </aura:if>
+                <aura:if isTrue="{!v.Iscompany}">
+                    <lightning:radioGroup name="radioButtonGroup" options="{!v.buttonsCompany}"
+                        value="{!v.buttonSelection}" type="button" onchange="{!c.onTypeChange}" />
+                </aura:if>
+                <div class="slds-page-header textColor slds-m-top_medium">Search Customer</div>
+            </div>
+
+            <lightning:layout verticalAlign="end">
+                <lightning:layoutItem flexibility="auto" padding="around-small">
+                    <lightning:input type="search" name="x" value="{!v.accName}" aura:id="accName"
+                        placeholder="Customer Name" />
+                </lightning:layoutItem>
+                <lightning:layoutItem flexibility="auto" padding="around-small">
+                    <lightning:input type="search" name="x" value="{!v.accNum}" aura:id="accNum"
+                        placeholder="Customer Number" />
+                </lightning:layoutItem>
+                <lightning:layoutItem flexibility="auto" padding="around-small">
+                    <lightning:input type="search" name="x" value="{!v.accEmail}" aura:id="accEmail"
+                        placeholder="Email" />
+                </lightning:layoutItem>
+                <lightning:layoutItem flexibility="auto" padding="around-small">
+                    <lightning:input type="search" name="x" value="{!v.accMob}" aura:id="accMob" placeholder="Mobile" />
+                </lightning:layoutItem>
+                <aura:if isTrue="{!!v.isBusiness}">
+                    <lightning:layoutItem flexibility="auto" padding="around-small">
+                        <lightning:input type="search" name="x" value="{!v.accEID}" aura:id="accEID"
+                            placeholder="EID" />
+                    </lightning:layoutItem>
+                </aura:if>
+                <aura:if isTrue="{!v.isBusiness}">
+                    <lightning:layoutItem flexibility="auto" padding="around-small">
+                        <lightning:input type="search" name="x" value="{!v.accTDN}" aura:id="accTDN"
+                            placeholder="Trade License Number" />
+                    </lightning:layoutItem>
+                </aura:if>
+            </lightning:layout>
+            <div class="slds-m-left_x-small slds-text-align_center slds-m-top_medium">
+                <lightning:button variant="brand" label="{!v.spinner == true ? 'Searching...' : 'Search'}"
+                    onclick="{!c.searchFunction}"></lightning:button>
+                <lightning:button variant="brand" label="Reset" onclick="{!c.reset}"></lightning:button>
+                <lightning:button variant="brand" label="New Customer" onclick="{!c.createNewAcc}"></lightning:button>
+            </div>
+            <br></br>
+        </div>
+
+        <aura:if isTrue="{!v.displayAccTable}">
+            <div class="slds-scrollable--y" style="height:400px">
+                <lightning:datatable columns="{!v.columns}" data="{!v.data}" keyField="Id"
+                    maxRowSelection="{!v.maxRowSelection}" hideCheckboxColumn="true" resizeColumnDisabled="true"
+                    onrowaction="{!c.addCustomer}" />
+            </div>
+            <aura:set attribute="else">
+                <aura:if isTrue="{!v.showError}">
+                    <div class="slds-box slds-align_absolute-center slds-text-color_inverse"
+                        style="background:#16325c;">
+                        <p> No records found !! </p>
+                    </div>
+                </aura:if>
+            </aura:set>
+        </aura:if>
+    </aura:if>
+
+    <aura:if isTrue="{!v.accExist}">
+        <aura:if isTrue="{!!v.accEdit}">
+            <br></br>
+            <div class="slds-text-align_center">
+                <lightning:buttonGroup>
+                    <lightning:button class="slds-m-left_x-small textColor" variant="brand-outline" label="Edit"
+                        onclick="{!c.editCustomer}"> </lightning:button>
+                    <lightning:button class="slds-m-left_x-small textColor" variant="brand-outline"
+                        label="Remove Customer" onclick="{!c.removeCustomer}"> </lightning:button>
+                    <!--<lightning:button class="slds-m-left_x-small" variant="brand-outline" label="Add Address" onclick="{!c.addAddress}"> </lightning:button>-->
+                </lightning:buttonGroup>
+            </div>
+            <br></br>
+            <aura:if isTrue="{!v.isPerson}">
+                <lightning:recordEditForm objectApiName="Account" recordId="{!v.accountId}">
+                    <div class="slds-grid slds-wrap">
+                        <aura:iteration items="{!v.indfields}" var="item">
+                            <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                <lightning:outputField fieldName="{!item.field}" class="slds-border_bottom"
+                                    readonly="true" />
+                            </div>
+                        </aura:iteration>
+
+                    </div>
+                    <br />
+                    <!-- the container element determine the height of the datatable -->
+                    <aura:if isTrue="{!v.existingAccAddressfields}">
+                        <lightning:card class="slds-text-heading_small slds-card_boundary" variant="Narrow"
+                            title="Address" iconName="standard:products">
+                            <div style="max-height: 250px;  overflow-y: auto;">
+                                <table class="slds-table slds-table_bordered ">
+                                    <thead>
+                                        <tr>
+                                            <th class="tableHeader">Country</th>
+                                            <th class="tableHeader">City</th>
+                                            <th class="tableHeader">Street</th>
+                                            <th class="tableHeader">Postal Code</th>
+                                            <th class="tableHeader">Arabic Address</th>
+                                            <th class="tableHeader">Primary Address</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <aura:iteration items="{!v.existingAccAddressfields}" var="WrpRcd" indexVar="j">
+                                            <tr>
+                                                <td>
+                                                    <p class="p">
+                                                        <lightning:formattedText value="{!WrpRcd.Country_New__c}" />
+                                                    </p>
+
+                                                </td>
+                                                <td>
+                                                    <p class="p">
+                                                        <lightning:formattedText value="{!WrpRcd.City__c}" />
+                                                    </p>
+
+                                                </td>
+                                                <td>
+                                                    <p class="p">
+                                                        <lightning:formattedText value="{!WrpRcd.Street__c}" />
+                                                    </p>
+
+                                                </td>
+                                                <td>
+                                                    <p class="p">
+                                                        <lightning:formattedText value="{!WrpRcd.Postal_Code__c}" />
+                                                    </p>
+
+                                                </td>
+
+                                                 <td>
+                                                    <p class="p">
+                                                        <lightning:formattedText value="{!WrpRcd.Arabic_Address__c}" />
+                                                    </p>
+
+                                                </td>
+                                                
+                                                <td>
+                                                    <lightning:input type="checkbox" style="zoom:1.8;"
+                                                        checked="{!WrpRcd.Primary__c}" disabled="true" />
+                                                </td>
+                                            </tr>
+                                        </aura:iteration>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </lightning:card>
+                    </aura:if>
+
+
+                </lightning:recordEditForm>
+                <!--
+                <aura:if isTrue="{!v.existingAccAddressfields}">
+                    <lightning:card class="slds-text-heading_small " variant="Narrow" title="Address" iconName="standard:products" >
+                        <lightning:datatable
+                                             keyField="id"
+                                             data="{! v.existingAccAddressfields }"
+                                             columns="{! v.addressColumns }"
+                                             hideCheckboxColumn="true"
+                                             />      
+                    </lightning:card><br/>
+                </aura:if>
+                -->
+            </aura:if>
+            <aura:if isTrue="{!v.isBusiness}">
+                <lightning:recordEditForm objectApiName="Account" recordId="{!v.accountId}"
+                    aura:id="recordNewFormForNewAcc">
+
+                    <lightning:card class="slds-text-heading_small slds-card_boundary" variant="Narrow"
+                        title="Account Details" iconName="standard:products">
+
+                        <div class="slds-grid slds-wrap">
+                            <aura:iteration items="{!v.orgAccfields}" var="item">
+                                <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                    <lightning:outputField fieldName="{!item.field}" class="slds-border_bottom"
+                                        readonly="true" />
+                                </div>
+                            </aura:iteration>
+                        </div>
+                    </lightning:card><br />
+
+                    <!-- the container element determine the height of the datatable -->
+                    <aura:if isTrue="{!v.existingAccAddressfields}">
+                        <lightning:card class="slds-text-heading_small slds-card_boundary" variant="Narrow"
+                            title="Address" iconName="standard:products">
+                            <div style="max-height: 250px;  overflow-y: auto;">
+                                <table class="slds-table slds-table_bordered ">
+                                    <thead>
+                                        <tr>
+                                            <th class="tableHeader">Country</th>
+                                            <th class="tableHeader">City</th>
+                                            <th class="tableHeader">Street</th>
+                                            <th class="tableHeader">Postal Code</th>
+                                            <th class="tableHeader">Arabic Address</th>
+                                            <th class="tableHeader">Primary Address</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <aura:iteration items="{!v.existingAccAddressfields}" var="WrpRcd" indexVar="j">
+                                            <tr>
+                                                <td>
+                                                    <p class="p">
+                                                        <lightning:formattedText value="{!WrpRcd.Country_New__c}" />
+                                                    </p>
+
+                                                </td>
+                                                <td>
+                                                    <p class="p">
+                                                        <lightning:formattedText value="{!WrpRcd.City__c}" />
+                                                    </p>
+
+                                                </td>
+                                                <td>
+                                                    <p class="p">
+                                                        <lightning:formattedText value="{!WrpRcd.Street__c}" />
+                                                    </p>
+
+                                                </td>
+                                                <td>
+                                                    <p class="p">
+                                                        <lightning:formattedText value="{!WrpRcd.Postal_Code__c}" />
+                                                    </p>
+
+                                                </td>
+                                                <td>
+                                                    <p class="p">
+                                                        <lightning:formattedText value="{!WrpRcd.Arabic_Address__c}" />
+                                                    </p>
+
+                                                </td>
+
+                                                <td>
+                                                    <lightning:input type="checkbox" style="zoom:1.8;"
+                                                        checked="{!WrpRcd.Primary__c}" disabled="true" />
+                                                </td>
+                                            </tr>
+                                        </aura:iteration>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </lightning:card>
+                    </aura:if>
+
+                    <!--
+                    <aura:if isTrue="{!v.existingAccAddressfields}">
+                        <lightning:card class="slds-text-heading_small" variant="Narrow" title="Address" iconName="standard:products" >
+                            <lightning:datatable
+                                                 keyField="id"
+                                                 data="{! v.existingAccAddressfields }"
+                                                 columns="{! v.addressColumns }"
+                                                 hideCheckboxColumn="true"
+                                                 />      
+                        </lightning:card><br/>
+                    </aura:if>
+                    -->
+                    <br />
+                    <lightning:card class="slds-text-heading_small slds-card_boundary" variant="Narrow"
+                        title="Authorised Signatory Details" iconName="standard:products">
+                        <div class="slds-grid slds-wrap">
+                            <aura:iteration items="{!v.signatoryfields}" var="item">
+                                <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                    <lightning:outputField fieldName="{!item.field}" class="slds-border_bottom"
+                                        readonly="true" />
+                                </div>
+                            </aura:iteration>
+                        </div>
+                    </lightning:card>
+                    <aura:if isTrue="{!v.isBusinessConcept}">
+                        <lightning:card class="slds-text-heading_small slds-card_boundary" variant="Narrow"
+                            title="Business Concept" iconName="standard:products">
+                            <div class="slds-grid slds-wrap">
+                                <aura:iteration items="{!v.Brandingfields}" var="item">
+                                    <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                        <lightning:outputField fieldName="{!item.field}" class="slds-border_bottom"
+                                            readonly="true" />
+                                    </div>
+                                </aura:iteration>
+                            </div>
+
+                        </lightning:card>
+                    </aura:if>
+                </lightning:recordEditForm>
+            </aura:if>
+            <br></br>
+            <!--
+            <aura:if isTrue="{!v.isPerson}">
+                <aura:if isTrue="{!v.addrData}">
+                    <lightning:datatable
+                                         columns="{!v.addrColumns}"
+                                         data="{!v.addrData}"
+                                         keyField="Id"
+                                         resizeColumnDisabled="true"
+                                         maxRowSelection="{!v.maxRowSelection}"
+                                         hideCheckboxColumn="true"
+                                         />
+                </aura:if>
+                
+            </aura:if>
+            -->
+        </aura:if>
+        <br></br>
+        <aura:if isTrue="{!v.accEdit}">
+            <aura:if isTrue="{!v.isPerson}">
+                <lightning:recordEditForm objectApiName="Account" recordId="{!v.accountId}"
+                    aura:id="recordEditFormForNewAcc" onsubmit="{!c.handleSubmit}">
+                    <lightning:messages aura:id="AccMessage" />
+                    <div class="slds-grid slds-wrap">
+                        <aura:iteration items="{!v.indfields}" var="item">
+                            <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                <aura:if isTrue="{!item.field == 'ERP_Account_Number__c'}">
+                                    <lightning:inputField fieldName="{!item.field}" required="false" disabled="true"
+                                        class="slds-form-element_stacked" />
+                                    <aura:set attribute="else">
+                                        <lightning:inputField fieldName="{!item.field}" required="{!item.required}"
+                                            class="slds-form-element_stacked" />
+                                    </aura:set>
+                                </aura:if>
+                            </div>
+                        </aura:iteration>
+                        <!--
+                        <div class="slds-col slds-size_1-of-2" padding="around-small"></div>
+                        <div class="slds-col slds-size_1-of-2" padding="around-small">
+                            <lightning:inputField fieldName="BillingAddress"  class="slds-form-element_stacked"/>
+                        </div>
+      -->
+                    </div>
+                    <br />
+
+                    <!-- the container element determine the height of the datatable -->
+                    <aura:if isTrue="{!v.existingAccAddressfields.length > 0}">
+                        <lightning:card class="slds-text-heading_small slds-card_boundary" variant="Narrow"
+                            title="Address" iconName="standard:products">
+                            <div style="max-height: 250px;  overflow-y: auto;">
+                                <table class="slds-table slds-table_bordered ">
+                                    <thead>
+                                        <tr>
+                                            <th class="tableHeader">Country</th>
+                                            <th class="tableHeader">City</th>
+                                            <th class="tableHeader">Street</th>
+                                            <th class="tableHeader">Postal Code</th>
+                                            <th class="tableHeader">Arabic Address</th>
+                                            <th class="tableHeader">Primary Address</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <aura:iteration items="{!v.existingAccAddressfields}" var="WrpRcd" indexVar="j">
+                                            <tr>
+
+                                                <td>
+                                                    <lightning:select value="{!WrpRcd.Country_New__c}" required="true"
+                                                        class="p">
+                                                        <option text="" value=""></option>
+                                                        <aura:iteration items="{!v.countryMap}" var="item">
+                                                            <option text="{!item.value}" value="{!item.key}"></option>
+                                                        </aura:iteration>
+                                                    </lightning:select>
+                                                </td>
+                                                <td>
+                                                    <lightning:input type="text" name="Address"
+                                                        value="{!WrpRcd.City__c}" required="true" class="p" />
+                                                </td>
+                                                <td>
+                                                    <lightning:input type="text" name="Address"
+                                                        value="{!WrpRcd.Street__c}" class="p" />
+                                                </td>
+                                                <td>
+                                                    <lightning:input type="text" name="Address"
+                                                        value="{!WrpRcd.Postal_Code__c}" class="p" />
+                                                </td>
+                                                <td>
+                                                    <lightning:input type="text" name="Address"
+                                                        value="{!WrpRcd.Arabic_Address__c}" class="p" />
+                                                </td>
+
+                                                <td>
+                                                    <lightning:input type="checkbox" class="slds-m-top_xx-small p"
+                                                        style="zoom:1.8;" checked="{!WrpRcd.Primary__c}"
+                                                        disabled="true" />
+                                                </td>
+                                            </tr>
+                                        </aura:iteration>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <br />
+                        </lightning:card>
+
+                        <aura:set attribute="else">
+                            <lightning:button label="Add address" variant="brand" onclick="{!c.addAddress}" />
+                        </aura:set>
+
+                    </aura:if>
+
+
+                    <div class="slds-m-top_medium slds-text-align_center">
+                        <lightning:button type="submit" label="Save" variant="brand"> </lightning:button>
+                        <lightning:button variant="brand" label="Cancel" onclick="{!c.cancelAccEdit}">
+                        </lightning:button>
+                    </div>
+
+                </lightning:recordEditForm>
+                <br />
+
+
+                <!--
+                <aura:if isTrue="{!v.existingAccAddressfields}">
+                    <lightning:card class="slds-text-heading_small" variant="Narrow" title="Address" iconName="standard:products" >
+                        <lightning:datatable
+                                             keyField="id"
+                                             data="{! v.existingAccAddressfields }"
+                                             columns="{! v.addressColumns }"
+                                             hideCheckboxColumn="true"
+                                             />      
+                    </lightning:card><br/><br/>
+                </aura:if>
+				-->
+            </aura:if>
+            <aura:if isTrue="{!v.isBusiness}">
+                <lightning:recordEditForm objectApiName="Account" aura:id="recordNewFormForNewAcc"
+                    recordId="{!v.accountId}" onsubmit="{!c.handleSubmit}">
+                    <lightning:messages aura:id="AccMessage" />
+                    <lightning:card class="slds-text-heading_small slds-card_boundary" variant="Narrow"
+                        title="Account Details" iconName="standard:products">
+                        <div class="slds-grid slds-wrap">
+                            <aura:iteration items="{!v.orgAccfields}" var="item">
+
+                                <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                    <aura:if isTrue="{!item.field == 'ERP_Account_Number__c'}">
+                                        <lightning:inputField fieldName="{!item.field}" required="false" disabled="true"
+                                            class="slds-form-element_stacked p" />
+                                        <aura:set attribute="else">
+                                            <lightning:inputField fieldName="{!item.field}" required="true"
+                                                class="slds-form-element_stacked p" />
+                                        </aura:set>
+                                    </aura:if>
+                                </div>
+
+                            </aura:iteration>
+                        </div>
+                    </lightning:card><br />
+
+
+                    <!-- the container element determine the height of the datatable -->
+                    <aura:if isTrue="{!v.allowAddAddress}">
+                        <lightning:button label="Add address" variant="brand" onclick="{!c.addAddress}" />
+                    </aura:if>
+                    <br />
+                    <aura:if isTrue="{!v.existingAccAddressfields.length > 0}">
+                        <br />
+                        <lightning:card class="slds-text-heading_small slds-card_boundary" variant="Narrow"
+                            title="Address" iconName="standard:products">
+                            <div style="max-height: 250px;  overflow-y: auto;">
+                                <table class="slds-table slds-table_bordered ">
+                                    <thead>
+                                        <tr>
+                                            <th class="tableHeader">Country</th>
+                                            <th class="tableHeader">City</th>
+                                            <th class="tableHeader">Street</th>
+                                            <th class="tableHeader">Postal Code</th>
+                                            <th class="tableHeader">Arabic Address</th>
+                                            <th class="tableHeader">Primary Address</th>
+                                            <aura:if isTrue="{!v.allowAddAddress}">
+                                                <th class="tableHeader"></th>
+                                            </aura:if>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <aura:iteration items="{!v.existingAccAddressfields}" var="WrpRcd" indexVar="j">
+                                            <tr>
+
+                                                <td>
+                                                    <lightning:select value="{!WrpRcd.Country_New__c}" required="true"
+                                                        class="p">
+                                                        <option text="" value=""></option>
+                                                        <aura:iteration items="{!v.countryMap}" var="item">
+                                                            <option text="{!item.value}" value="{!item.key}"></option>
+                                                        </aura:iteration>
+                                                    </lightning:select>
+                                                </td>
+                                                <td>
+                                                    <lightning:input type="text" name="Address"
+                                                        value="{!WrpRcd.City__c}" required="true" class="p" />
+                                                </td>
+                                                <td>
+                                                    <lightning:input type="text" name="Address"
+                                                        value="{!WrpRcd.Street__c}" required="true" class="p" />
+                                                </td>
+                                                <td>
+                                                    <lightning:input type="text" name="Address"
+                                                        value="{!WrpRcd.Postal_Code__c}" required="true" class="p" />
+                                                </td>
+                                                <td>
+                                                    <lightning:input type="text" name="Address"
+                                                        value="{!WrpRcd.Arabic_Address__c}" class="p" />
+                                                </td>
+
+
+                                                <td>
+                                                    <lightning:input type="checkbox" class="slds-m-top_xx-small p"
+                                                        style="zoom:1.8;" checked="{!WrpRcd.Primary__c}"
+                                                        disabled="true" />
+                                                </td>
+                                                <aura:if isTrue="{!and(v.allowAddAddress , not(WrpRcd.Primary__c) )}">
+                                                    <td>
+                                                        <lightning:button label="Delete" variant="brand" title="{!j}"
+                                                            onclick="{!c.deleteNewAddressRec}"
+                                                            class="slds-m-top_small" />
+                                                    </td>
+                                                </aura:if>
+                                            </tr>
+                                        </aura:iteration>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <br />
+                        </lightning:card>
+                    </aura:if>
+
+                    <!--
+                    <aura:if isTrue="{!v.existingAccAddressfields}">
+                        <lightning:card class="slds-text-heading_small " variant="Narrow" title="Address" iconName="standard:products" >
+                            <lightning:datatable
+                                                 keyField="id"
+                                                 data="{! v.existingAccAddressfields }"
+                                                 columns="{! v.addressColumns }"
+                                                 hideCheckboxColumn="true"
+                                                 />      
+                        </lightning:card><br/>
+                    </aura:if>
+                    -->
+                    <br />
+                    <lightning:card variant="Narrow" class="slds-card_boundary slds-text-heading_small"
+                        title="Authorised Signatory Details" iconName="standard:products">
+                        <div class="slds-grid slds-wrap">
+                            <aura:iteration items="{!v.signatoryfields}" var="item">
+                                <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                    <lightning:inputField fieldName="{!item.field}" required="{!item.required}"
+                                        class="slds-form-element_stacked p" />
+                                </div>
+                            </aura:iteration>
+                        </div>
+                    </lightning:card><br /><br />
+                    <aura:if isTrue="{!v.isBusinessConcept}">
+                        <lightning:card class="slds-text-heading_small slds-card_boundary slds-m-top_small"
+                            variant="Narrow" title="Business Concept" iconName="standard:products">
+                            <div class="slds-grid slds-wrap">
+                                <aura:iteration items="{!v.Brandingfields}" var="item">
+                                    <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                        <lightning:inputField fieldName="{!item.field}" class="slds-border_bottom p" />
+                                    </div>
+                                </aura:iteration>
+                            </div>
+
+                        </lightning:card>
+                    </aura:if>
+                    <div class="slds-m-top_medium slds-text-align_center">
+                        <lightning:button type="submit" label="Save" variant="brand"> </lightning:button>
+                        <lightning:button variant="brand" label="Cancel" onclick="{!c.cancelAccEdit}">
+                        </lightning:button>
+                    </div>
+
+                </lightning:recordEditForm>
+            </aura:if>
+        </aura:if>
+    </aura:if>
+
+    <aura:if isTrue="{!v.newAcc}">
+        <!--New Person Acc-->
+        <aura:if isTrue="{!v.isPerson}">
+            <lightning:recordEditForm objectApiName="Account" aura:id="personAccountForm"
+                onsubmit="{!c.handleSubmit}">
+                <lightning:messages aura:id="AccMessage" />
+                <div class="slds-grid slds-wrap">
+                    <aura:iteration items="{!v.indfields}" var="item">
+                        <div class="slds-col slds-size_1-of-2" padding="around-small">
+                            <aura:if isTrue="{!item.field == 'ERP_Account_Number__c'}">
+                                <!--<lightning:inputField fieldName="{!item.field}" required="false" disabled="true" class="slds-form-element_stacked" />-->
+                                <aura:set attribute="else">
+                                    <lightning:inputField fieldName="{!item.field}" required="{!item.required}"
+                                        class="slds-form-element_stacked " onchange="{!c.handleFieldOnChange}"/>
+                                </aura:set>
+                            </aura:if>
+                        </div>
+                    </aura:iteration>
+
+                </div>
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col  slds-text-align_center">
+                        <lightning:card variant="Narrow" title="Primary Address" class="slds-text-align_center">
+
+                            <div class="slds-grid slds-wrap">
+
+                                <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                    <div class="slds-form_horizontal">
+                                        <lightning:select value="{!v.primaryAddress.Country_New__c}" label="Country"
+                                            required="true">
+                                            <aura:iteration items="{!v.countryMap}" var="item">
+                                                <option text="{!item.value}" value="{!item.key}"></option>
+                                            </aura:iteration>
+                                        </lightning:select>
+                                    </div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                    <lightning:input type="Text" value="{!v.primaryAddress.City__c}" label="City"
+                                        class="slds-form-element_stacked" variant="label-inline" required="true" />
+                                </div>
+                                <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                    <lightning:input type="Text" value="{!v.primaryAddress.Street__c}" label="Street"
+                                        class="slds-form-element_stacked" variant="label-inline" />
+                                </div>
+                                <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                    <lightning:input type="Text" value="{!v.primaryAddress.Postal_Code__c}"
+                                        label="Postal Code" class="slds-form-element_stacked" variant="label-inline" />
+                                </div>
+                                <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                    <lightning:input type="Text" value="{!v.primaryAddress.Arabic_Address__c}"
+                                        label="Arabic Address" class="slds-form-element_stacked" variant="label-inline" />
+                                </div>
+                            </div>
+
+                        </lightning:card>
+                    </div>
+                </div>
+                <div class="slds-m-top_medium slds-text-align_center">
+                    <lightning:button label="Save" type="submit" variant="brand"> </lightning:button>
+                    <lightning:button variant="brand" label="Cancel" onclick="{!c.cancelAccEdit}"> </lightning:button>
+                </div>
+            </lightning:recordEditForm>
+        </aura:if>
+        <aura:if isTrue="{!v.isBusiness}">
+            <lightning:recordEditForm objectApiName="Account" aura:id="businessAccountForm"
+                onsubmit="{!c.handleSubmit}">
+                <lightning:messages aura:id="AccMessage" />
+                <div class="slds-grid slds-wrap">
+                    <aura:iteration items="{!v.orgAccfields}" var="item">
+                        <div class="slds-col slds-size_1-of-2 " padding="around-small">
+                            <aura:if isTrue="{!item.field == 'ERP_Account_Number__c'}">
+                                <!--<lightning:inputField fieldName="{!item.field}" required="false" disabled="true" class="slds-form-element_stacked" />-->
+                                <aura:set attribute="else">
+                                    <lightning:inputField fieldName="{!item.field}" required="{!item.required}"
+                                        class="slds-form-element_stacked" onchange="{!c.handleFieldOnChange}"/>
+                                </aura:set>
+                            </aura:if>
+
+                        </div>
+                    </aura:iteration>
+                </div>
+                    <br />
+                    <div class="slds-col slds-size_1-of-2 slds-text-align_center"></div>
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col  slds-text-align_center">
+                        <lightning:card variant="Narrow" title="Primary Address" class="slds-text-align_center">
+                            <aura:set attribute="actions">
+                                <lightning:button label="Add other address" variant="brand"
+                                                  onclick="{!c.addAnotherAddress}" />
+                            </aura:set>
+                            <div class="slds-grid slds-wrap">
+                                
+                                <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                    <div class="slds-form_horizontal">
+                                        <lightning:select value="{!v.primaryAddress.Country_New__c}" label="Country"
+                                                          required="true">
+                                            <aura:iteration items="{!v.countryMap}" var="item">
+                                                <option text="{!item.value}" value="{!item.key}"></option>
+                                            </aura:iteration>
+                                        </lightning:select>
+                                    </div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                    <lightning:input type="Text" value="{!v.primaryAddress.City__c}" label="City"
+                                                     class="slds-form-element_stacked" variant="label-inline" required="true" />
+                                </div>
+                                <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                    <lightning:input type="Text" value="{!v.primaryAddress.Street__c}" label="Street"
+                                                     class="slds-form-element_stacked" variant="label-inline" />
+                                </div>
+                                <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                    <lightning:input type="Text" value="{!v.primaryAddress.Postal_Code__c}"
+                                                     label="Postal Code" class="slds-form-element_stacked" variant="label-inline" />
+                                </div>
+                                <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                    <lightning:input type="Text" value="{!v.primaryAddress.Arabic_Address__c}"
+                                        label="Arabic Address" class="slds-form-element_stacked" variant="label-inline" />
+                                </div>
+                            </div>
+                            
+                        </lightning:card>
+                    </div>
+                    
+                </div>
+                <!-- the container element determine the height of the datatable -->
+                <aura:if isTrue="{! v.showAddressTable}">
+                    <lightning:card title="Other Address" class="slds-text-align_center">
+                        <div style="max-height: 250px;  overflow-y: auto;">
+                            <table class="slds-table slds-table_bordered ">
+                                <thead>
+                                    <tr>
+                                        <th class="tableHeader">Country</th>
+                                        <th class="tableHeader">City</th>
+                                        <th class="tableHeader">Street</th>
+                                        <th class="tableHeader">Postal Code</th>
+                                        <th class="tableHeader">Arabic Address</th>
+                                        <th class="tableHeader"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <aura:iteration items="{!v.secAddress}" var="WrpRcd" indexVar="j">
+                                        <tr>
+
+                                            <td>
+                                                <lightning:select value="{!WrpRcd.Country_New__c}" required="true">
+                                                    <option text="" value=""></option>
+                                                    <aura:iteration items="{!v.countryMap}" var="item">
+                                                        <option text="{!item.value}" value="{!item.key}"></option>
+                                                    </aura:iteration>
+                                                </lightning:select>
+                                            </td>
+                                            <td>
+                                                <lightning:input type="text" name="Address" value="{!WrpRcd.City__c}"
+                                                    required="true" />
+                                            </td>
+                                            <td>
+                                                <lightning:input type="text" name="Address"
+                                                    value="{!WrpRcd.Street__c}" />
+                                            </td>
+                                            <td>
+                                                <lightning:input type="text" name="Address"
+                                                    value="{!WrpRcd.Postal_Code__c}" />
+                                            </td>
+                                            
+                                            <td>
+                                                <lightning:input type="text" name="Address"
+                                                    value="{!WrpRcd.Arabic_Address__c}" />
+                                            </td>
+
+                                            <td>
+                                                <lightning:button label="Delete" variant="brand" title="{!j}"
+                                                    onclick="{!c.deleteAddressRec}" class="slds-m-top_small" />
+                                            </td>
+                                        </tr>
+                                    </aura:iteration>
+                                </tbody>
+                            </table>
+                        </div>
+                        <br />
+                    </lightning:card>
+                </aura:if>
+
+                <!--
+                    <div class="slds-col slds-size_1-of-2 slds-text-align_center">
+                        <lightning:card variant="Narrow"  title="Other Address" class="slds-text-align_center">
+                            <div class="slds-col" padding="around-small">
+                                <lightning:input type="Text" value="{!v.secAddress.Name}" label="Other Address" class="slds-form-element_stacked" variant="label-inline"/>
+                            </div>
+                            <div class="slds-col" padding="around-small">
+                                <div class="slds-form_horizontal">
+                                    <lightning:select value="{!v.secAddress.Country__c}" label="Country" >
+                                        <option text="" value="" ></option>
+                                        <aura:iteration items="{!v.countryMap}" var="item">
+                                            <option text="{!item.value}" value="{!item.key}" ></option>
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </div>
+                            </div>
+                            <div class="slds-col" padding="around-small">
+                                <lightning:input type="Text" value="{!v.secAddress.City__c}" label="City" class="slds-form-element_stacked" variant="label-inline"/>
+                            </div>
+                            <div class="slds-col" padding="around-small">
+                                <lightning:input type="Text" value="{!v.secAddress.Postal_Code__c}" label="Postal Code" class="slds-form-element_stacked" variant="label-inline"/>
+                            </div>
+                        </lightning:card>
+                    </div>
+                    -->
+                <!-- ADDED BY SWAPNIL - 19/2/2022-->
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col ">
+                        <lightning:card variant="Narrow" title="Authorised Signatory Details">
+                            <div class="slds-grid slds-wrap">
+                                <aura:iteration items="{!v.signatoryfields}" var="item">
+                                    <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                        <lightning:inputField fieldName="{!item.field}" required="{!item.required}"
+                                            class="slds-form-element_stacked" />
+                                        <!--<lightning:outputField fieldName="{!item.field}"  class="slds-border_bottom" readonly="true"/>-->
+                                    </div>
+                                </aura:iteration>
+                            </div>
+                        </lightning:card>
+                    </div>
+                </div>
+                <!-- ADDED BY SAJID - 04/05/2022 - NAK-2151 -->
+                <aura:if isTrue="{!v.isBusinessConcept}">
+                        <lightning:card variant="Narrow" title="Business Concept">
+                        <div class="slds-grid slds-wrap">
+                            <aura:iteration items="{!v.Brandingfields}" var="item">
+                                <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                    <lightning:inputField fieldName="{!item.field}" class="slds-form-element_stacked" />
+                                </div>
+                            </aura:iteration>
+                        </div>
+                        
+                    </lightning:card>
+                </aura:if>
+                <div class="slds-m-top_medium slds-text-align_center">
+                    <lightning:button label="Save" type="submit" variant="brand"> </lightning:button>
+                    <lightning:button variant="brand" label="Cancel" onclick="{!c.cancelAccEdit}"> </lightning:button>
+                </div>
+            </lightning:recordEditForm>
+        </aura:if>
+    </aura:if>
+    
+    <aura:if isTrue="{!v.showOTPVerificationCmpt}">
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">               
+                <!--Modal/Popup Box Body Starts here-->
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    <c:AccountOtpVeriicationComponent customerName="{!v.custmerNameParam}" primaryMobileNumber="{!'+' + v.accountPrimaryMobileCountryCode + v.accountPrimaryMobile }" calledFromNewDeal="true"/>
+                </div>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+</aura:component>

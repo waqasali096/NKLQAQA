@@ -1,0 +1,69 @@
+.THIS .slds-icon-custom-custom63.slds-icon_container svg{
+    background-color:#36628B  ;
+}
+
+.THIS .slds-icon-standard-search.slds-icon_container svg {
+    background-color:#36628B  ;
+}
+.THIS .slds-cell-fixed.slds-has-button-menu {
+    color: white !important;
+    background-color: #36628B !important;
+}
+.THIS .slds-cell-fixed.slds-has-button-menu :hover{
+    color: white !important;
+    background-color: #36628B !important;
+}
+
+.THIS .slds-button.slds-button_icon-bare {
+     Visibility :hidden;
+}
+.THIS .slds-th__action.slds-th__action_form.slds-cell-fixed {
+   color: white !important;
+    background-color: #36628B !important; 
+}
+
+.THIS .customButton {
+    color: white !important;
+    background-color: #36628B !important; 
+}
+
+.THIS .changeRecordColor svg {
+    fill: #008000!important; 
+}
+.THIS .changePriorityColor svg {
+    fill: 	#FFA500!important; 
+}
+.THIS .changeRePriorityColor svg {
+    fill: 	#B22222!important; 
+}
+.THIS .slds-button.slds-button_icon-border.slds-button_icon-x-small {
+    Visibility : hidden;
+}
+.THIS .slds-cell-fixed {
+     color: white !important;
+    background-color: #36628B !important; 
+}
+.THIS .slds-cell-fixed :hover::after{
+     color: white !important;
+    background-color: #36628B !important; 
+}
+.THIS .slds-cell-fixed :hover::before{
+     color: white !important;
+    background-color: #36628B !important; 
+}
+.THIS .slds-is-sortable :hover {
+     color: white !important;
+    background-color: #36628B !important; 
+}
+.THIS .slds-icon.slds-icon-text-default.slds-is-sortable__icon.slds-icon_x-small{
+    fill: white !important;
+    color : white !important;
+}
+.THIS .buttonColor{
+   background: steelblue;
+}
+.THIS .header th {
+    background-color:steelblue;
+    color:white;
+    height:50px;
+}

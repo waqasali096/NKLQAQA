@@ -1,0 +1,25 @@
+<aura:component controller="CloneDealFr_PrimarOwnerChngCtrl" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+<aura:attribute name="isSpinner" type="Boolean" default="false" />
+<aura:attribute name="offer" type="Object"  />
+    
+    
+    
+    <aura:attribute name="comment" type="String" default="Submitting Request for approval" />
+    <aura:html tag="style">
+        
+        .cuf-content {
+        padding: 0 0rem !important;
+        }
+        .slds-p-around--medium {
+        padding: 0rem !important;
+        }       
+        .slds-modal__content{
+        overflow-y:hidden !important;
+        height:unset !important;
+        max-height:unset !important;
+        }
+    </aura:html>   
+
+   <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    	
+</aura:component>

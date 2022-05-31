@@ -1,0 +1,216 @@
+<!--
+  @description       : 
+  @author            : ChangeMeIn@UserSettingsUnder.SFDoc
+  @group             : 
+  @last modified on  : 04-29-2022
+  @last modified by  : ChangeMeIn@UserSettingsUnder.SFDoc
+-->
+<template>
+
+    <template if:true={spinner}>
+        <lightning-spinner size="medium" variant="brand" alternative-text="Loading..."></lightning-spinner>
+    </template>
+
+    <template if:false={spinner}>
+        <lightning-quick-action-panel header="Add Sales Executive"></lightning-quick-action-panel>
+        <!--div class="slds-m-left_xx-large slds-m-right_xx-large slds-m-bottom_medium slds-border_top slds-border_right slds-border_left slds-border_bottom">
+                <lightning-card  title="Sales event info"> 
+                    <div class="slds-m-left_medium slds-m-right_medium slds-m-bottom_medium slds-m-top_medium">
+                        <lightning-record-view-form record-id={recordId} object-api-name="Sales_Event__c">
+                            <lightning-output-field field-name="Start_Date__c"></lightning-output-field>
+                            <lightning-output-field field-name="End_Date__c"></lightning-output-field>
+                        </lightning-record-view-form>
+                    </div>    
+                </lightning-card>
+            </div-->
+
+        <div>
+            <div class="slds-m-left_medium slds-m-right_medium slds-m-bottom_medium slds-border_top slds-border_right slds-border_left slds-border_bottom">
+                <lightning-card title="Select Role to View">
+                    <div class="slds-grid slds-wrap" style="width: 50%;">
+                        <div class="slds-col slds-size_1-of-2 slds-p-around_x-small">
+                            <lightning-combobox name="progress" label="Profile" value={value} placeholder="Select Profile"
+                            options={optionsforProfile} onchange={handleChangeProfile}></lightning-combobox>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2 slds-p-around_x-small">
+                            <form>
+                                <lightning-record-edit-form record-id={userRecordId}
+                                    object-api-name="Sales_Event_Executive__c">
+                                    <lightning-input-field field-name="Sales_Manger__c" onchange={handleSalesManager}>
+                                    </lightning-input-field>
+                                </lightning-record-edit-form>
+                            </form>
+                        </div>
+                    </div>
+                </lightning-card>
+            </div>
+
+            <div class="slds-m-left_medium slds-m-right_medium slds-m-bottom_medium slds-border_top slds-border_right slds-border_left slds-border_bottom">
+                
+                <lightning-card title="Search Member">
+                    <template if:true={salesExecuitve}>
+                        
+                        <div class="slds-p-around_medium">
+                            <div>
+                                <template if:true={StartdatevalFlag}>
+                                    <p class="slds-m-left_medium">*Start Date should be after the Sales Event Date.</p>
+                                </template>
+                            </div>
+                            <div>
+                                <template if:true={EnddatevalFlag}>
+                                    <p class="slds-m-left_medium">*End Date should be before the Sales Event Date.</p>
+                                </template>
+                            </div>
+
+                            <div class="slds-grid slds-wrap">
+                                <div class="slds-col slds-size_1-of-2 slds-p-around_x-small" style="width: 50%;">
+                                    <lightning-input type="text" name="User Name" label="Enter User Name" placeholder="Enter here"
+                                    onchange={getInputUser}></lightning-input>
+                                </div>
+                                <div class="slds-col slds-size_1-of-2 slds-p-around_x-small">
+                                    <template if:false={diableButton}>
+                                        <p slot="footer" style="text-align:right">
+                                            <!--lightning-button label="Cancel" onclick={closePanel} variant="nuetral"></lightning-button-->
+                                            <lightning-button label="Add Member" class="slds-m-right_small"
+                                                onclick={addSalesExecutive} disabled={diableButton}></lightning-button>
+                                        </p>
+                                    </template>                                    
+                                </div>
+                            </div> 
+    
+                            <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped">
+                                <tr style="height:35px">
+                                    <th scope="col">
+                                        <lightning-input type="checkbox" onchange={allSelectedSalesEvent}></lightning-input>
+                                    </th>
+                                    <th scope="col"><b>Name</b></th>
+                                    <th scope="col"><b>Start Date</b></th>
+                                    <th scope="col"><b>End Date</b></th>
+                                </tr>
+                                <template for:each={newFilterUserList} for:item="ins" for:index="index">
+                                    <tr key={ins.Index}>
+                                        <td>
+                                            <lightning-input type="checkbox" data-index={index} value={ins.index}
+                                                data-id={ins.userId} checked={ins.isSelected} data-allinput="checkValue"
+                                                onchange={handleUserSelectionCheck}></lightning-input>
+                                        </td>
+                                        <td>
+                                            <lightning-formatted-text value={ins.userName} data-id={ins.userId}>
+                                            </lightning-formatted-text>
+                                        </td>
+                                        <td>
+                                            <lightning-input type="date" value={ins.startDate} onchange={handleStartDateChange}
+                                                data-id={ins.userId}></lightning-input>
+                                            <template if:true={ins.startDateError}>
+                                                <p class="slds-m-left_medium">*Start Date should be after the Sales Event Date.
+                                                </p>
+                                            </template>
+                                        </td>
+                                        <td>
+                                            <lightning-input type="date" value={ins.endDate} onchange={handleEndDateChange}
+                                                data-id={ins.userId}></lightning-input>
+                                            <template if:true={ins.endDateError}>
+                                                <p class="slds-m-left_medium">*End Date should be before the Sales Event Date.
+                                                </p>
+                                            </template>
+                                        </td>
+                                    </tr>
+                                    <!--<tr key = {ins.Id}>         
+                                        <td><lightning-input type="checkbox" ></lightning-input></td>
+                                        <td><lightning-input type ="text" value={ins.Name} disabled="true" ></lightning-input></td>
+                                        <td><lightning-input type="date" value={startDate} onchange={strt}></lightning-input></td>
+                                        <td><lightning-input type="date" value={endDate} onchange={end}></lightning-input></td>
+                                    </tr>-->
+                                </template>
+                            </table>
+                            <div class="slds-align_absolute-center">
+                                <div class="slds-p-right_xx-small">
+        
+                                    <lightning-button label="Prev" disabled={isPrev} onclick={handlePrev} variant="brand"
+                                        icon-name="utility:back" name="prev"></lightning-button>
+                                </div>
+                                <span class="slds-badge slds-badge_lightest">
+                                    {recordStart}-{recordEnd} of {totalRecords} | Page {pageNumber} of {totalPages}
+                                </span>
+                                <div class="slds-p-left_xx-small">
+                                    <lightning-button label="Next" disabled={isNext} onclick={handleNext} variant="brand"
+                                        icon-name="utility:forward" icon-position="right" name="next"></lightning-button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </lightning-card>
+            </div>
+
+            
+            <div class="slds-m-left_medium slds-m-right_medium slds-m-bottom_medium slds-border_top slds-border_right slds-border_left slds-border_bottom">
+                
+                <lightning-card title="Existing Member">
+                    <template if:true={salesExecuitveEvent}>
+                        <div class="slds-p-around_medium">
+                            <p style="text-align:right">
+                                <lightning-button label="Remove Member" onclick={removeMember} variant='destructive'>
+                                </lightning-button>
+                            </p>
+                        </div>
+                        <div class="slds-p-around_medium">
+                               
+                            <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped">
+                                <tr style="height:35px">
+                                    <th scope="col">
+                                        <lightning-input onchange={allSelected} type="checkbox"></lightning-input>
+                                    </th>
+                                    <th scope="col"><b>Name</b></th>
+                                    <th scope="col"><b>Start Date</b></th>
+                                    <th scope="col"><b>End Date</b></th>
+                                </tr>
+        
+                                <template for:each={executiveEvent} for:item="ins" for:index="index">
+                                    <tr key={ins.Index}>
+                                        <td>
+                                            <lightning-input type="checkbox" data-index={index} value={ins.index}
+                                                data-verid="toggle1" data-id={ins.Id} onchange={SalesEventExecutiveSelection}>
+                                            </lightning-input>
+                                        </td>
+                                        <td>
+                                            <lightning-formatted-text value={ins.Name} data-id={ins.Id}>
+                                            </lightning-formatted-text>
+                                        </td>
+                                        <td>
+                                            <lightning-formatted-text value={ins.Start_Date__c} data-id={ins.Id}>
+                                            </lightning-formatted-text>
+                                        </td>
+                                        <td>
+                                            <lightning-formatted-text value={ins.End_Date__c} data-id={ins.Id}>
+                                            </lightning-formatted-text>
+                                        </td>
+                                    </tr>
+                                </template>
+        
+                            </table>
+                            <div class="slds-align_absolute-center">
+                                <div class="slds-p-right_xx-small">
+        
+                                    <lightning-button label="Prev" disabled={isPrevExisting} onclick={handlePrevExisting}
+                                        variant="brand" icon-name="utility:back" name="prev"></lightning-button>
+                                </div>
+                                <span class="slds-badge slds-badge_lightest">
+                                    {recordStartExisting}-{recordEndExisting} of {totalRecordsExisting} | Page
+                                    {pageNumberExisting} of {totalPagesExisting}
+                                </span>
+                                <div class="slds-p-left_xx-small">
+                                    <lightning-button label="Next" disabled={isNextExisting} onclick={handleNextExisting}
+                                        variant="brand" icon-name="utility:forward" icon-position="right" name="next">
+                                    </lightning-button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    <template if:true={error}>
+                        {error}>
+                    </template>
+                </lightning-card>
+            </div>            
+        </div>
+    </template>
+</template>

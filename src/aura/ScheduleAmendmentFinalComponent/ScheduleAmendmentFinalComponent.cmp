@@ -1,0 +1,278 @@
+<aura:component controller="ScheduleAmendmentController" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickActionWithoutHeader" access="global" >
+    <aura:attribute name="installmentsWrpLst" type="ScheduleAmendmentController.ResultWrapper[]" />
+    <aura:attribute name="parentWrapper" type="ScheduleAmendmentController.ParentWrapper" />
+    <aura:attribute name="amendmentsList" type="ScheduleAmendmentController.ResultWrapper[]" />
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="commentMap" type="Map"/>
+    <aura:attribute name="methodMap" type="Map"/>
+    <aura:attribute name="installmentList" type="ScheduleAmendmentController.ResultWrapper[]"/>
+    <aura:attribute name="installmentMap" type="Map"/>
+    <aura:attribute name="receiptMethods" type="List"/>
+    <aura:attribute name="selectedMethod" type="string" />
+    <aura:attribute name="businessUnit" type="String" />
+    <aura:attribute name="isError" type="Boolean" />
+    <aura:attribute name="isAllSelected" type="boolean" default = "false"/>
+    <aura:attribute name="selectedCount" type="integer" default="0"
+                    description="selected Records Count"/>
+    <aura:attribute name="totalRecordsCount" type="Integer"/>
+    <aura:attribute name="bookingAmountList" type="ScheduleAmendmentController.ResultWrapper[]" />
+    <aura:handler event="aura:waiting" action="{!c.showSpinner}"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/>
+    <aura:attribute name="isTable" type="boolean" default = "false"/>
+    <aura:attribute name="isSpinner" type="boolean" default = "false"/>
+    <aura:attribute name="showConfirmBox" type="boolean" default="false"/>
+    <aura:attribute name="isBankTransfer" type="boolean" default = "false"/>
+    <aura:attribute name="isChequeMode" type="boolean" default = "false"/>
+    <aura:html tag="style">
+        .slds-modal__container{
+        max-width: 100rem !important;
+        width:95% !important;
+        }
+        .cuf-content {
+        padding: 0 0rem !important;
+        }
+        .slds-p-around--medium {
+        padding: 0rem !important;
+        }
+        .slds-modal__content {
+        overflow-y: hidden !important;
+        height: unset !important;
+        max-height: unset !important;
+        }        
+    </aura:html>
+    <!-- call doInit method on component load -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <header class="slds-modal__header" style="background: steelblue;">
+        <h4 class="title slds-text-heading--medium slds-text-color_inverse"><span>Collect Payment</span></h4>
+    </header>
+    
+    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+        <div class = "slds-box"> 
+            <div class="slds-float_left">
+                <p class="slds-m-around_small slds-float--left">
+                    
+                    <span class="slds-badge slds-badge_lightest" style="display:inline-block;background: aliceblue;">
+                        <h1>Total Amount : <lightning:formattedNumber value="{!v.parentWrapper.totalAmount}" style="currency" minimumFractionDigits="2" maximumFractionDigits="2"/></h1>
+                    </span>
+                </p>  
+            </div> 
+            <div class="slds-float_right">
+                <lightning:button variant="brand"
+                                  label="Cancel"
+                                  title="Cancel"
+                                  onclick="{! c.closeModal }"
+                                  class="buttonColor"/>
+                <lightning:button variant="brand"
+                                  label="Submit"
+                                  title="Submit"
+                                  onclick="{!c.handleConfirm}"
+                                  class="{!v.isError ? '' : 'buttonColor'}"
+                                  disabled = "{!v.isError}"
+                                  />
+                
+            </div> 
+            <div class="slds-grid slds-grid_align-end slds-var-m-around_large slds-gutters">
+                <br/>
+                <br/>
+                <!--lightning:button variant="brand"
+                                  label="Regenrate Advice"
+                                  class="slds-col buttonColor"
+                                  onclick=""
+                                  name="Regenrate Advice"/-->
+            </div>
+            <div style="position:relative">
+                <aura:if isTrue="{!v.isSpinner}">
+                    <div aura:id="spinnerId" class="slds-spinner_container">
+                        <div class="slds-spinner--brand  slds-spinner slds-spinner--large " role="alert">
+                            <span class="slds-assistive-text">Loading</span>
+                            <div class="slds-spinner__dot-a"></div>
+                            <div class="slds-spinner__dot-b"></div>
+                        </div>
+                    </div>
+                </aura:if>
+                <aura:if isTrue="{!v.showConfirmBox}">
+                    
+                    <div role="dialog" class="slds-modal slds-fade-in-open">
+                        <div class="slds-modal__container">
+                            
+                            <header class="slds-modal__header">
+                                <h1 class="slds-text-heading--medium">Confirmation to create receipts for selected records.</h1>
+                            </header>
+                            <div class="slds-modal__content slds-p-around--medium">
+                                <br></br>
+                                <br></br>
+                                <br></br>
+                                <center><b>If you click confirm,receipts will be created for selected records</b></center>
+                                <br></br>
+                                <br></br>
+                                <br></br>
+                            </div>
+                            <footer class="slds-modal__footer">
+                                <lightning:button variant="brand" name='Cancel' class="buttonColor" label='Cancel' onclick='{!c.handleConfirmDialogCancel}'/>
+                                <lightning:button  variant="brand" class="buttonColor" name='Remove' label='Confirm' onclick='{!c.handleConfirm}'/>
+                            </footer>
+                        </div>
+                    </div>
+                    <div class="slds-backdrop slds-backdrop--open" style="height:unset !important;"></div> 
+                </aura:if>
+                <aura:if isTrue="{!v.isTable}">               
+                    <div class="slds-scrollable--y" style="height:500px">
+                        <!-- data table start-->  
+                        <table class="slds-box slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered slds-no-row-hover" style="background: aliceblue;">
+                            
+                            <thead class="header">
+                                
+                                <tr class="slds-text-title_caps" style="background: aliceblue;">
+                                    <!--header checkbox for select all-->
+                                    <th scope="col" >
+                                        <lightning:input aura:id="selectAllId" type="checkbox-button" label="Input One" name="input1"
+                                                         checked="{!v.isAllSelected}"
+                                                         onchange="{!c.selectAllCheckbox}"></lightning:input>
+                                    </th>          
+                                    <!--th scope="col" >
+                                        <div class="slds-truncate slds-cell-wrap" title="Name">Payment Term Type</div>
+                                    </th-->
+                                    <th scope="col" >
+                                        <div class="slds-truncate slds-cell-wrap" title="Phone">Item Description</div>
+                                    </th>
+                                    <th scope="col" >
+                                        <div class="slds-truncate slds-cell-wrap" title="Type">Due Date</div>
+                                    </th>
+                                    <!--th scope="col" >
+                                <div class="slds-truncate slds-cell-wrap" title="Type">Amount</div>
+                            </th> 
+                            <th scope="col" >
+                                <div class="slds-truncate slds-cell-wrap" title="Type">Vat Amount</div>
+                            </th--> 
+                                    <th scope="col" >
+                                        <div class="slds-truncate slds-cell-wrap" title="Type">Amount</div>
+                                    </th> 
+                                    <th scope="col" >
+                                            <div class="slds-truncate slds-cell-wrap" title="Payment Method">Payment Method</div>
+                                        </th>
+                                    <aura:if isTrue="{!v.isBankTransfer}">
+                                        <th scope="col" >
+                                      <div class="slds-truncate slds-cell-wrap" title="Unit Code">Transaction Id</div>
+                                        </th>
+                                    </aura:if>
+                                    <aura:if isTrue="{!v.isChequeMode}">
+                                    <th scope="col" >
+                                        <div class="slds-truncate slds-cell-wrap" title="Unit Code">Cheque No</div>                                        
+                                    </th>
+                                    </aura:if>
+                                    <!--th scope="col" >
+                                <div class="slds-truncate slds-cell-wrap" title="Type">Amount Collected</div>
+                            </th-->
+                                    
+                                    <th scope="col" >
+                                        <div class="slds-truncate" title="Type">Cashier's Remarks</div>
+                                    </th>
+                                    <th scope="col" >
+                                        <div class="slds-truncate slds-cell-wrap" title="Type">Executive's Remarks</div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <aura:iteration items="{!v.parentWrapper.resultWrapperList}" var="obj" indexVar="index">
+                                    <tr class="{!obj.isReceiptCreated ? 'slds-theme_shade' : ''}">
+                                        <th scope="row" class="slds-text-align_right" style="width:3.25rem;">
+                                            
+                                            <div class="slds-form-element__control">
+                                                
+                                                <lightning:input  type="checkbox-button" name="input2"
+                                                                 checked="{!obj.isChecked}"
+                                                                 onchange="{!c.checkboxSelect}"></lightning:input>
+                                            </div>
+                                            
+                                        </th>
+                                        <!--th scope="row">
+                                            <div class="slds-truncate slds-line-clamp slds-cell-wrap" title="{!obj.paymentTermType}">{!obj.paymentTermType}</div>
+                                        </th--> 
+                                        <th scope="row">
+                                            <div class="slds-truncate slds-line-clamp slds-cell-wrap" title="{!obj.itemDesValue}">{!obj.itemDesValue}</div>
+                                        </th>
+                                        <th scope="row">
+                                            <div class="slds-truncate slds-cell-wrap" title="{!obj.dueDate}">
+                                                <lightning:input type="date" aura:id="fieldId" name="proposedDate" value="{!obj.dueDate}"
+                                                                 disabled = "true"/>
+                                            </div>
+                                        </th>
+                                        <!--th scope="row">
+                                    <div class="slds-truncate slds-line-clamp slds-cell-wrap" title="{!obj.amount}">{!obj.amount}</div>
+                                </th>
+                                <th scope="row">
+                                    <div class="slds-truncate slds-line-clamp slds-cell-wrap" title="{!obj.vatAmount}">{!obj.vatAmount}</div>                                
+                                </th-->
+                                        
+                                        <th scope="row">
+                                            <div class="slds-truncate slds-line-clamp slds-cell-wrap" title="{!obj.proposedAmount}">
+                                                <lightning:formattedNumber value="{!obj.proposedAmount}" style="currency" minimumFractionDigits="2" maximumFractionDigits="2"/></div>
+                                        </th>
+                                        <th scope="row">
+                                            <div class="slds-truncate slds-line-clamp slds-cell-wrap" title="{!obj.paymentMode}">
+                                        <lightning:input type="text" name="{!indx}" aura:id = "fieldId" value="{!obj.paymentMode}" disabled="true" ></lightning:input>
+                                            </div>
+                                        </th>
+                                        <aura:if isTrue="{!v.isBankTransfer}">
+                                            <th scope="row">
+                                      <lightning:input type="text" name="{!indx}" aura:id = "fieldId" value="{!obj.transactionId}" required="{!!obj.isTransactionId}" 
+                                                       disabled="{!obj.isTransactionId}"></lightning:input>
+                                            </th>
+                                        </aura:if>
+                                        <aura:if isTrue="{!v.isChequeMode}">
+                                        <th scope="row">
+                                            <div class="slds-truncate" title="{!obj.chequeNo}">
+                                                <lightning:input  type="text" name="{!indx}" title="{!obj.previousChequeNo}" aura:id = "fieldId" value="{!obj.chequeNo}" required="{!obj.paymentMode == 'Cheque'}" 
+                                                                 disabled="{!obj.paymentMode != 'Cheque'}"/>
+                                            </div>
+                                        </th>
+                                        </aura:if>
+                                        
+                                        <!--th scope="row">
+                                   <div class="slds-truncate slds-line-clamp slds-cell-wrap" title="{!obj.amountCollected}">
+                                       
+                                    <lightning:input aura:id="rejectrn" type="number" name="{!index}" value="{!obj.amountCollected}" step="0.01" disabled = "{!obj.isReceiptCreated}"
+                                                     onchange="{!c.validateAmount}"/>
+                                       <div aura:id="errorCapture" style="color:red;" class="slds-hide format-error-text">Collected Amount must match with the Amount</div>
+                                    </div>
+                                </th-->
+                                        <th scope="row">
+                                            <div class="slds-truncate slds-line-clamp slds-cell-wrap" title="{!obj.remarks}">
+                                                <lightning:input aura:id="fieldId" type="text" name="input1"  value="{!obj.remarks}" />
+                                            </div>
+                                        </th>
+                                        <th scope="row">
+                                            <div class="slds-truncate slds-line-clamp slds-cell-wrap" title="{!obj.execRemarks}">
+                                                <lightning:input aura:id="fieldId" type="text" name="input1" disabled="true" value="{!obj.execRemarks}" />
+                                            </div>
+                                        </th>
+                                        
+                                        
+                                    </tr>
+                                </aura:iteration>
+                            </tbody>
+                            
+                        </table>
+                    </div>
+                </aura:if>
+            </div>
+            <!-- data table end--> 
+        </div>
+    </div>
+    <footer class="slds-modal__footer">
+        <!--
+        <lightning:button variant="brand"
+                          label="Cancel"
+                          title="Cancel"
+                          onclick="{! c.closeModal }"
+                          class="buttonColor"/>
+        <lightning:button variant="brand"
+                          label="Submit"
+                          title="Submit"
+                          onclick="{!c.handleConfirm}"
+                          class="{!v.isError ? '' : 'buttonColor'}"
+                          disabled = "{!v.isError}"
+                          /> -->
+    </footer>
+</aura:component>

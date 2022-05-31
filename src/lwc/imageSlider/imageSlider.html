@@ -1,0 +1,18 @@
+<!--********************************************************************************************
+* Name			: ImageSlider.html
+* Description	: LWC component to render image slider                               
+* Created Date	: 14/10/2021
+* Created By	: Cloudworks
+* **********************************************************************************************
+* Version		Author		Date		    Comment   
+* 1.0           Rohit       14/10/2021      Initial Draft
+*********************************************************************************************-->
+<template>
+    <div class="slds-align_absolute-center">
+        <lightning-carousel scroll-duration="3" style="max-height: 380px; max-width: 1000px;">
+            <template for:each={imageUrls} for:item="imgUrl">
+                <lightning-carousel-image key={imgUrl} src={imgUrl}></lightning-carousel-image>
+            </template>
+        </lightning-carousel>
+    </div>
+</template>

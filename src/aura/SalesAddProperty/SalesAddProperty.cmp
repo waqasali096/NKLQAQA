@@ -1,0 +1,510 @@
+<aura:component controller="UnitController" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionWithoutHeader,force:hasSObjectName,lightning:isUrlAddressable,lightning:actionOverride,lightning:hasPageReference" access="global" >
+    <!--style to incraee width-->
+    <aura:html tag="style">
+        .slds-modal__container{
+        max-width: 100rem !important;
+        width:95% !important;
+        }
+    </aura:html>
+    <aura:attribute name="isSpinner" type="Boolean" default="false" />
+    <!--Declare Attributes-->
+    <aura:attribute name="selectedprojects" type="string" />
+    <aura:attribute name="projectsMap" type="Map"/>
+    
+    <aura:attribute name="selectedRecordId" type="Id" />
+    <aura:attribute name="sobjecttype" type="String" default="{!v.sObjectName}"/>
+    <aura:attribute name="maxrowselection" type="Integer" />
+    
+    <aura:attribute name="pageNumber" type="Integer" default="1"/>
+    <aura:attribute name="pageSize" type="Integer" default="10"/>
+    <aura:attribute name="totalpages" type="Integer"/>
+    <aura:attribute name="isLastPage" type="Boolean" default="false"/>
+    <aura:attribute name="dataSize" type="Integer" default="0"/> 
+    
+    <!-- Attribut for on load -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:attribute name="DisplaySearchResultFlg" type="Boolean" default="false" />
+    <aura:attribute name="recordId" type="String" description="ID of the record."/>
+    <aura:attribute name="PriceBookMap" type="Map"/>
+    <aura:attribute name="infoMsg" type="String"/>
+    <aura:attribute name="TypeMap" type="Map"/>
+    <aura:attribute name="NumofBedroomsMap" type="Map"/>
+    <aura:attribute name="SalesStatusMap" type="Map" />
+    <aura:attribute name="ThemeTypeMap" type="Map"/>
+    <aura:attribute name="UnitTypeMap" type="Map"/>
+    <aura:attribute name="ColorTypeMap" type="Map"/>
+    <aura:attribute name="selectedthemetype" type="string" />
+    <aura:attribute name="selectedcolortype" type="string" />
+    <aura:attribute name="selectedunittype" type="string" />
+    <aura:attribute name="UnitTypeGroupMap" type="Map"/>
+    <aura:attribute name="SpaceTypeMap" type="Map"/>
+    <aura:attribute name="PropertyUnitViewMap" type="Map"/>
+    <aura:attribute name="onloadUnitList" type="List"/>
+    <aura:attribute name="columnsforOnloadUnit" type="List"/>
+    <aura:attribute name="selectedpricetype" type="string"/>
+    <aura:attribute name="selectedprodtype" type="string" />
+    <aura:attribute name="selectedspacetype" type="string" />
+    <aura:attribute name="minPrice" type="Integer" default="null"/>
+    <aura:attribute name="maxPrice" type="Integer" default="null"/>
+    <aura:attribute name="minSaleableArea" type="Integer" default="null"/>
+    <aura:attribute name="maxSaleableArea" type="Integer" default="null"/>
+    <aura:attribute name="minPlotArea" type="Integer" default="null"/>
+    <aura:attribute name="maxPlotArea" type="Integer" default="null"/>
+    <aura:attribute name="selectednumofbedroom" type="string" />
+    <aura:attribute name="selectedSalesStatus" type="string" />
+    <aura:attribute name="selectedunitgroup" type="string" />
+    <aura:attribute name="selectedpropertyunitview" type="string" />
+    <aura:attribute name="showMore" type="boolean" default="false" />
+    <aura:attribute name="recentlyAdded" type="List" default="['YES','NO']"/>
+    <aura:attribute name="selectedRecentlyAdded" type="string" default="NO"/>
+
+    
+    
+    <!-- These attribut for loadmore OFFSET  -->
+    <aura:attribute name="enableInfiniteLoading" type="Boolean" default="true"/>
+    <aura:attribute name="initialRows" type="Integer" default="50"/>
+    <aura:attribute name="currentCount" type="Integer" default="50"/>
+    <aura:attribute name="totalRows" type="Integer" default="2000"/>
+    <aura:attribute name="loadOffset" type="Integer" default="1"/>
+    
+    <!--  Selected Unit      -->
+    <aura:attribute name="selectedUnits" type="List"/>
+    <aura:attribute name="selectedUnitId" type="string"/>
+    <aura:attribute name="totalPrice" type="Decimal"/>
+    <aura:attribute name="defaultUnitValue" type="string" default="Villa"/>
+    
+    <!-- Additional Charge  -->
+    <aura:attribute name="additionalUnits" type="List"/>
+    <aura:attribute name="additionalColumns" type="List"/>
+    <aura:attribute name="DisplayAditionalChargeFlag" type="Boolean" default="false" />
+    <aura:attribute name="selectedAdditionalRows" type="List"/>
+    <aura:attribute name="additionaltotalPrice" type="Decimal"/>
+    <aura:attribute name="draftValues" type="Object" default="[]"/>
+    
+    <!-- Additional Charge  Opportunity item-->
+    <aura:attribute name="additionalOppItem" type="List"/>
+    <aura:attribute name="additionalColumnsOppItem" type="List"/>
+    <aura:attribute name="DisplayAditionalChargeFlagOppItem" type="Boolean" default="false" />
+    <aura:attribute name="additionaltotalPriceOppItem" type="Decimal"/>
+    <aura:attribute name="totalAdditionalPrice" type="Decimal"/>
+    
+    <!-- all flages-->
+    <aura:attribute name="DisplayMsgFlg" type="Boolean" default="false" />
+    <aura:attribute name="Onloadflag" type="Boolean" default="false"/>
+    <aura:attribute name="displaybuttonflag" type="Boolean" default="false"/>
+    <aura:attribute name="additionalChargeNullFlag" type="Boolean" default="false"/>
+    <aura:attribute name="leadSalesModification" type="Boolean" default="true" />
+    <aura:attribute name="leadLeasingModification" type="Boolean" default="true" />
+    <aura:attribute name="componentVisibility" type="Boolean" default="true" />
+    <aura:attribute name="resetBtn" type="Boolean" default="false" />
+    
+    <!-- data table for existing mile stone -->
+    <aura:attribute name="existingUnit" type="List"/>
+    <aura:attribute name="existingUnitForRemove" type="List"/>
+    <aura:attribute name="columnsforexistingUnit" type="List"/>
+    <aura:attribute name="columnsforexistingMileStone" type="List"/>
+    <aura:attribute name="existingUnitmilestone" type="List"/>
+    <aura:attribute name="showExistingUnit" type="Boolean" default="True"/>
+    <aura:attribute name="PaymentplanName" type="String" /> 
+    <aura:attribute name="existingAdditionalOppItem" type="List"/>
+    <aura:attribute name="existingAdditionalColumnsOppItem" type="List"/>
+    
+    <!-- Modify attributs -->
+    <aura:attribute name="opportunityRequestMileStoneList" type="List"/>
+    <aura:attribute name="showeOpportunityRequestMileStone" type="Boolean" default="false"/>
+    <aura:attribute name="totalPercentage" type="Integer" default="100"/>
+    <aura:attribute name="totalPriceForModify" type="Integer"/>
+    <aura:attribute name="columnsModifyMile" type="List"/>
+    <aura:attribute name="saveDraftValues" type="Object"/>
+    
+    <!-- data table for selected unit for preview -->
+    <aura:attribute name="SeletecUnitDataforPreview" type="List"/>
+    <aura:attribute name="columnsforSelectedmileUnit" type="List"/>
+    <aura:attribute name="columnsforSelectedUnit" type="List"/>
+    <aura:attribute name="selectedPmtmileStone" type="List"/>
+    <aura:attribute name="TotalPriceforSelectedProduct" type="String" /> 
+    <aura:attribute name="selectedPaymentPlanNameForPreview" type="String" /> 
+    <aura:attribute name="showSelectedUnit" type="Boolean" default="True"/>
+    <aura:attribute name="mapofUnitandPrice" type="Map" />
+    
+    <!-- Attribute for lookup value-->
+    <aura:attribute Name="MasterPlanrecord" type="object"  access="public" /> 
+    <aura:attribute Name="Blockrecord" type="object"  access="public" />
+    <aura:attribute Name="Projectrecord" type="object"  access="public" />
+    <aura:attribute Name="Buildingrecord" type="object"  access="public" />
+    <aura:attribute Name="UnitThemerecord" type="object"  access="public" /><!-- Added By Mamta 3 Feb -->
+    
+    
+    <aura:attribute name="sortDirection" type="String" default="asc" />
+    <aura:attribute name="defaultSortDirection" type="String" default="asc" />
+    <aura:attribute name="sortedBy" type="String" />
+    <aura:attribute name="discountType" type="String" default="Fixed"/>
+    <aura:attribute name="PriceBeforeDiscount" type="Decimal"/>  
+    <aura:attribute name="PriceAfterDiscount" type="Decimal"/>
+    <aura:attribute name="Discount" type="String" default="0"/>
+    <aura:attribute name="DiscountAmount" type="Decimal" default="0"/>
+    
+    <aura:attribute name="showDiscountTable" type="Boolean" default="false"/>
+    <aura:attribute name="disabled" type="Boolean" default="false"/>
+    <aura:attribute name="listofSelectedUnitIDS" type="Array" default="[]"/>
+    
+    <!-- Attribute for lookup value-->
+    <aura:attribute name="paymentPlanMap" type="Map"/>
+    <aura:attribute name="selectedPaymentPlan" type="String"/>
+    
+    <!-- Code to display spinner -->
+    <aura:if isTrue="{!v.isSpinner}">
+        <!--<lightning:spinner style="display:contents;" alternativeText="Loading" variant="brand" size="medium" />-->
+        <div class="demo-only" >
+            <div class="slds-spinner_container ">
+                <div role="status" class="slds-spinner slds-spinner_medium slds-spinner_brand">
+                    <span class="slds-assistive-text">Loading</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                    <div class="custom-loading-text">
+                        Loading...Please Wait....
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aura:if>
+    
+    <div class="modal-header slds-modal__header slds-size_1-of-1"> 
+        <aura:if isTrue="{!(v.sobjecttype =='Opportunity')}">
+            <h4 class="title slds-text-heading--medium">Add Unit(s)</h4>
+        </aura:if>
+        <aura:if isTrue="{!(v.sobjecttype =='Account')}">
+            <h4 class="title slds-text-heading--medium">Create Deals</h4>
+        </aura:if>
+        
+        <!-- edit 1 -->
+        <aura:if isTrue="{!(v.sobjecttype == 'Lead')}">
+            <h4 class="title slds-text-heading--medium">Add Unit(s)</h4>
+        </aura:if>
+        
+        <!-- Section to display the unit which is tied to the opportunity -->
+        
+        <aura:if isTrue="{!v.Onloadflag}">
+            <aura:if isTrue="{!v.showExistingUnit}">
+                <div style="margin-top:10px;">
+                    <ui:message title="Information" severity="info" closable="false">
+                        <p style="font-size:14px; margin-top:1%">{!v.infoMsg}</p>
+                    </ui:message>
+                </div>
+                <aura:set attribute="else">
+                    <!-- Search functionality start from here --> 
+                    <lightning:card variant="Narrow" title="Search Unit" iconName="standard:search">
+                        <aura:set attribute="footer">
+                            <lightning:button variant="brand" label="{!v.isSpinner == true ? 'Searching...' : 'Search'}" onclick="{!c.search}" class="customButton"></lightning:button>
+                            <aura:if isTrue="{!v.resetBtn}">
+                                
+                                <lightning:button variant="brand" label="Reset" onclick="{!c.onReset}" class="customButtonReset"></lightning:button>
+                            </aura:if>
+                        </aura:set>
+                        
+                        <lightning:layout horizontalAlign="space" verticalAlign="center" multipleRows="true" class="slds-theme_shade">
+                            <aura:if isTrue="{!v.componentVisibility}">
+                                <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                    <label class="slds-form-element__label">Master Community</label>
+                                    <c:LookupComponent objectName="Master_Community__c"
+                                                       field_API_text="Name"
+                                                       field_API_val="Id"
+                                                       limit="8"
+                                                       field_API_search="Name"
+                                                       lookupIcon="custom:custom62" 
+                                                       selItem="{!v.MasterPlanrecord}" 
+                                                       Seleted_Master="{!v.MasterPlanrecord}"
+                                                       Seleted_Blook="{!v.Blockrecord}"
+                                                       Seleted_Project="{!v.Projectrecord}"
+                                                       Seleted_Building="{!v.Buildingrecord}"
+                                                       Seleted_UnitTheme = "{!v.UnitThemerecord}"
+                                                       placeholder="Master Community"
+                                                       /> 
+                                </lightning:layoutItem>
+                            </aura:if>
+                            
+                            <!--  <aura:if isTrue="{!and(v.leadLeasingModification)}"> -->
+                            
+                            <lightning:layoutItem flexibility="auto" padding="around-small">
+                                <lightning:select aura:id="selectedprojects" value="{!v.selectedprojects}" label="Projects" >
+                                    <option value="">--None--</option>
+                                    <aura:iteration items="{!v.projectsMap}" var="typ" indexVar="key">
+                                        <option text="{!typ.value}" value="{!typ.key}"/>
+                                    </aura:iteration>
+                                </lightning:select>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem flexibility="auto" padding="around-small">
+                                <lightning:select aura:id="selectedunittype" value="{!v.selectedunittype}" label="Unit Type" >
+                                    <!-- value="{!v.defaultUnitValue}" -->
+                                    <option value="">--None--</option>
+                                    <aura:iteration items="{!v.UnitTypeMap}" var="type" indexVar="key">
+                                        <option text="{!type.value}" value="{!type.key}"/>
+                                    </aura:iteration>
+                                </lightning:select>
+                            </lightning:layoutItem>
+                            <!--
+                            <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                <label class="slds-form-element__label">Project</label>
+                                <c:LookupComponent objectName="Project__c"
+                                                   field_API_text="Name"
+                                                   field_API_val="Id"
+                                                   limit="8"
+                                                   field_API_search="Name"
+                                                   lookupIcon="custom:custom62" 
+                                                   selItem="{!v.Projectrecord}" 
+                                                   Seleted_Master="{!v.MasterPlanrecord}"
+                                                   Seleted_Blook="{!v.Blockrecord}"
+                                                   Seleted_Project="{!v.Projectrecord}"
+                                                   Seleted_Building="{!v.Buildingrecord}"
+                                                   Seleted_UnitTheme = "{!v.UnitThemerecord}"
+                                                   
+                                                   placeholder="Search Project"
+                                                   /> 
+                            </lightning:layoutItem>
+                            -->
+                            
+                            <!--  </aura:if> -->
+                            <aura:if isTrue="{!v.componentVisibility}">
+                                <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                    <label class="slds-form-element__label">Cluster</label>
+                                    <c:LookupComponent objectName="Cluster__c"
+                                                       field_API_text="Name"
+                                                       field_API_val="Id"
+                                                       limit="8"
+                                                       field_API_search="Name"
+                                                       lookupIcon="custom:custom62" 
+                                                       selItem="{!v.Blockrecord}" 
+                                                       Seleted_Master="{!v.MasterPlanrecord}"
+                                                       Seleted_Blook="{!v.Blockrecord}"
+                                                       Seleted_Project="{!v.Projectrecord}"
+                                                       Seleted_Building="{!v.Buildingrecord}"
+                                                       Seleted_UnitTheme = "{!v.UnitThemerecord}"
+                                                       
+                                                       placeholder="Search Cluster"
+                                                       /> 
+                                </lightning:layoutItem>
+                            </aura:if>
+                            <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                <label class="slds-form-element__label">Building</label>
+                                <c:LookupComponent objectName="Building__c"
+                                                   field_API_text="Name"
+                                                   field_API_val="Id"
+                                                   limit="8"
+                                                   field_API_search="Name"
+                                                   lookupIcon="custom:custom62" 
+                                                   selItem="{!v.Buildingrecord}" 
+                                                   Seleted_Master="{!v.MasterPlanrecord}"
+                                                   Seleted_Blook="{!v.Blockrecord}"
+                                                   Seleted_Project="{!v.Projectrecord}"
+                                                   Seleted_Building="{!v.Buildingrecord}"
+                                                   Seleted_UnitTheme = "{!v.UnitThemerecord}"
+                                                   
+                                                   placeholder="Search Building.."
+                                                   /> 
+                            </lightning:layoutItem>                           
+                            
+                            <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                <lightning:select aura:id="selectednumofbedroom" value="{!v.selectednumofbedroom}" label="No. of Bedrooms">
+                                    <option value="">--None--</option>
+                                    <aura:iteration items="{!v.NumofBedroomsMap}" var="typ" indexVar="key">
+                                        <option text="{!typ.value}" value="{!typ.key}"/>
+                                    </aura:iteration>
+                                </lightning:select>
+                            </lightning:layoutItem>
+
+                            <lightning:layoutItem flexibility="auto" padding="around-small">
+                                <lightning:select aura:id="selectedRecentlyAdded" value="{!v.selectedRecentlyAdded}" label="Recently Added" >
+                                    <!-- value="{!v.defaultUnitValue}" -->
+                                    <!--<option value="{!v.selectedRecentlyAdded}">-None-</option>-->
+                                    <aura:iteration items="{!v.recentlyAdded}" var="type">
+                                        <option text="{!type}" value="{!type}"/>
+                                    </aura:iteration>
+                                </lightning:select>
+                            </lightning:layoutItem>
+                            
+                           
+                            <!-- <aura:if isTrue="{!v.leadLeasingModification}"> -->
+                            <aura:if isTrue="{!v.componentVisibility}">
+                                
+                                
+                                <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                    <label class="slds-form-element__label">Unit Theme</label>
+                                    <c:LookupComponent objectName="Unit_Theme__c"
+                                                       field_API_text="Name"
+                                                       field_API_val="Id"
+                                                       limit="8"
+                                                       field_API_search="Name"
+                                                       lookupIcon="custom:custom62" 
+                                                       selItem="{!v.UnitThemerecord}" 
+                                                       Seleted_Master="{!v.MasterPlanrecord}"
+                                                       Seleted_Blook="{!v.Blockrecord}"
+                                                       Seleted_Project="{!v.Projectrecord}"
+                                                       Seleted_Building="{!v.Buildingrecord}"
+                                                       Seleted_UnitTheme = "{!v.UnitThemerecord}"
+                                                       placeholder="Search Unit Theme"
+                                                       /> 
+                                </lightning:layoutItem>
+                                
+                                <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                    <lightning:select aura:id="selectedpropertyunitview" value="{!v.selectedpropertyunitview}" label="Property Unit View">
+                                        <option value="">--None--</option>
+                                        <aura:iteration items="{!v.PropertyUnitViewMap}" var="typ" indexVar="key">
+                                            <option text="{!typ.value}" value="{!typ.key}"/>
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </lightning:layoutItem>
+                            </aura:if>
+                            <!--  </aura:if> -->
+                            <aura:if isTrue="{!v.componentVisibility}">
+                                <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                    <lightning:select aura:id="selectedspacetype" value="{!v.selectedspacetype}" label="Space Type">
+                                        <option value="">--None--</option>
+                                        <aura:iteration items="{!v.SpaceTypeMap}" var="typ" indexVar="key">
+                                            <option text="{!typ.value}" value="{!typ.key}"/>
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </lightning:layoutItem>
+                                
+                                <aura:if isTrue="{!(v.sobjecttype!='Lead')}"> 
+                                    <aura:if isTrue="{!v.leadLeasingModification}">
+                                        <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                            <lightning:select aura:id="selectedSalesStatus" value="{!v.selectedSalesStatus}" label="Sales Status">
+                                                <option value="">--None--</option>
+                                                <aura:iteration items="{!v.SalesStatusMap}" var="typ" indexVar="key">
+                                                    <option text="{!typ.value}" value="{!typ.key}"/>
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </lightning:layoutItem>
+                                    </aura:if>
+                                </aura:if>
+                            </aura:if>
+                            
+                            <aura:if isTrue="{!v.leadSalesModification}">
+                                <aura:if isTrue="{!v.componentVisibility}">
+                                    <aura:if isTrue="{!(v.showMore==true)}">                                
+                                        <!-- Adding 3 new Picklists -->
+                                        <!--
+                                        <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                            <lightning:select aura:id="selectedunittype" value="{!v.selectedunittype}" label="Unit Type">
+                                                <option value="">None</option>
+                                                <aura:iteration items="{!v.UnitTypeMap}" var="typ" indexVar="key">
+                                                    <option text="{!typ.value}" value="{!typ.key}"/>
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </lightning:layoutItem> 
+          -->    
+                                        <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                            <lightning:select aura:id="selectedthemetype" value="{!v.selectedthemetype}" label="Unit Theme">
+                                                <option value="">--None--</option>
+                                                <aura:iteration items="{!v.ThemeTypeMap}" var="typ" indexVar="key">
+                                                    <option text="{!typ.value}" value="{!typ.key}"/>
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                            <lightning:select aura:id="selectedcolortype" value="{!v.selectedcolortype}" label="Unit Color">
+                                                <option value="">--None--</option>
+                                                <aura:iteration items="{!v.ColorTypeMap}" var="typ" indexVar="key">
+                                                    <option text="{!typ.value}" value="{!typ.key}"/>
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </lightning:layoutItem>
+                                        
+                                        <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                            <lightning:input type="number" maxlength="10" name="MinPrice" label="Minimum Price" value="{!v.minPrice}" />
+                                        </lightning:layoutItem> 
+                                        <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                            <lightning:input type="number" maxlength="10" name="MaxPrice" label="Maximum Price" value="{!v.maxPrice}" />
+                                        </lightning:layoutItem>    
+                                        
+                                        <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                            <lightning:input type="number" maxlength="10" name="MinSaleArea" label="Minimum Saleable Area(SqFt)" value="{!v.minSaleableArea}" />
+                                        </lightning:layoutItem>
+                                        
+                                        <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                            <lightning:input type="number" maxlength="10" name="maxSaleableArea" label="Maximum Saleable Area(SqFt)" value="{!v.maxSaleableArea}" />
+                                            
+                                        </lightning:layoutItem>
+                                        
+                                        <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                            <lightning:input type="number" maxlength="10" name="MinPlotArea" label="Minimum Plot Area(SqFt)" value="{!v.minPlotArea}" />
+                                            
+                                        </lightning:layoutItem>
+                                        
+                                        <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                                            <lightning:input type="number" maxlength="10" name="MaxPlotArea" label="Maximum Plot Area(SqFt)" value="{!v.maxPlotArea}" />
+                                        </lightning:layoutItem>
+                                    </aura:if>
+                                </aura:if>
+                            </aura:if>
+                        </lightning:layout>
+                        <br></br>
+                        <aura:if isTrue="{!v.leadSalesModification}">
+                            <aura:if isTrue="{!v.componentVisibility}">
+                                <aura:if isTrue="{!(v.showMore==false)}">
+                                    <lightning:button class="slds-m-left_x-small" variant="neutral" label="Show more filters" onclick="{!c.addMoreFilters}" > </lightning:button>
+                                </aura:if>
+                            </aura:if>
+                        </aura:if>
+                    </lightning:card>   <!--selectedUnitTypeGroup selectedPropertyUnitView-->
+                    <br/>
+                    <aura:if isTrue="{!v.DisplaySearchResultFlg}"> 
+                        <h1 class="title slds-text-heading--medium" style="color:blue;">
+                            Only available units will be visible
+                        </h1>
+                        <lightning:card variant="Narrow" title="Select Unit/(s)" iconName="custom:custom63" > 
+                            <aura:set attribute="actions">
+                                <lightning:button variant="brand" label="Add Unit/(s)"  onclick="{!c.callcreateoffershelper}" class="slds-button"></lightning:button>
+                            </aura:set>
+                            
+                            <!--<lightning:input type="text" name="searchKey" label="Filter by Unit Name" aura:id="searchKey" 
+                                 onchange="{!c.searchKeyChange}" placeholder="Search" />-->
+                            <br/>
+                            <div class="slds-scrollable scrollable_x " role="grid">  
+                                
+                                <lightning:datatable aura:id="dataTableID"
+                                                     keyField="id"
+                                                     data="{! v.onloadUnitList}"
+                                                     columns="{! v.columnsforOnloadUnit}"
+                                                     enableInfiniteLoading="false"
+                                                     onrowselection="{!c.handleSelectUnit}"
+                                                     defaultSortDirection="{!v.defaultSortDirection}"
+                                                     sortedDirection="{!v.sortDirection}"
+                                                     sortedBy="{!v.sortedBy}"
+                                                     minColumnWidth="100"
+                                                     wrapTextMaxLines="3"
+                                                     maxRowSelection="{!v.maxrowselection}"
+                                                     onsort="{!c.handleSort}"/>
+                                
+                                
+                                
+                                <br></br>
+                                <div class="slds-clearfix">
+                                    <div class="slds-page-header" role="banner">
+                                        <div class="slds-float_center">            
+                                            <lightning:button label="Previous Page" iconName="utility:chevronleft" iconPosition="left"
+                                                              onclick="{!c.handlePrev}" disabled="{! v.pageNumber == 1}" class="btn-css"/>
+                                            <!--<p class="slds-page-header__title">Page {!v.pageNumber} | Showing records from {! ((v.pageNumber-1)*v.pageSize)+' to '+((v.pageNumber-1)*v.pageSize+v.dataSize)}</p>-->
+                                            <span class="page-css">Page {!v.pageNumber} - {!v.totalpages}</span>
+                                            <lightning:button label="Next Page" iconName="utility:chevronright" iconPosition="right"
+                                                              disabled="{! v.isLastPage}" onclick="{!c.handleNext}" class="btn-css"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </lightning:card>
+                    </aura:if>
+                </aura:set>
+            </aura:if>
+        </aura:if>
+        
+        <aura:if isTrue="{!v.DisplayMsgFlg}">
+            <div style="margin-top:10px;">
+                <ui:message title="Information" severity="info" closable="false">
+                    <p style="font-size:14px; margin-top:1%">No units found. Please try different search filters.</p>
+                </ui:message>
+            </div>
+        </aura:if>
+    </div>
+</aura:component>

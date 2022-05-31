@@ -1,0 +1,496 @@
+<aura:component controller="QuickBookTimerController" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId" access="global" >
+    <aura:attribute name="showBookedUnits" type="Boolean" default="False"/>
+    <aura:attribute name="jointOwnerList" type="List"/>
+    <aura:attribute name="jocolumns" type="List"/>
+    <aura:attribute name="currentUnitList" type="List"/>
+    <aura:attribute name="columnsforexistingUnit" type="List"/>
+    <aura:attribute name="accountId" type="String"/> 
+    <aura:attribute name="newAccount" type="Account"/>
+    <aura:attribute name="fields" type="String[]" default="['Name','AccountId','Broker__c','CloseDate','Employee_Name__c','Booking_Reservation_Date__c']" />
+    <aura:attribute name="activeSections" type="List" default="['A','B','C','D','E']" />
+    <aura:attribute name="selectedDropdown" type="String"/>
+    <aura:attribute name="customerAdded" type="boolean" default = "FALSE"/>
+    <!--Pagination-->
+    <aura:attribute name="isCartAllSelected" type="boolean" default = "false"/>
+    <aura:attribute name="cartSelectedCount" type="integer" default="0" description="selected Records Count"/>
+    <aura:attribute name="cartTotalRecordsCount" type="Integer"/>
+    <aura:attribute name="cartTotalPrice" type="Decimal" default="0"/>
+    <aura:attribute name="cartPageSize" type="Integer" default="4"/>
+    <aura:attribute name="cartStartPage" type="Integer" />
+    <aura:attribute name="cartEndPage" type="Integer"/>
+    <aura:attribute name="cartCurrentPage" type="integer" default="1"/>
+    <aura:attribute name="cartTotalPagesCount" type="integer"/> 
+    <!--Booking Cart Attributes-->
+    <aura:attribute name="isBookedAllSelected" type="boolean" default = "false"/>
+    <aura:attribute name="bookedSelectedCount" type="integer" default="0" description="selected Records Count"/>
+    <aura:attribute name="bookedTotalRecordsCount" type="Integer"/>
+    <aura:attribute name="bookedTotalPrice" type="Decimal" default="0"/>
+    <aura:attribute name="bookedPageSize" type="Integer" default="4"/>
+    <aura:attribute name="bookedStartPage" type="Integer" />
+    <aura:attribute name="bookedEndPage" type="Integer"/>
+    <aura:attribute name="bookedCurrentPage" type="integer" default="1"/>
+    <aura:attribute name="bookedTotalPagesCount" type="integer"/>
+    
+    <aura:attribute name="spinner" type="boolean" default="FALSE"/>
+    <aura:attribute name="selectedUnit" type="QuickBookTimerController.ResultWrapper"/>
+    <aura:attribute name="cartUnits" type="QuickBookTimerController.ResultWrapper[]"/>
+    <aura:attribute name="paginationList" type="QuickBookTimerController.ResultWrapper[]"/>
+    <aura:attribute name="bookedUnits" type="QuickBookTimerController.ResultWrapper[]"/>
+    <aura:attribute name="bookedPaginationList" type="QuickBookTimerController.ResultWrapper[]"/>
+    <aura:attribute name="modalContainer" type="boolean" default = "false"/>
+    <aura:attribute name="selectedRecordId" type="string"/>
+    
+    <aura:attribute name="documentPackageId" type="string" default="a1z3M000000MqKpQAK" />
+    <aura:attribute name="deliveryOptionId" type="string" default="a1x3M0000009NQGQA2"/>
+    <aura:attribute name="sObjectType" type="string" default="Opportunity"/>
+    <aura:attribute name="salesTypeMap" type="Map"/>
+    <aura:attribute name="salesSubTypeMap" type="Map"/>
+    <aura:attribute name="depnedentFieldMap" type="map" description="map to store dependent values with controlling value"/>
+    <aura:attribute name="bDisabledDependentFld" type="boolean" default="true"/> 
+    <aura:attribute name="listDependingValues" type="list" default="['--- None ---']" description="to store dependent field values"/>
+    <lightning:navigation aura:id="navigate" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler event="c:QuickBookEvent" action="{!c.handleAddUnitEvent}"/>
+    <aura:registerEvent name="SearchUnitsRefresh" type="c:QuickBookEvent"/>
+    
+    <aura:if isTrue="{!v.spinner}">
+        <lightning:spinner class="spins" size="medium" variant="brand" alternativeText="Loading" />
+    </aura:if>
+    
+    <div class="slds-box">
+        <lightning:accordion aura:id="accordion" activeSectionName="{!v.activeSections}" allowMultipleSectionsOpen="true">
+            <lightning:accordionSection name="A" label="Cart">
+                <!--CART Sections-->
+                <div class="slds-box slds-theme_default slds-p-top_x-small">
+                    <lightning:card variant="Narrow" title="Cart" iconName="custom:custom93" class="slds-card slds-card_boundary">
+                        <div class="slds-card__body slds-card__body_inner">
+                            <b>Units in Cart : {!v.cartSelectedCount > 0 ? v.cartSelectedCount + '/' : ''} {!v.cartTotalRecordsCount}</b><br></br>
+                            <b>Cart Price:  <lightning:formattedNumber value="{!v.cartTotalPrice}" minimumFractionDigits="0" maximumFractionDigits="0"/></b>
+                        </div>
+                        <aura:set attribute="actions">
+                            <lightning:buttonGroup>
+                                <lightning:button disabled="{!v.cartSelectedCount == 0}" variant="brand-outline" label="Remove Units" onclick="{!c.handleCartRemoval}"/>
+                                <!--<aura:if isTrue="{!v.customerAdded}">-->
+                                <lightning:button disabled="{!v.cartSelectedCount == 0}" variant="brand-outline" label="Book Units" onclick="{!c.handleUnitsBooking}"/>
+                                <!--</aura:if>-->
+                                <!--<lightning:button disabled="{!v.cartSelectedCount == 0}" variant="brand-outline" label="Create Sales Offer" onclick="{!c.handleSalesOffer}"/>-->
+                            </lightning:buttonGroup><br/>
+                        </aura:set>
+                        <aura:if isTrue="{!v.paginationList.length==0}">
+                            <span class="slds-align_absolute-center">
+                                <b>No Units Added to Cart</b>
+                            </span>
+                            <aura:set attribute="else">
+                                <div class="slds-scrollable scrollable_x " role="grid">  
+                                    <table style="width:100%" class="slds-box slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered slds-no-row-hover slds-table_striped">
+                                        <thead class="header">
+                                            <tr class="slds-text-title-caps">
+                                                <th style="width:2rem;" class="slds-text-align_right">
+                                                    <div class="slds-form-element">
+                                                        <div class="slds-form-element__control">
+                                                            <lightning:input aura:id="cartSelectAllId" type="checkbox-button" label="Input One" name="input1"
+                                                                             checked="{!v.isCartAllSelected}" onchange="{!c.selectAllCart}" 
+                                                                             disabled="{!v.cartUnits.length == 0}"></lightning:input>
+                                                        </div>
+                                                    </div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Action">Unit Code</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Building">Building</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Unit Type">Unit Type</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Style">Style</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Unit Theme">Unit Theme</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="BUA/Internal Area">BUA/Internal Area</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Total Area">Total Area</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Status">Status</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Bedrooms">No.of Bedrooms</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Price">Price Details</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Timer">Timer</div>
+                                                </th>
+                                                <th scope="col" class="slds-text-align_center">
+                                                    <div class="slds-truncate" title="Actions">Actions</div>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <aura:iteration items="{!v.paginationList}" var="unit" indexVar="index">
+                                                <tr>
+                                                    <td scope="row" class="slds-text-align_right" style="width:3.25rem;">
+                                                        <div class="slds-form-element__control">
+                                                            <lightning:input  type="checkbox-button" name="input2"
+                                                                             checked="{!unit.isChecked}"
+                                                                             onchange="{!c.cartSelection}"></lightning:input>
+                                                        </div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div class="slds-truncate" title="{!unit.locationCode}">{!unit.locationCode}</div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div class="slds-truncate" title="{!unit.building}">{!unit.building}</div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div class="slds-truncate" title="{!unit.unitType}">{!unit.unitType}</div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div class="slds-truncate" title="{!unit.unitStyle}">{!unit.unitStyle}</div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div class="slds-truncate" title="{!unit.unitTheme}">{!unit.unitTheme}</div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div class="slds-truncate" title="{!unit.usableArea}">{!unit.usableArea}</div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div class="slds-truncate" title="{!unit.totalArea}">{!unit.totalArea}</div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div class="slds-truncate" title="{!unit.unitStatus}">Prebooked</div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div class="slds-truncate" title="{!unit.bedroom}">{!unit.bedroom}</div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div>Unit Price : <lightning:formattedNumber value="{!unit.sellingPrice}"  minimumFractionDigits="0" maximumFractionDigits="0"/></div>
+                                                        <div>Options Price : <lightning:formattedNumber value="{!unit.optionsPrice}"  minimumFractionDigits="0" maximumFractionDigits="0"/></div>
+                                                        <!--<div>Charges Price : <lightning:formattedNumber value="{!unit.chargesPrice}" minimumFractionDigits="0" maximumFractionDigits="0"/></div>-->
+                                                        <div><b>Net Price :<lightning:formattedNumber value="{!unit.netPrice}"  minimumFractionDigits="0" maximumFractionDigits="0"/></b></div>
+                                                        <div>DLD Customer Price : <lightning:formattedNumber value="{!unit.dldPrice}" minimumFractionDigits="0" maximumFractionDigits="0"/></div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div><c:quickBookTimerLWC unitDetails="{!unit}" onvalueChange="{!c.handleTimeExpiry}"/></div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <lightning:buttonGroup>
+                                                            <lightning:buttonMenu name="{!index}" alternativeText="Show menu" menuAlignment="right" class="slds-button_last slds-m-left_xx-large" onselect="{!c.handleMenuOption}">
+                                                                <lightning:menuItem value="ViewDetails" label="View Details"></lightning:menuItem>
+                                                                <lightning:menuItem value="AddSaleType" label="Add/View Sale Type"></lightning:menuItem>
+                                                                <lightning:menuItem value="AddOptions" label="Add/Remove Options"></lightning:menuItem>
+                                                                <lightning:menuItem value="AddOffers" label="Add/Remove Offers"></lightning:menuItem>
+                                                            </lightning:buttonMenu>
+                                                        </lightning:buttonGroup>
+                                                    </td>
+                                                </tr>
+                                            </aura:iteration>
+                                        </tbody>
+                                    </table>  
+                                    <br></br>
+                                    <!--Pagination Buttons-->
+                                    <div class="slds-align_absolute-center">
+                                        <lightning:button label="Previous" iconName="utility:back" iconPosition="left" name="previous"
+                                                          onclick="{!c.cartNavigation}" disabled="{! v.cartStartPage == 0}"/>
+                                        <span class="slds-badge slds-badge_lightest" style="margin-right: 10px;margin-left: 10px;">
+                                            Page {!v.cartCurrentPage} out of {!v.cartTotalPagesCount}
+                                        </span>
+                                        <lightning:button label="Next" iconName="utility:forward" iconPosition="right" name="next"
+                                                          disabled="{!(v.cartEndPage + 1) >= v.cartTotalRecordsCount}"  onclick="{!c.cartNavigation}" />
+                                    </div>
+                                </div>
+                            </aura:set>
+                        </aura:if>
+                    </lightning:card>
+                </div>
+            </lightning:accordionSection>
+            
+            <lightning:accordionSection name="B" label="Booked Units">
+                <div class="slds-box slds-theme_default slds-p-top_x-small">
+                    <lightning:card variant="Narrow" title="Booked units" iconName="standard:snippets" class="slds-card slds-card_boundary">
+                        <div class="slds-card__body slds-card__body_inner">
+                            <b>Units Booked : {!v.bookedSelectedCount > 0 ? v.bookedSelectedCount + '/' : ''} {!v.bookedTotalRecordsCount}</b> <br></br>
+                            <b>Booked Units Price:  <lightning:formattedNumber value="{!v.bookedTotalPrice}" minimumFractionDigits="0" maximumFractionDigits="0"/></b>
+                        </div>
+                        <aura:if isTrue="{!v.bookedPaginationList.length==0}">
+                            <span class="slds-align_absolute-center">
+                                <b>No Units Booked</b>
+                            </span>
+                            <aura:set attribute="else">
+                                <div class="slds-scrollable scrollable_x " role="grid">  
+                                    <table style="width:100%" class="slds-box slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered slds-no-row-hover slds-table_striped">
+                                        <thead class="header">
+                                            <tr class="slds-text-title-caps">
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Action">Unit Code</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Building">Building</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Unit Type">Unit Type</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Style">Style</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Unit Theme">Unit Theme</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="BUA/Internal Area">BUA/Internal Area</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Total Area">Total Area</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Status">Status</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Bedrooms">No.of Bedrooms</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Price Details">Price Details</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Token Amount">Token Amount</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Booking Form">Booking Form</div>
+                                                </th>
+                                                <th scope="col" class="slds-text-align_center">
+                                                    <div class="slds-truncate" title="Actions">Actions</div>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <aura:iteration items="{!v.bookedPaginationList}" var="unit" indexVar="index">
+                                                <tr>
+                                                    
+                                                    <td scope="row">
+                                                        <div class="slds-truncate" title="{!unit.locationCode}">{!unit.locationCode}</div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div class="slds-truncate" title="{!unit.building}">{!unit.building}</div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div class="slds-truncate" title="{!unit.unitType}">{!unit.unitType}</div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div class="slds-truncate" title="{!unit.unitStyle}">{!unit.unitStyle}</div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div class="slds-truncate" title="{!unit.unitTheme}">{!unit.unitTheme}</div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div class="slds-truncate" title="{!unit.usableArea}">{!unit.usableArea}</div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div class="slds-truncate" title="{!unit.totalArea}">{!unit.totalArea}</div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div class="slds-truncate" title="{!unit.unitStatus}">{!unit.unitStatus}</div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div class="slds-truncate" title="{!unit.bedroom}">{!unit.bedroom}</div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div>Unit Price : <lightning:formattedNumber value="{!unit.sellingPrice}" minimumFractionDigits="0" maximumFractionDigits="0"/></div>
+                                                        <!--<div>Charges Price : <lightning:formattedNumber value="{!unit.chargesPrice}" minimumFractionDigits="0" maximumFractionDigits="0"/></div>-->
+                                                        <div>Options Price : <lightning:formattedNumber value="{!unit.optionsPrice}" minimumFractionDigits="0" maximumFractionDigits="0"/></div>
+                                                        <div><b>Net Price : <lightning:formattedNumber value="{!unit.netPrice}"  minimumFractionDigits="0" maximumFractionDigits="0"/></b></div>
+                                                        <div>DLD Customer Price : <lightning:formattedNumber value="{!unit.dldPrice}" minimumFractionDigits="0" maximumFractionDigits="0"/></div>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <div>Token Amount : <lightning:formattedNumber value="{!unit.tokenAmount}" minimumFractionDigits="0" maximumFractionDigits="0"/></div>
+                                                        <div>Token Status : <div class="slds-truncate" title="{!unit.tokenStatus}">{!unit.tokenStatus}</div></div>
+                                                    </td>
+                                                    <td scope="row"  class="slds-box slds-theme_default">
+                                                        <c:DrawloopDocGeneration aura:id="{!unit.oppId}" documentPackageId="{!v.documentPackageId}" deliveryOptionId="{!v.deliveryOptionId}" recordIds="{!unit.oppId}"  width="110"  height="40" source="bookingForm"/>
+                                                    </td>
+                                                    <td scope="row">
+                                                        <lightning:buttonGroup>
+                                                            <lightning:buttonMenu name="{!index}" alternativeText="Show menu" menuAlignment="right" class="slds-button_last slds-m-left_xx-large" onselect="{!c.handleBookingMenuOption}">
+                                                                <lightning:menuItem value="ViewDetails" label="View Details"></lightning:menuItem>
+                                                                <lightning:menuItem value="SendCredit" label="Send Credit Card Link"></lightning:menuItem>
+                                                                <lightning:menuItem value="ViewBookingForm" label="View Booking Form"></lightning:menuItem>
+                                                                <lightning:menuItem value="ViewAdvanceScreen" label="Route to Advance Screen"></lightning:menuItem>
+                                                            </lightning:buttonMenu>
+                                                        </lightning:buttonGroup>
+                                                    </td>
+                                                </tr>
+                                            </aura:iteration>
+                                        </tbody>
+                                    </table>  
+                                    <br></br>
+                                    <!--Pagination Buttons-->
+                                    <div class="slds-align_absolute-center">
+                                        <lightning:button label="Previous" iconName="utility:back" iconPosition="left" name="bookprevious"
+                                                          onclick="{!c.cartNavigation}" disabled="{! v.bookedStartPage == 0}"/>
+                                        <span class="slds-badge slds-badge_lightest" style="margin-right: 10px;margin-left: 10px;">
+                                            Page {!v.bookedCurrentPage} out of {!v.bookedTotalPagesCount}
+                                        </span>
+                                        <lightning:button label="Next" iconName="utility:forward" iconPosition="right" name="booknext"
+                                                          disabled="{!(v.bookedEndPage + 1) >= v.bookedTotalRecordsCount}"  onclick="{!c.cartNavigation}" />
+                                    </div>
+                                </div>
+                            </aura:set>
+                        </aura:if>
+                    </lightning:card>
+                </div>
+            </lightning:accordionSection>
+            
+            <lightning:accordionSection name="C" label="Customer Details">
+                <div class="slds-box slds-theme_default slds-p-top_x-small">
+                    <lightning:card variant="Narrow" title="Customer Details" iconName="standard:snippets" class="slds-card slds-card_boundary">
+                        
+                        <aura:if isTrue="{!v.accountId}">
+                            <lightning:recordViewForm recordId="{!v.accountId}" objectApiName="Account" >
+                                <p class="slds-p-horizontal_small">
+                                    <div class="slds-grid">
+                                        <aura:if isTrue="{!v.newAccount}" >
+                                            <div class="slds-col slds-size_1-of-2">
+                                                <aura:if isTrue="{!v.newAccount.IsPersonAccount}" >  
+                                                    <lightning:outputField fieldName="FirstName" />
+                                                    <lightning:outputField fieldName="LastName" />
+                                                    <lightning:outputField fieldName="Emirates_Ids__c" />
+                                                    <lightning:outputField fieldName="Customer_Nationality__c" />
+                                                </aura:if>
+                                                <aura:if isTrue="{!!v.newAccount.IsPersonAccount}">
+                                                    <lightning:outputField fieldName="Name" />
+                                                    <lightning:outputField fieldName="Trade_License_Number__c" />
+                                                </aura:if>
+                                                <lightning:outputField fieldName="Arabic_Name__c" />
+                                                <lightning:outputField fieldName="Primary_Email__c" />
+                                                <lightning:outputField fieldName="Primary_Country_Code__c" />
+                                                <lightning:outputField fieldName="Primary_Mobile__c" />
+                                            </div>
+                                            <div class="slds-col slds-size_1-of-2">
+                                                <aura:if isTrue="{!v.newAccount.IsPersonAccount}"> 
+                                                    <lightning:outputField fieldName="Country_Of_Residence__c" />
+                                                    <lightning:outputField fieldName="Passport_Number__c" />
+                                                    <lightning:outputField fieldName="Passport_Issue_Date__c" />
+                                                    <lightning:outputField fieldName="Passport_Expiry_Date__c" />
+                                                    <lightning:outputField fieldName="Passport_Issue_Place__c" />
+                                                    <aura:if isTrue="{!v.newAccount.Country_Of_Residence__c != 'United Arab Emirates'}">
+                                                        <lightning:outputField fieldName="Visa_Number__c" />
+                                                        <lightning:outputField fieldName="Visa_Start_Date__c" />
+                                                        <lightning:outputField fieldName="Visa_End_Date__c" />
+                                                    </aura:if>
+                                                </aura:if>
+                                            </div>
+                                        </aura:if>
+                                    </div>
+                                </p>
+                                <br></br>
+                            </lightning:recordViewForm>
+                            <aura:set attribute="else">
+                                <span class="slds-align_absolute-center">
+                                    <b>No Customer Added</b>
+                                </span>
+                            </aura:set>
+                        </aura:if> 
+                    </lightning:card>
+                </div>
+            </lightning:accordionSection>
+            
+            <lightning:accordionSection name="D" label="Referral Details">
+                <div class="slds-box slds-theme_default slds-p-top_x-small">
+                    <lightning:card variant="Narrow" title="Referral Details" iconName="standard:snippets" class="slds-card slds-card_boundary">
+                        <lightning:recordViewForm recordId="{!v.recordId}" objectApiName="Opportunity" >
+                            <p class="slds-p-horizontal_small">
+                                <div class="slds-grid">
+                                    <div class="slds-col slds-size_1-of-2">
+                                        <lightning:outputField fieldName="Employee_Name__c" />    
+                                        <lightning:outputField fieldName="Employee_Number__c" /> 
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-2">
+                                        <lightning:outputField fieldName="Broker__c" />
+                                        <lightning:outputField fieldName="Referred_Customer__c"/>
+                                    </div>
+                                </div>
+                            </p>
+                            <br></br>
+                        </lightning:recordViewForm>
+                    </lightning:card>
+                </div>
+            </lightning:accordionSection>
+            
+            <lightning:accordionSection name="E" label="Joint Owner Details">
+                <div class="slds-box slds-theme_default slds-p-top_x-small">
+                    <aura:if isTrue="{!v.jointOwnerList.length>0}">
+                        <lightning:datatable
+                                             keyField="Id"
+                                             data="{!v.jointOwnerList}"
+                                             columns="{!v.jocolumns}"
+                                             hideCheckboxColumn="true"/>
+                        <aura:set attribute="else">
+                            <div class="slds-align_absolute-center"><b>No Joint Owner Added</b></div>
+                        </aura:set>
+                    </aura:if>                                              
+                </div>
+            </lightning:accordionSection>
+            
+        </lightning:accordion>
+        <!--child components-->
+        <aura:if isTrue="{!v.modalContainer}">
+            <aura:if isTrue="{!v.selectedDropdown=='ViewDetails'}">
+                <c:unitDetails modalCheck="{!v.modalContainer}" unitId="{!v.selectedRecordId}" oppId="{!v.recordId}" onclosepopup="{!c.closeViewDetails}"/>
+            </aura:if>
+            <aura:if isTrue="{!v.selectedDropdown=='AddOptions'}">
+                <c:addOptions recordId="{!v.selectedRecordId}" custominvocation = "true" onclosePopUp="{!c.closeViewDetails}"/>/>
+            </aura:if>
+            <aura:if isTrue="{!v.selectedDropdown=='SendCredit'}">
+                <c:generate_Payment_Link recordId="{!v.selectedRecordId}" custominvocation = "true" onclosePopUp="{!c.closeViewDetails}"/>/>
+            </aura:if>
+            <aura:if isTrue="{!v.selectedDropdown=='salesOffer'}">
+                <c:DrawloopDocGeneration documentPackageId="a1z3M000000MqKkQAK" deliveryOptionId="a1x3M0000009NQBQA2" recordIds="{!v.recordId}" source="salesOffer"/>
+            </aura:if>
+            <aura:if isTrue="{!v.selectedDropdown=='AddOffers'}">                
+                <aura:if isTrue="{!v.selectedRecordId.length>0}">                    
+                    <c:addSpecialOffer recordIds="{!v.selectedRecordId}"/>                
+                </aura:if> 
+            </aura:if>
+            <aura:if isTrue="{!v.selectedDropdown=='AddSaleType'}">                
+                <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" class="slds-modal slds-fade-in-open slds-modal_small">
+                    <div class="slds-modal__container">
+                        <div class="slds-modal__header">
+                            <p>Sale Type</p>
+                        </div>
+                        <div class="slds-modal__content">  
+                            <lightning:layout multipleRows="true">
+                                <lightning:layoutItem class="slds-align_absolute-center slds-scrollable_y" padding="around-small" size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+                                    <lightning:select aura:id="fieldId" onchange="{!c.onControllerFieldChange}" value="{!v.selectedUnit.salesType}" label="Sales Type" class="slds-form-element_stacked" variant="label-inline">
+                                        <option text="None" value=""></option>
+                                        <aura:iteration items="{!v.salesTypeMap}" var="item">
+                                            <option text="{!item.value}" value="{!item.key}" ></option>
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem class="slds-align_absolute-center slds-scrollable_y" padding="around-small" size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+                                    <lightning:select aura:id="fieldId" disabled="{!v.bDisabledDependentFld}" value="{!v.selectedUnit.salesSubType}" label="Sub Type" class="slds-form-element_stacked" variant="label-inline">
+                                        <option text="None" value=""></option>
+                                        <aura:iteration items="{!v.listDependingValues}" var="item">
+                                            <option text="{!item}" value="{!item}" ></option>
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                        </div>
+                        <div class="slds-modal__footer">
+                            <lightning:button label="Cancel" onclick="{!c.closeViewDetails}" />
+                            <lightning:button label="Save" onclick="{!c.addSalesTypes}" />
+                        </div>
+                    </div>
+                </section>
+                <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+            </aura:if>
+        </aura:if>
+    </div>
+</aura:component>

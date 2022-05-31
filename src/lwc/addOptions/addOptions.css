@@ -1,0 +1,10 @@
+.message{
+    font-size: 18px;
+    text-align: center;
+    margin: 3% 0;
+}
+.bg-clr{
+    font-weight:bold; 
+    padding: 10px;
+    background:#dfdbdb;
+}

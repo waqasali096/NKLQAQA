@@ -1,0 +1,60 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickActionWithoutHeader" 
+                 controller="CreateCallingListLineItemsCtrl"  access="global" >
+    
+  <aura:attribute type="Payment_Milestone__c[]" name="paymentMilestoneList"/> 
+  <aura:attribute type="Payment_Milestone__c[]" name="selectedMilestones"/> 
+  <aura:attribute name="selectedMilestoneIds" type="Array" default="[]"/> 
+  
+  
+   <aura:attribute name="mycolumns" type="List"/>
+   <aura:handler name="init" value="{!this}" action="{!c.fetchCallingListItems}"/>
+    
+     <aura:html tag="style">
+        .slds-modal__container{
+        max-width: 80rem !important;
+        width:75% !important;
+        }
+        .cuf-content {
+        padding: 0 0rem !important;
+        }
+        .slds-p-around--medium {
+        padding: 0rem !important;
+        }       
+       
+    </aura:html>
+    
+ 
+     <div class="slds-modal__header slds-size_1-of-1" >
+        <h4 class="slds-modal__header title slds-text-heading--medium" >Create Upcoming Calling List </h4>
+    </div>
+    
+     <div class="slds-modal__content slds-is-relative" >
+        
+        <div class="slds-p-around_x-small">
+            <form class="slds-form_stacked"   > 
+                <lightning:card class="slds-text-heading_small slds-card_boundary" variant="Narrow" title="" >
+                      <aura:if isTrue="{!not(empty(v.paymentMilestoneList))}"> 
+                    <div class="slds-m-around_xx-small">
+                      <div style="height:300px" class="slds-scrollable scrollable_x " role="grid"> 
+                      <lightning:datatable data="{!v.paymentMilestoneList }" 
+                                     columns="{!v.mycolumns }" 
+                                     keyField="id"
+                                     onrowselection="{!c.handleSelect}"      
+                                     hideCheckboxColumn="false"/>
+                
+                            </div> 
+                </div>
+                 </aura:if>          
+                      <aura:if isTrue="{!(empty(v.paymentMilestoneList))}"> 
+                        <div><b><center>No future pending payment milestones are available</center></b></div>   
+                    </aura:if>  
+                </lightning:card></form>
+                </div>
+    </div>
+    
+    <div class="modal-footer slds-modal__footer" >
+        <ui:button class="slds-button slds-button_neutral slds-m-left_x-small" label="Cancel" press="{! c.cancel}" /> 
+        <lightning:button variant="brand" label="Save" title="Brand action" onclick="{! c.saveCallingItems }" />      
+    </div>
+	
+</aura:component>

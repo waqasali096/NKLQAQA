@@ -1,0 +1,18 @@
+<aura:component controller="SignatureController"  implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction">
+
+    <header class="slds-modal__header" style="background: steelblue;">
+        <h1 class="title slds-text-heading--medium slds-text-color_inverse"><span>Tenant's Signature</span></h1>
+    </header>
+    <ltng:require afterScriptsLoaded="{!c.Init}"/>
+    <aura:attribute name="isSpinner" type="Boolean" default="false" />
+    <aura:if isTrue="{!v.isSpinner}">
+                <lightning:spinner class="spins" size="medium" variant="brand" alternativeText="Loading" />
+        </aura:if>
+    <div style="text-align: center;">
+        <canvas aura:id="can" id="divsign1" style="border:2px solid #ddd;background: transparent;"></canvas>
+    </div>
+    <div style="text-align: center;margin: 7px;">
+        <button class="slds-button slds-button_brand" onclick="{!c.erase}">Clear</button>
+        <button class="slds-button slds-button_brand" onclick="{!c.save}">Save</button>
+    </div>
+</aura:component>

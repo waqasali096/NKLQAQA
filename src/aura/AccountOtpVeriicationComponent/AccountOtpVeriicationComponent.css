@@ -1,0 +1,175 @@
+.THIS.slds-modal__content {
+    height: max-content !important;
+    max-height: max-content !important;
+    padding: 0px !important;
+    background:#111;
+}
+
+.THIS .mobileNumber, .THIS .otpInput {
+    float: left;
+    width: 50%;
+}
+
+.THIS .otpInput {
+    -webkit-text-security: disc !important;
+}
+
+.THIS .slds-form-element__label {
+    -webkit-text-security: none !important;
+}
+
+.THIS.verifyOTP{
+    display:none;
+}
+
+.THIS .button{
+    float: left;
+    margin-left:10px;
+    margin-top: 4px;
+}
+
+.THIS .mobileUpdateButtonGroup{
+    float: left;
+    margin-left:10px;
+    margin-top: 4px;
+    width: 25%;
+}
+
+.THIS .resendOtpButton{
+    display:none;
+}
+
+.THIS .resendOtpButton .resendButton{
+    margin-left:10px;
+    margin-top: 4px;
+}
+
+.THIS .verifiedOTP {
+    color: #3c763d;
+    background-color: #dff0d8;
+    border-color: #d6e9c6;
+    padding: 5px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.THIS .verified {
+        position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding-top: var(--sds-c-button-spacing-block-start, 0);
+    padding-right: var(--sds-c-button-spacing-inline-end, 0);
+    padding-bottom: var(--sds-c-button-spacing-block-end, 0);
+    padding-left: var(--sds-c-button-spacing-inline-start, 0);
+    background: none;
+    background-color: var(--sds-c-button-color-background, transparent);
+    background-clip: border-box;
+    border-color: var(--sds-c-button-color-border, transparent);
+    border-style: solid;
+    border-width: var(--sds-c-button-sizing-border, var(--lwc-borderWidthThin,1px));
+    border-radius: var(--sds-c-button-radius-border, var(--lwc-buttonBorderRadius,.25rem));
+    box-shadow: var(--sds-c-button-shadow);
+    line-height: var(--sds-c-button-line-height, var(--lwc-lineHeightButton,1.875rem));
+    text-decoration: none;
+    color: green;
+    -webkit-appearance: none;
+    white-space: normal;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    margin-top: 0px;
+    margin-left: 0px;
+}
+                                                      
+.THIS .notVerified {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding-top: var(--sds-c-button-spacing-block-start, 0);
+    padding-right: var(--sds-c-button-spacing-inline-end, 0);
+    padding-bottom: var(--sds-c-button-spacing-block-end, 0);
+    padding-left: var(--sds-c-button-spacing-inline-start, 0);
+    background: none;
+    background-color: var(--sds-c-button-color-background, transparent);
+    background-clip: border-box;
+    border-color: var(--sds-c-button-color-border, transparent);
+    border-style: solid;
+    border-width: var(--sds-c-button-sizing-border, var(--lwc-borderWidthThin,1px));
+    border-radius: var(--sds-c-button-radius-border, var(--lwc-buttonBorderRadius,.25rem));
+    box-shadow: var(--sds-c-button-shadow);
+    line-height: var(--sds-c-button-line-height, var(--lwc-lineHeightButton,1.875rem));
+    text-decoration: none;
+    color: red;
+    -webkit-appearance: none;
+    white-space: normal;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    margin-top: 0px;
+    margin-left: 0px;
+    left: -49% !important;
+}
+                                                                                                                
+.THIS .expiredOTP {
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    padding-top: var(--sds-c-button-spacing-block-start, 0);
+    padding-right: var(--sds-c-button-spacing-inline-end, 0);
+    padding-bottom: var(--sds-c-button-spacing-block-end, 0);
+    padding-left: var(--sds-c-button-spacing-inline-start, 0);
+    background: none;
+    background-color: var(--sds-c-button-color-background, transparent);
+    background-clip: border-box;
+    border-color: var(--sds-c-button-color-border, transparent);
+    border-style: solid;
+    border-width: var(--sds-c-button-sizing-border, var(--lwc-borderWidthThin,1px));
+    border-radius: var(--sds-c-button-radius-border, var(--lwc-buttonBorderRadius,.25rem));
+    box-shadow: var(--sds-c-button-shadow);
+    line-height: var(--sds-c-button-line-height, var(--lwc-lineHeightButton,1.875rem));
+    text-decoration: none;
+    color: red;
+    -webkit-appearance: none;
+    white-space: normal;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    margin-left: 19%;
+    margin-top: 36px;
+    left: 0% !important;
+}
+                                                                                                                                                                        
+.THIS .slds-text-body_small {
+  display: flex !important;                                                                                                                                                                          
+}
+                                                                                                                
+.THIS .checkbox {
+     float: left;
+     margin-right:5px;
+}
+
+.THIS.footer {
+    position: absolute !important;
+    left: 0% !important;
+    top: 65% !important;
+    width: 100% !important;
+}
+                                                                                                                                                                        
+.THIS .saveButton{
+    margin-top:10px;
+}
+
+.THIS .cssCenter{
+    text-align:center;
+}
+
+.THIS .disabled {
+	pointer-events: none;
+	cursor: default;
+	opacity: 0.6;
+}

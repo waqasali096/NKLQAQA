@@ -1,0 +1,50 @@
+<template>
+    <lightning-tabset variant="scoped">
+        <lightning-tab label="Floor Plan" value="one">
+
+            <template if:true={urls}>
+                <template for:each={urls} for:item="url">
+                    <div key={url} class="c-container">
+                        <lightning-layout horizontal-align="space">
+                            <lightning-layout-item padding="around-small">
+                                <div class="custom-box">
+                                    <div class="zoom">
+                                        <a href={url} target="_blank"><img src={url}></a>
+                                    </div>
+                                </div>
+                            </lightning-layout-item>
+                        </lightning-layout>
+                        
+                    </div>
+                </template>
+            </template> 
+
+            <template if:true={error}>
+               <b>Floor plan not found</b> 
+            </template> 
+            
+        </lightning-tab>
+        <lightning-tab label="Unit Plan" value="two">
+            <template if:true={unit_urls}>
+                <template for:each={unit_urls} for:item="url">
+                    <div key={url} class="c-container">
+                        <lightning-layout horizontal-align="space">
+                            <lightning-layout-item padding="around-small">
+                                <div class="custom-box">
+                                    <div class="zoom">
+                                        <a href={url} target="_blank"><img src={url}></a>
+                                    </div>
+                                </div>
+                            </lightning-layout-item>
+                        </lightning-layout>
+                        
+                    </div>
+                </template>
+            </template> 
+
+            <template if:true={unit_error}>
+               <b>Unit plan not found</b> 
+            </template> 
+        </lightning-tab>
+    </lightning-tabset>
+</template>

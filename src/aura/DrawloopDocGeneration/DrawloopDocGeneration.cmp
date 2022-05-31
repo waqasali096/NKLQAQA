@@ -1,0 +1,46 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+    <aura:attribute name="iframeUrl" type="string" default="" />
+    <aura:attribute name="documentPackageId" type="string"  />
+    <aura:attribute name="deliveryOptionId" type="string" />
+    <aura:attribute name="recordIds" type="string" />
+    <aura:attribute name="sObjectType" type="string" default="Opportunity"/>
+    <aura:attribute name="source" type="string" />
+    <aura:attribute name="width" type="string"/>
+    <aura:attribute name="height" type="string"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:registerEvent name="QuickBook" type="c:QuickBookEvent"/>
+    
+    <aura:if isTrue="{!v.source=='bookingForm'}">
+        <lightning:layout verticalAlign="end" multipleRows="true">
+            <lightning:layoutItem class="slds-scrollable_y" padding="around-small" size="12" smallDeviceSize="12" mediumDeviceSize="12" largeDeviceSize="12">
+                <ui:button class="slds-button slds-button-brand" label="Booking Form" press="{!c.generateDocument}"/><br></br>
+                <aura:if isTrue="{!v.iframeUrl}">
+                    <iframe aura:id="iframe" src="{!v.iframeUrl}" frameborder="0" scrolling="no"  width="{!v.width}"  height="{!v.height}" style="border:0" />
+                </aura:if>
+            </lightning:layoutItem>
+        </lightning:layout>
+    </aura:if>
+    
+    <aura:if isTrue="{!v.source=='salesOffer'}">
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" class="slds-modal slds-fade-in-open slds-modal_small">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header">
+                    <p>Sales Offer</p>
+                </div>
+                <div class="slds-modal__content">  
+                    <lightning:layout verticalAlign="end" multipleRows="true">
+                        <lightning:layoutItem class="slds-align_absolute-center slds-scrollable_y" padding="around-small" size="12" smallDeviceSize="12" mediumDeviceSize="12" largeDeviceSize="12">
+                            <aura:if isTrue="{!v.iframeUrl}">
+                                <iframe aura:id="iframe" src="{!v.iframeUrl}" frameborder="0" scrolling="no" style="border:0" />
+                            </aura:if>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </div>
+                <div class="slds-modal__footer">
+                    <lightning:button label="Close" onclick="{!c.closeModal}" />
+                </div>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+    </aura:if>
+</aura:component>

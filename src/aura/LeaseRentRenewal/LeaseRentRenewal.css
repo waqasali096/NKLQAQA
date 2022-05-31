@@ -1,0 +1,35 @@
+.THIS .label-hidden > label {
+    display: none !important;
+}
+
+.THIS .slds-icon-custom-custom63.slds-icon_container svg{
+    background-color:#36628B  ;
+}
+
+.THIS .slds-icon-custom-custom95.slds-icon_container svg{
+    background-color:#36628B  ;
+}
+
+.THIS .slds-icon-standard-search.slds-icon_container svg {
+    background-color:#36628B  ;
+}
+
+.THIS .slds-cell-fixed.slds-has-button-menu {
+    color: white !important;
+    background-color: #36628B !important;
+}
+
+.THIS .slds-cell-fixed.slds-has-button-menu :hover{
+    color: white !important;
+    background-color: #36628B !important;
+}  
+
+.THIS .popover {
+    position: absolute;
+    left: 14%;
+    bottom: 65%;
+}
+
+.THIS .label-hidden > label {
+    display: none;
+}

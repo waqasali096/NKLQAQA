@@ -1,0 +1,362 @@
+<template>
+    <div class="spinner">
+        <template if:true={isLoading}>
+             <lightning-spinner alternative-text="Loading" variant="brand" size="large">
+             </lightning-spinner>
+        </template>
+    </div>
+
+    <div>
+        <lightning-card title="Select Leasing Type">
+            <div class="slds-p-around_small">
+                <lightning-combobox name="leaseType" label="Leasing Type" value={value}
+                    placeholder="Select Leasing Type" options={leasingTypeValue} onchange={leasingTypeChange}>
+                </lightning-combobox>
+            </div>
+        </lightning-card>
+    </div>
+
+    <div class="slds-p-top_x-large">
+        <lightning-card title="Serach Filter" icon-name="standard:search">
+            <div class="slds-box slds-theme_default">
+                <div class="slds-grid slds-wrap">
+                    <template if:true={showResidentialFilter}>
+                        <div class="slds-col slds-size_2-of-12 slds-p-around_x-small">
+                            <lightning-combobox name="project" label="Project" placeholder="Select Project"
+                                value={selectedProject} options={projectPicklistValues} onchange={projectChange}>
+                            </lightning-combobox>
+                        </div>
+                        <div class="slds-col slds-size_2-of-12 slds-p-around_x-small">
+                            <lightning-combobox name="noofbedrooms" label="Number Of Bedrooms" value={selectedBedroom}
+                                placeholder="Select No. of Bedrooms" options={bedroomPicklist} onchange={bedroomChange}>
+                            </lightning-combobox>
+                        </div>
+                        <div class="slds-col slds-size_2-of-12 slds-p-around_x-small">
+                            <lightning-combobox name="unitType" label="Unit Type" value={selectedUnitType}
+                                placeholder="Select Unit Type" options={unitTypePicklist} onchange={unitTypeChange}>
+                            </lightning-combobox>
+                        </div>
+                        <div class="slds-col slds-size_2-of-12 slds-p-around_x-small">
+                            <lightning-combobox name="propertyType" label="Property Type" value={selectedPropertyType}
+                                placeholder="Select Property Type" options={propertyTypePicklist}
+                                onchange={propertyTypeChange}>
+                            </lightning-combobox>
+                        </div>
+                        <div class="slds-col slds-size_2-of-12 slds-p-around_x-small">
+                            <lightning-combobox name="cluster" label="Cluster" value={selectedCluster}
+                                placeholder="Select Cluster" options={clusterPicklist} disabled={disableClusterPicklist}
+                                onchange={clusterChange}>
+                            </lightning-combobox>
+                        </div>
+                        <div class="slds-col slds-size_1-of-12 slds-p-around_x-small">
+                            <lightning-combobox name="building" label="Building" value={selectedBuilding}
+                                placeholder="Select Building" options={buildingPicklist}
+                                disabled={disableBuildingPicklist} onchange={buildingChange}>
+                            </lightning-combobox>
+                        </div>
+                        <div class="slds-col slds-size_1-of-12 slds-p-around_x-small">
+                            <lightning-combobox name="floor" label="Floor" value={selectedFloor}
+                                placeholder="Select Floor" options={floorPicklist} disabled={disableFloorPicklist}
+                                onchange={floorChange}>
+                            </lightning-combobox>
+                        </div>
+                        <!--div class="slds-col slds-size_1-of-12 slds-p-around_x-small">
+                            <lightning-combobox name="status" label="Status" placeholder="Select Status" value={selectedStatus}
+                                options={unitStatusPicklist} onchange={statusChange}></lightning-combobox>
+                        </div-->
+                    </template>
+
+                    <template if:true={showCommercialFilter}>
+                        <div class="slds-col slds-size_3-of-12 slds-p-around_x-small">
+                            <lightning-combobox name="project" label="Project" placeholder="Select Project"
+                                value={selectedProject} options={projectPicklistValues} onchange={projectChange}>
+                            </lightning-combobox>
+                        </div>
+                        <div class="slds-col slds-size_2-of-12 slds-p-around_x-small">
+                            <lightning-combobox name="unitType" label="Unit Type" value={selectedUnitType}
+                                placeholder="Select Unit Type" options={unitTypePicklist} onchange={unitTypeChange}>
+                            </lightning-combobox>
+                        </div>
+                        <div class="slds-col slds-size_2-of-12 slds-p-around_x-small">
+                            <lightning-combobox name="propertyType" label="Property Type" value={selectedPropertyType}
+                                placeholder="Select Property Type" options={propertyTypePicklist}
+                                onchange={propertyTypeChange}>
+                            </lightning-combobox>
+                        </div>
+                        <div class="slds-col slds-size_2-of-12 slds-p-around_x-small">
+                            <lightning-combobox name="cluster" label="Cluster" value={selectedCluster}
+                                placeholder="Select Cluster" options={clusterPicklist} disabled={disableClusterPicklist}
+                                onchange={clusterChange}>
+                            </lightning-combobox>
+                        </div>
+                        <div class="slds-col slds-size_2-of-12 slds-p-around_x-small">
+                            <lightning-combobox name="building" label="Building" value={selectedBuilding}
+                                placeholder="Select Building" options={buildingPicklist}
+                                disabled={disableBuildingPicklist} onchange={buildingChange}>
+                            </lightning-combobox>
+                        </div>
+                        <!--div class="slds-col slds-size_2-of-12 slds-p-around_x-small">
+                            <lightning-combobox name="status" label="Status" placeholder="Select Status" value={selectedStatus}
+                                options={unitStatusPicklist} onchange={statusChange}></lightning-combobox>
+                        </div-->
+
+                    </template>
+                </div>
+            </div>
+        </lightning-card>
+
+        <div class="slds-align_absolute-center slds-p-top_medium">
+            <lightning-button label="Search" variant="brand" class="slds-p-horizontal_small" onclick={searchUnits}></lightning-button>
+            <lightning-button label="Clear" variant="brand" onclick={clearFilterMethod}></lightning-button>
+        </div>
+    </div>
+
+    <div class="slds-p-top_medium">
+        <template if:true={showUnitTable}>
+            <lightning-card icon-name="custom:custom63">
+                <h1 slot="title">Unit Details ({totalRecordsCount})</h1>
+                <div slot="actions">
+                    <lightning-button label="Add to Bucket" variant="brand" onclick={addToBucketMethod}>
+                    </lightning-button>
+                </div>
+
+                <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-box"
+                    style="table-layout: fixed;">
+                    <thead>
+                        <tr style="word-wrap: break-word">
+                            <th width="4%" scope="col">
+                                <div class="slds-truncate" style="white-space: normal;">
+                                    <lightning-input type="checkbox" label="Select All" value={selectAllUnits}
+                                        checked={selectAllUnits} variant="label-hidden" onchange={handleSelectFlagAll}>
+                                    </lightning-input>
+                                </div>
+                            </th>
+                            <th width="13%" scope="col">
+                                <div class="slds-truncate" style="white-space: normal;">Location Code</div>
+                            </th>
+                            <th width="20%" scope="col">
+                                <div class="slds-truncate" style="white-space: normal;">Project</div>
+                            </th>
+                            <th width="15%" scope="col">
+                                <div class="slds-truncate" style="white-space: normal;">Building - Floor</div>
+                            </th>
+                            <template if:true={showResidentialFilter}>
+                                <th width="10%" scope="col">
+                                    <div class="slds-truncate" style="white-space: normal;">No. Of Bedrooms</div>
+                                </th>
+                            </template>
+                            <th width="10%" scope="col">
+                                <div class="slds-truncate" style="white-space: normal;">Property Type</div>
+                            </th>
+                            <th width="10%" scope="col">
+                                <div class="slds-truncate" style="white-space: normal;">Unit Type</div>
+                            </th>
+                            <th width="10%" scope="col">
+                                <div class="slds-truncate" style="white-space: normal;">Base Rent</div>
+                            </th>
+                            <th width="10%" scope="col">
+                                <div class="slds-truncate" style="white-space: normal;">Security Deposit</div>
+                            </th>
+                            <th width="10%" scope="col">
+                                <div class="slds-truncate" style="white-space: normal;">Leasable Area</div>
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <template for:each={unitTableData} for:item="unitRecord">
+                            <tr key={unitRecord.Id}>
+                                <td style="white-space: break-spaces;">
+                                    <lightning-input type="checkbox" label="Select" checked={unitRecord.selected}
+                                        value={unitRecord.Id} onchange={handleSelectFlag} variant="label-hidden">
+                                    </lightning-input>
+                                </td>
+                                <td style="white-space: break-spaces;">
+                                    <lightning-formatted-url value={unitRecord.linkName} tooltip={unitRecord.Unit_Code__c} label={unitRecord.Unit_Code__c} target="_blank"></lightning-formatted-url>
+                                </td>
+                                <td style="white-space: break-spaces;">
+                                    {unitRecord.ProjectName}
+                                </td>
+                                <td style="white-space: break-spaces;">
+                                    {unitRecord.BuildingName} - {unitRecord.FloorName}
+                                </td>
+                                <template if:true={showResidentialFilter}>
+                                    <td style="white-space: break-spaces;">
+                                        {unitRecord.No_of_Bedrooms__c}
+                                    </td>
+                                </template>
+                                <td style="white-space: break-spaces;">
+                                    {unitRecord.Leasing_Property_Type__c}
+                                </td>
+                                <td style="white-space: break-spaces;">
+                                    {unitRecord.Unit_space_Type__c}
+                                </td>
+                                <td style="white-space: break-spaces;">
+                                    {unitRecord.Base_Rent__c}
+                                </td>
+                                <td style="white-space: break-spaces;">
+                                    {unitRecord.Security_Deposit__c}
+                                </td>
+                                <td style="white-space: break-spaces;">
+                                    {unitRecord.Total_Leasable_Area__c}
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+                <div>
+                    <!--div class="slds-float_left slds-p-right_medium slds-p-top_medium">
+                            <span class="slds-badge slds-badge_lightest slds-p-horizontal_medium"
+                                style="margin-right: 10px;margin-left: 10px;">
+                                Total Units: {totalRecordsCount}
+                            </span>
+                        </div-->
+                    <div class="slds-align_absolute-center slds-p-top_medium">
+                        <div class="slds-p-horizontal_medium">
+                            <lightning-button label="Previous" variant="brand" icon-name="utility:back"
+                                disabled={disablePrevious} onclick={pgPreviousMethod}></lightning-button>
+                        </div>
+
+                        <div>
+                            <span class="slds-badge slds-badge_lightest slds-p-horizontal_medium"
+                                style="margin-right: 10px;margin-left: 10px;">
+                                Page {currentPage} out of {totalPagesCount}
+                            </span>
+                        </div>
+
+                        <div class="slds-p-horizontal_medium">
+                            <lightning-button label="Next" variant="brand" icon-name="utility:forward"
+                                icon-position="right" disabled={disableNext} onclick={pgNextMethod}></lightning-button>
+                        </div>
+                    </div>
+                </div>
+            </lightning-card>
+        </template>
+    </div>
+
+    <div class="slds-p-top_medium">
+        <template if:true={showBucketTable}>
+            <lightning-card icon-name="standard:webcart">
+                <h1 slot="title">Bucket ({bucketTableData.length})</h1>
+                <div slot="actions">
+                    <lightning-button label="Clear Bucket" variant="Brand" onclick={clearBucketMethod}
+                        class="slds-m-right_x-small"></lightning-button>
+                    <lightning-button label="Generate Lease Offer" variant="Brand" onclick={generateLeaseOffer}
+                        class="slds-m-right_x-small"></lightning-button>
+                    <lightning-button label="Generate Booking" variant="Brand" onclick={generateBookingModal}>
+                    </lightning-button>
+                </div>
+                <div class="slds-table slds-table_bordered slds-box" style="table-layout: fixed;">
+                    <lightning-datatable key-field="Id" data={bucketTableData} columns={bucketTableColumns}
+                        onrowaction={selectedRowsFromBucket} hide-checkbox-column="true"></lightning-datatable>
+                </div>
+            </lightning-card>
+        </template>
+    </div>
+
+    <template if:true={isGenerateLeaseOfferModalOpen}>
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Loading" variant="brand" size="large">
+                </lightning-spinner>
+            </template>
+
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick={closeGenerateLeaseOfferModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse"
+                            size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Generate Lease Offer</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    <lightning-layout horizontal-align="space">
+                        <lightning-layout-item size="10" padding="around-small">
+                            <span onkeypress={emailValueKeyPress}>
+                                <lightning-input type="email" label="Email address" value={emailValue}
+                                    class="validEmailValue" placeholder="type here..." onchange={emailValueChange}>
+                                </lightning-input>
+                            </span>
+                        </lightning-layout-item>
+                        <lightning-layout-item size="2" padding="around-medium" class="slds-m-top_medium">
+                            <button class="slds-button slds-button_brand" onclick={addEmail} disabled={hideAddButton}
+                                title="Add">Add</button>
+                        </lightning-layout-item>
+                    </lightning-layout>
+
+                    <template if:true={showEmailList}>
+                        <lightning-layout horizontal-align="space" multiple-rows="true">
+                            <lightning-layout-item size="12" padding="around-small">
+                                <table class="slds-table slds-table_bordered slds-no-row-hover slds-table_cell-buffer"
+                                    role="grid">
+                                    <thead>
+                                        <tr>
+                                            <th width="90%" scope="col">Email</th>
+                                            <th width="10%" scope="col">Remove</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template for:each={selectedEmailAddresses} for:item="item" for:index="index">
+                                            <tr key={rec} class="slds-hint-parent">
+                                                <td>
+                                                    {item}
+                                                </td>
+                                                <td>
+                                                    <lightning-button-icon icon-name="utility:delete"
+                                                        alternative-text="Remove" title="Remove" name={index}
+                                                        onclick={removeEmail}></lightning-button-icon>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </lightning-layout-item>
+                        </lightning-layout>
+                    </template>
+                </div>
+                <footer class="slds-modal__footer">
+                    <button class="slds-button slds-button_neutral" onclick={closeGenerateLeaseOfferModal}
+                        title="Cancel">Cancel</button>
+                    <button class="slds-button slds-button_brand" onclick={sendEmail} title="Send">Send</button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
+    <template if:true={isGenerateBookingModalOpen}>
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Loading" variant="brand" size="large">
+                </lightning-spinner>
+            </template>
+
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick={closeGenerateBookingModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse"
+                            size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="modal-heading-02" class="slds-text-heading_medium slds-hyphenate">Generate Booking</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-2">
+                    <lightning-input type="date" name="leaseStartDate" class="leaseStartDate" label="Lease Start Date" value={leaseStartDate} min={todaysDate} onchange={handleLeaseStartDateChange}></lightning-input>
+                </div>
+                <footer class="slds-modal__footer">
+                    <button class="slds-button slds-button_neutral" onclick={closeGenerateBookingModal}
+                        title="Cancel">Cancel</button>
+                    <button class="slds-button slds-button_brand" disabled={disbleGenerateBooking} onclick={generateBooking} title="Generate Booking">Generate Booking</button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+</template>

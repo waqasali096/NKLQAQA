@@ -1,0 +1,312 @@
+<template>
+    <div class="spinner">
+        <template if:true={isLoading}>
+            <lightning-spinner alternative-text="Loading" variant="brand" size="large">
+            </lightning-spinner>
+        </template>
+    </div>
+    <header class="slds-modal__header" style="background: steelblue;">
+        <h4 class="title slds-text-heading--medium slds-text-color_inverse"><span>Change Unit</span></h4>
+    </header>
+
+    <lightning-tabset variant="scoped" active-tab-value={activeTab}>
+        <lightning-tab onactive={changeTabHandler} label="Details" value="detailsTab">
+            <div class="slds-p-top_x-large">
+                <lightning-card title="Serach Filter" icon-name="standard:search">
+                    <div class="slds-box slds-theme_default">
+                        <div class="slds-grid slds-wrap">                            
+                            <template if:true={showResidentialFilter}>
+                                <div class="slds-col slds-size_2-of-12 slds-p-around_x-small">
+                                    <lightning-combobox name="noofbedrooms" label="# Of Bedrooms"
+                                        value={selectedBedroom} placeholder="Select No. of Bedrooms"
+                                        options={bedroomPicklist} onchange={bedroomChange}>
+                                    </lightning-combobox>
+                                </div>
+                            </template>
+                            <div class="slds-col slds-size_2-of-12 slds-p-around_x-small">
+                                <lightning-combobox name="propertyType" label="Property Type"
+                                    value={selectedPropertyType} placeholder="Select Property Type"
+                                    options={propertyTypePicklist} onchange={propertyTypeChange}>
+                                </lightning-combobox>
+                            </div>
+                            <div class="slds-col slds-size_2-of-12 slds-p-around_x-small">
+                                <lightning-combobox name="unitType" label="Unit Type" value={selectedUnitType}
+                                    placeholder="Select Unit Type" options={unitTypePicklist}
+                                    onchange={unitTypeChange}>
+                                </lightning-combobox>
+                            </div>
+                            <div class="slds-col slds-size_2-of-12 slds-p-around_x-small">
+                                <lightning-combobox name="cluster" label="Cluster" value={selectedCluster}
+                                    placeholder="Select Cluster" options={clusterPicklist}
+                                    disabled={disableClusterPicklist} onchange={clusterChange}>
+                                </lightning-combobox>
+                            </div>
+                            <div class="slds-col slds-size_2-of-12 slds-p-around_x-small">
+                                <lightning-combobox name="building" label="Building" value={selectedBuilding}
+                                    placeholder="Select Building" options={buildingPicklist}
+                                    disabled={disableBuildingPicklist} onchange={buildingChange}>
+                                </lightning-combobox>
+                            </div>
+                            <div class="slds-col slds-size_2-of-12 slds-p-around_x-small">
+                                <lightning-combobox name="floor" label="Floor" value={selectedFloor}
+                                    placeholder="Select Floor" options={floorPicklist}
+                                    disabled={disableFloorPicklist} onchange={floorChange}>
+                                </lightning-combobox>
+                            </div>
+                        </div>
+                    </div>
+                </lightning-card>
+
+                <div class="slds-align_absolute-center slds-p-top_medium">
+                    <lightning-button label="Search" variant="brand" class="slds-p-horizontal_small"
+                        onclick={searchUnits}></lightning-button>
+                    <lightning-button label="Clear" variant="brand" onclick={clearFilterMethod}></lightning-button>
+                </div>
+            </div>
+
+            <div class="slds-p-top_medium">
+                <template if:true={showUnitTable}>
+                    <lightning-card icon-name="custom:custom63">
+                        <h1 slot="title">Unit Details ({totalRecordsCount})</h1>
+
+                        <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-box"
+                            style="table-layout: fixed;">
+                            <thead>
+                                <tr style="word-wrap: break-word">
+                                    <th width="5%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">
+                                            <lightning-input type="checkbox" label="Select All" value={selectAllUnits}
+                                                checked={selectAllUnits} variant="label-hidden" disabled={disableSelectAllFlag}
+                                                onchange={handleSelectFlagAll}>
+                                            </lightning-input>
+                                        </div>
+                                    </th>
+                                    <th width="13%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Location Code</div>
+                                    </th>
+                                    <th width="20%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Project</div>
+                                    </th>
+                                    <th width="15%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Building - Floor</div>
+                                    </th>
+                                    <template if:true={showResidentialFilter}>
+                                        <th width="10%" scope="col">
+                                            <div class="slds-truncate" style="white-space: normal;">No. Of Bedrooms
+                                            </div>
+                                        </th>
+                                    </template>
+                                    <th width="10%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Property Type</div>
+                                    </th>
+                                    <th width="10%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Unit Type</div>
+                                    </th>
+                                    <th width="10%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Base Rent</div>
+                                    </th>
+                                    <th width="10%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Security Deposit</div>
+                                    </th>
+                                    <th width="10%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Leasable Area</div>
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <template for:each={unitTableData} for:item="unitRecord">
+                                    <tr key={unitRecord.Id}>
+                                        <td style="white-space: break-spaces;">
+                                            <lightning-input type="checkbox" label="Select"
+                                                checked={unitRecord.selected} value={unitRecord.Id}
+                                                onchange={handleSelectFlag} variant="label-hidden">
+                                            </lightning-input>
+                                        </td>
+                                        <td style="white-space: break-spaces;">
+                                            <lightning-formatted-url value={unitRecord.linkName}
+                                                tooltip={unitRecord.Unit_Code__c} label={unitRecord.Unit_Code__c}
+                                                target="_blank"></lightning-formatted-url>
+                                        </td>
+                                        <td style="white-space: break-spaces;">
+                                            {unitRecord.ProjectName}
+                                        </td>
+                                        <td style="white-space: break-spaces;">
+                                            {unitRecord.BuildingName} - {unitRecord.FloorName}
+                                        </td>
+                                        <template if:true={showResidentialFilter}>
+                                            <td style="white-space: break-spaces;">
+                                                {unitRecord.No_of_Bedrooms__c}
+                                            </td>
+                                        </template>
+                                        <td style="white-space: break-spaces;">
+                                            {unitRecord.Leasing_Property_Type__c}
+                                        </td>
+                                        <td style="white-space: break-spaces;">
+                                            {unitRecord.Unit_space_Type__c}
+                                        </td>
+                                        <td style="white-space: break-spaces;">
+                                            {unitRecord.Base_Rent__c}
+                                        </td>
+                                        <td style="white-space: break-spaces;">
+                                            {unitRecord.Security_Deposit__c}
+                                        </td>
+                                        <td style="white-space: break-spaces;">
+                                            {unitRecord.Total_Leasable_Area__c}
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                        <div>
+                            <!--div class="slds-float_left slds-p-right_medium slds-p-top_medium">
+                            <span class="slds-badge slds-badge_lightest slds-p-horizontal_medium"
+                                style="margin-right: 10px;margin-left: 10px;">
+                                Total Units: {totalRecordsCount}
+                            </span>
+                        </div-->
+                            <div class="slds-align_absolute-center slds-p-top_medium">
+                                <div class="slds-p-horizontal_medium">
+                                    <lightning-button label="Previous Page" variant="brand" icon-name="utility:back"
+                                        disabled={disablePrevious} onclick={pgPreviousMethod}></lightning-button>
+                                </div>
+
+                                <div>
+                                    <span class="slds-badge slds-badge_lightest slds-p-horizontal_medium"
+                                        style="margin-right: 10px;margin-left: 10px;">
+                                        Page {currentPage} out of {totalPagesCount}
+                                    </span>
+                                </div>
+
+                                <div class="slds-p-horizontal_medium">
+                                    <lightning-button label="Next Page" variant="brand" icon-name="utility:forward"
+                                        icon-position="right" disabled={disableNext} onclick={pgNextMethod}>
+                                    </lightning-button>
+                                </div>
+                            </div>
+                        </div>
+                    </lightning-card>
+                </template>
+            </div>
+
+            <footer class="slds-modal__footer">
+                <lightning-button class="slds-m-top_small" onclick={goNextChangeUnitTab} disabled={disableContinue} variant="brand" type="Continue"
+                    name="Continue" label="Continue">
+                </lightning-button>
+            </footer>
+        </lightning-tab>
+        <lightning-tab onactive={changeTabHandler} value="changeUnit" label="Change Unit">
+            <lightning-layout>
+                <lightning-layout-item flexibility="auto" padding="around-small">
+                    <lightning-combobox name="WhentochangeUnit" label="When to Change Unit" value={whentoChangeUnit}
+                        placeholder="When to Change Unit" options={whenToChangeoptions}
+                        onchange={whentochangehandleChange}></lightning-combobox>
+                </lightning-layout-item>
+                <lightning-layout-item flexibility="auto" padding="around-small">
+                    <template if:true={isDuringLease}>
+                        <lightning-textarea required="true" name="enterReason" onchange={handlechangeUnitReason}
+                            label="Enter Reason"></lightning-textarea>
+                    </template>
+                </lightning-layout-item>
+                <lightning-layout-item flexibility="auto" padding="around-small">
+                    <template if:true={isDuringLease}>
+                        <lightning-input required="true" type="date" name="Preferred Lease Start date" label="Preferred Lease Start date" value={preferredLeaseStartDate} onchange={handleDateChange}></lightning-input>
+                    </template>
+                </lightning-layout-item>
+                <lightning-layout-item flexibility="auto" padding="around-small">
+                    <template if:true={isDuringLease}>
+                        <lightning-combobox name="newTenant" label="Do you want to be treated as new tenant?"
+                            value={newTenantValue} placeholder="Do you want to be treated as new tenant?"
+                            options={newTenantOptions} onchange={newTenantHandleChange}></lightning-combobox>
+                    </template>
+                </lightning-layout-item>
+            </lightning-layout>
+
+            <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-box" style="table-layout: fixed;">
+                <thead>
+                    <tr style="word-wrap: break-word">
+                        <th width="13%" scope="col">
+                            <div class="slds-truncate" style="white-space: normal;">Location Code</div>
+                        </th>
+                        <th width="20%" scope="col">
+                            <div class="slds-truncate" style="white-space: normal;">Project</div>
+                        </th>
+                        <th width="15%" scope="col">
+                            <div class="slds-truncate" style="white-space: normal;">Building - Floor</div>
+                        </th>
+                        <template if:true={showResidentialFilter}>
+                            <th width="10%" scope="col">
+                                <div class="slds-truncate" style="white-space: normal;">No. Of Bedrooms</div>
+                            </th>
+                        </template>
+                        <th width="10%" scope="col">
+                            <div class="slds-truncate" style="white-space: normal;">Property Type</div>
+                        </th>
+                        <th width="10%" scope="col">
+                            <div class="slds-truncate" style="white-space: normal;">Unit Type</div>
+                        </th>
+                        <th width="10%" scope="col">
+                            <div class="slds-truncate" style="white-space: normal;">Base Rent</div>
+                        </th>
+                        <th width="10%" scope="col">
+                            <div class="slds-truncate" style="white-space: normal;">Security Deposit</div>
+                        </th>
+                        <th width="10%" scope="col">
+                            <div class="slds-truncate" style="white-space: normal;">Leasable Area</div>
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <template for:each={unitsDataAll} for:item="unitRecord">
+                        <template if:true={unitRecord.selected}>
+                            <tr key={unitRecord.Id}>
+                                <td style="white-space: break-spaces;">
+                                    <lightning-formatted-url value={unitRecord.linkName}
+                                        tooltip={unitRecord.Unit_Code__c} label={unitRecord.Unit_Code__c}
+                                        target="_blank"></lightning-formatted-url>
+                                </td>
+                                <td style="white-space: break-spaces;">
+                                    {unitRecord.ProjectName}
+                                </td>
+                                <td style="white-space: break-spaces;">
+                                    {unitRecord.BuildingName} - {unitRecord.FloorName}
+                                </td>
+                                <template if:true={showResidentialFilter}>
+                                    <td style="white-space: break-spaces;">
+                                        {unitRecord.No_of_Bedrooms__c}
+                                    </td>
+                                </template>
+                                <td style="white-space: break-spaces;">
+                                    {unitRecord.Leasing_Property_Type__c}
+                                </td>
+                                <td style="white-space: break-spaces;">
+                                    {unitRecord.Unit_space_Type__c}
+                                </td>
+                                <td style="white-space: break-spaces;">
+                                    {unitRecord.Base_Rent__c}
+                                </td>
+                                <td style="white-space: break-spaces;">
+                                    {unitRecord.Security_Deposit__c}
+                                </td>
+                                <td style="white-space: break-spaces;">
+                                    {unitRecord.Total_Leasable_Area__c}
+                                </td>
+                            </tr>
+                        </template>
+                    </template>
+                </tbody>
+            </table>
+
+            <footer class="slds-modal__footer">
+                <lightning-button icon-name="utility:close" class="slds-m-top_small slds-p-right_medium" onclick={handleCloseQuickAction}
+                    type="Cancel" name="Cancel" label="Cancel">
+                </lightning-button>
+                <lightning-button icon-name="utility:save" class="slds-m-top_small" onclick={handleSaveUnitChange} disabled={disableContinue}
+                    variant="brand" type="Save" name="Save" label="Save">
+                </lightning-button>
+            </footer>
+
+        </lightning-tab>
+    </lightning-tabset>
+</template>

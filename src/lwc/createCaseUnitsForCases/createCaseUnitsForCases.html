@@ -1,0 +1,38 @@
+<!--
+  @description       : 
+  @author            : ChangeMeIn@UserSettingsUnder.SFDoc
+  @group             : 
+  @last modified on  : 03-28-2022
+  @last modified by  : ChangeMeIn@UserSettingsUnder.SFDoc
+-->
+
+<template>
+    <lightning-quick-action-panel header="Add Case Units">
+        <div>
+            <!-- show spinner -->
+            <div if:true={isLoading} class="slds-is-relative">
+                <lightning-spinner alternative-text="Loading..." variant="brand" style="top:50px;"></lightning-spinner>
+            </div>
+
+            <template if:true={noUnitOptionsAvailable}>
+                <p class="message"> No Units Available. </p>
+            </template>
+
+            <template if:false={noUnitOptionsAvailable}>
+                <lightning-datatable
+                    key-field="Id"
+                    data={units}
+                    columns={columns}
+                    onrowselection={getSelectedUnitFromSearch}>
+                    </lightning-datatable>
+            </template>
+        </div>
+        <div slot="footer">
+            <lightning-button variant="neutral" label="Cancel" onclick={handleCancel}></lightning-button>
+            <template if:false={noUnitOptionsAvailable}>
+                <lightning-button variant="brand" label="Save" class="slds-m-left_x-small" onclick={createCaseUnits}></lightning-button>
+            </template>
+        </div>
+
+      </lightning-quick-action-panel>
+</template>

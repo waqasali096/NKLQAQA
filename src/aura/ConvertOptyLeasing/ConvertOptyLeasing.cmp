@@ -1,0 +1,103 @@
+<aura:component implements="force:lightningQuickActionWithoutHeader,force:appHostable,lightning:actionOverride,flexipage:availableForRecordHome,force:hasRecordId" controller="CreateLeasingOptyClass">
+    <!--
+    <aura:html tag="style">
+        .cuf-content {
+        padding: 0 0rem !important;
+        height:22rem;
+        }
+        .slds-p-around–medium {
+        padding: 0rem !important;
+        }
+        .slds-modal__content{
+        overflow-y:hidden !important;
+        height:unset !important;
+        max-height:unset !important;
+        }
+    </aura:html>
+    -->
+    <aura:html tag="style">
+        .cuf-content {
+        padding: 0 0rem !important;
+        }
+        .slds-p-around--medium {
+        padding: 0rem !important;
+        }       
+        .slds-modal__content{
+        overflow-y:hidden !important;
+        height:unset !important;
+        max-height:unset !important;
+        width:640px !important;
+        max-width:640px !important;
+        margin: 0px auto !important;
+        }
+
+    </aura:html>
+    <aura:attribute name="mandateCheck" type="boolean"/>
+    <aura:attribute name="isAgencyAttached" type="boolean"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="BookingMode" type="String"/>
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="paymentMode" type="String"/>
+    <aura:attribute name="TokenAmount" Type="Decimal"/>
+    <aura:attribute name="tokenRequired" type="boolean"/>
+    <aura:attribute name="reservationmode" type="String"/>
+    <aura:attribute name="startdate" type="Date"/> 
+    <aura:attribute name="paymentOptions" type="List" default="[{'label':'Online Payment','value':'Online'},{'label' : 'Cash','value' : 'Cash'},{'label' : 'Bank Transfer ','value': 'Bank Transfer'}]"/>
+    <aura:attribute name="paymentOptionsCopy" type="List" default="['Online Payment','Cash','Cheque']"/>
+    <aura:attribute name="bookingOptions" type="List" default="[{'label':'Reservation with holding deposit','value':'Reservation with token amount'},{'label' : 'Reservation without holding deposit','value' : 'Reservation without token amount'}]"/> 
+    <aura:attribute name="bookingOptionsForAgency" type="List" default="[{'label':'Reservation with holding deposit','value':'Reservation with token amount'}]"/> 
+    <aura:attribute name="IsSpinner" type="Boolean"/><!--Added by Sajid-->
+    <!--<aura:handler event="aura:waiting" action="{!c.showSpinner}"/>-->
+    <!--<aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/>-->
+    <!--<center><ui:spinner aura:id="spinner"/></center>-->
+     
+   
+    
+    <div class="modal-header slds-modal__header slds-size_12-of-12 " style="color: white !important;background-color: #36628B;">
+        <h4 class="title slds-text-heading--medium" >Confirm Booking</h4>
+    </div>
+    <div class="slds-grid slds-wrap slds-m-top_small slds-m-bottom_small slds-m-left_small slds-m-right_small">
+        <aura:if isTrue="{!v.IsSpinner}">
+            <lightning:spinner variant="brand"  size="Large" /> <!--Added by Sajid-->
+        </aura:if>
+        <aura:if isTrue="{!v.tokenRequired}">
+            <div class="slds-col slds-size_12-of-12 slds-m-top_small slds-m-bottom_small ">
+                <div class="slds-form-element">
+                    <lightning:combobox value="{!v.BookingMode}" required="true" label="Booking Mode" options="{!v.isAgencyAttached ? v.bookingOptionsForAgency : v.bookingOptions}" onchange="{!c.bookChange}"/> 
+                </div>
+            </div>
+            <div class="slds-col slds-size_12-of-12 slds-m-top_small slds-m-bottom_small">
+                <div class="slds-form-element">
+                    <lightning:input type="number" step="1" formatter="currency" label="Holding Deposit" required="{!v.tokenRequired}" name="Token amount" value="{!v.TokenAmount}" disabled="true"/> 
+                </div>
+            </div>
+            <!--div class="slds-col slds-size_12-of-12 slds-m-top_small slds-m-bottom_small slds-form-element">
+                <lightning:select onchange="{!c.onChangepaymentMode}" 
+                                  label="Holding Deposit Payment Mode" 
+                                  required="true">
+                    <option value="">None</option>
+                    <aura:iteration items="{!v.paymentOptions}" var="s" >
+                        <option value="{!s.value}">{!s.label}</option>             
+                    </aura:iteration>  
+                </lightning:select>
+                
+                
+            </div-->
+            <div class="slds-align_absolute-center slds-col slds-m-top_small slds-m-bottom_small">
+                <lightning:button onclick="{!c.handleOnSubmit}" variant="brand" class="customButton" label="Confirm Booking"/>
+            </div>
+            <aura:set attribute="else">
+                <div class="slds-col slds-size_12-of-12 slds-m-top_large">
+                    <div class="slds-form-element">
+                        <lightning:combobox value="{!v.BookingMode}" required="true" label="Booking Mode" options="{!v.isAgencyAttached ? v.bookingOptionsForAgency : v.bookingOptions}" onchange="{!c.bookChange}"/> 
+                    </div>
+                </div>
+                <!--slds-m-bottom_small-->
+                <div class="slds-align_absolute-center slds-col slds-size_12-of-12 modal-footer slds-m-top_small slds-m-bottom_small" style="margin-top:10rem;">
+                    <lightning:button onclick="{!c.handleOnSubmit}" variant="brand" class="customButton" label="Confirm Booking"/>
+                </div>
+            </aura:set>
+        </aura:if>
+    </div>
+    
+</aura:component>

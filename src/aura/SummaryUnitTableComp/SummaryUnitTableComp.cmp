@@ -1,0 +1,176 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId" access="global" controller="SummaryUnitTableController">
+	<!-- aura attributes to store data/values --> 
+    <aura:attribute name="listOfProperty" type="list"/> 
+    <aura:attribute name="terminationUnitsList" type="list"/>
+    <aura:attribute name="projectUnitList" type="list"/>
+    <aura:attribute name="oppMap" type="Map"/>
+    <aura:attribute name="PaginationList" type="list"/> 
+    <aura:attribute name="selectedCount" type="integer" default="0"
+                    description="selected Records Count"/>
+    <aura:attribute name="startPage" type="Integer" />
+    <aura:attribute name="endPage" type="Integer"/>
+    <aura:attribute name="totalRecordsCount" type="Integer"/>
+    <aura:attribute name="pageSize" type="Integer" default="50000"
+                    description="number of records to be display on per page"/>
+    <aura:attribute name="currentPage" type="integer" default="1"/>
+    <aura:attribute name="totalPagesCount" type="integer"/>
+    <aura:attribute name="bNoRecordsFound" type="boolean" default = "false"/>
+    <aura:attribute name="isAllSelected" type="boolean" default = "false"/>
+    <aura:attribute name="selectedOpp" type="String"/>
+    <aura:attribute name="totalList" type="list"/> 
+    <aura:attribute name="isShowTable" type= "boolean" default = "false"/>
+    <aura:attribute name="renewalDate" type= "Date" />
+    <aura:attribute name="flaggedPropList" type="list"/> 
+    <aura:attribute name="selTabId" type="String" default="tab1" />
+    <aura:attribute name="noOfCheques" type= "String"/>
+    <aura:attribute name="renewalType" type= "String"/>
+    <aura:attribute name="noOfMonths" type= "String"/>
+    <aura:attribute name="renewalEndDate" type= "Date" />
+    <aura:attribute name="ejariNeeded" type= "boolean" default = "True"/>
+    <aura:attribute name="paymentMode" type="string" />
+    <aura:attribute name="spinner" type="boolean" default="FALSE"/>
+    <aura:attribute name="flag" type= "boolean" />
+    <aura:attribute name="renewalDateDefault" type= "Date" />
+    <aura:attribute name="renewalEndDateDefault" type= "Date" />
+    <aura:attribute name="lateRenewalFee" type="Decimal" />
+    <aura:attribute name="rentPerDay" type="Decimal" />
+    <aura:attribute name="leasingType" type="String" />
+    
+    <aura:handler event="aura:waiting" action="{!c.showSpinner}"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <!-- event to send the select units to the main component-->
+    <!--aura:registerEvent name="unitTableEvent" type="c:UnitTableEvent"/--> 
+     <!-- data table start-->  
+    
+     <!--loading spinner start-->
+    <aura:if isTrue="{!v.spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container">
+            <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                <span class="slds-assistive-text">Loading...</span>
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </aura:if>
+    <!-- Loading spinner end-->
+    
+                        <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-box" style="background: aliceblue;">
+                            <thead class="header">
+                                
+                                <tr class="slds-text-title_caps">
+                                    <!--header checkbox for select all-->
+                                   
+                                   <th scope="col">
+                                                    <div class="slds-truncate" title="Name">Location Code</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Phone">Building/Floor</div>
+                                                </th>
+                                    <aura:if isTrue="{!v.leasingType != 'Commercial Unit'}">
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Type">No. of Bedrooms</div>
+                                                </th>
+                                    </aura:if>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Type">Property type</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Type">Unit type</div>
+                                                </th>
+                                                <aura:if isTrue="{!v.leasingType == 'Commercial Unit'}">
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Type">Price per sqft</div>
+                                                </th>
+                                                </aura:if>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Type">Leasable Area</div>
+                                                </th>
+                                                <th scope="col">
+                                                    <div class="slds-truncate" title="Type">Renewal Rent</div>
+                                                </th>
+                                </tr>
+                            </thead>
+                            
+                            <tbody>
+                                <aura:iteration items="{!v.PaginationList}" var="obj">
+                                    <tr>
+                                        <th scope="row">
+                                                        <div class="slds-truncate" title="{!obj.unitName}">
+                                                            <a data-caseid="{!obj.unitId}" onclick="{!c.navigateToRecord}">{!obj.unitName}</a>
+                                                        </div>
+                                                    </th> 
+                                                    <th scope="row">
+                                                        <div class="slds-truncate" title="{!obj.dealId}">
+                                                           {!obj.building_Floor}
+                                                        </div>
+                                                    </th>
+                                                    <aura:if isTrue="{!v.leasingType != 'Commercial Unit'}">
+                                                    <th scope="row">
+                                                        <div class="slds-truncate" title="{!obj.SpaceType}">
+                                                            {!obj.noOfBedrooms}
+                                                        </div>
+                                                    </th>
+                                        </aura:if>
+                                                     <th scope="row">
+                                                        <div class="slds-truncate" title="{!obj.UnitType}">
+                                                            {!obj.propertyType}
+                                                        </div>
+                                                    </th>
+                                                    <th scope="row">
+                                                        <div class="slds-truncate" title="{!obj.UnitType}">
+                                                            {!obj.unitType}
+                                                        </div>
+                                                    </th>
+                                                    <aura:if isTrue="{!v.leasingType == 'Commercial Unit'}">
+                                                		<th scope="col">
+                                                         <div class="slds-truncate" title="{!obj.RenewalRent}">
+                                                            {!obj.pricePerSqft}
+                                                        </div>
+                                               			 </th>
+                                                	</aura:if>
+                                                    <th scope="row">
+                                                        <div class="slds-truncate" title="{!obj.leasableArea}">
+                                                            {!obj.leasableArea}
+                                                        </div>
+                                                    </th>
+                                                    <th scope="row">
+                                                        <div class="slds-truncate" title="{!obj.RenewalRent}">
+                                                            {!obj.rent}
+                                                        </div>
+                                                    </th>
+                                    </tr>
+                                </aura:iteration>
+                            </tbody>
+                        </table> 
+                        <!-- DataTable End -->
+                        
+    <br/>
+     <br/>
+                          
+                    <!--/div-->
+                
+                <!--  Pagination Buttons End -->
+    <footer class="slds-modal__footer">
+         
+         <lightning:button variant="brand"
+                          aura:id="Close"
+                          label="Cancel"
+                          title="Cancel"
+                          onclick="{!c.doCancel}"
+                          />
+         
+        
+        <lightning:button variant="brand"
+                          aura:id="AddSelectRecords"
+                          label="Save"
+                          title="Add Selected Records"
+                          onclick="{!c.doSave}"
+                          class="{!v.selectedCount!=0  ? 'buttonColor' : '' }"
+                          
+                          
+                          />
+       
+    </footer>
+</aura:component>

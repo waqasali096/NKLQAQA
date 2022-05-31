@@ -1,0 +1,5 @@
+<aura:event type="COMPONENT" description="Event template" >
+	<aura:attribute name="SelectedUnits" type="List"/> 
+    <aura:attribute name="RejectedUnits" type="List"/> 
+
+</aura:event>

@@ -1,0 +1,111 @@
+<!--********************************************************************************************
+* Name			: RaiseException.html
+* Description	: LWC component to RaiseException                               
+* Created Date	: 24/03/2022
+* Created By	: Cloudworks
+* **********************************************************************************************
+* Version		Author	    Date		    Comment   
+* 1.0           Rohit       24/03/2022      Initial Draft
+*********************************************************************************************-->
+<template>
+    <lightning-quick-action-panel header="Raise Exception">
+        <article class="slds-card">
+            <div class="slds-card__body slds-card__body_inner">
+                <!-- show spinner -->
+                <div if:true={isLoading} >
+                    <lightning-spinner alternative-text="Loading..." variant="brand"></lightning-spinner>
+                </div>
+                <!-- show error panel -->
+                <template if:true={errorMessage}>
+                    <p style="text-align:center; color:red;">{errorMessage}</p>
+                </template>
+                <!--Exception Selection-->
+                <div>
+                    <template if:true={excpetionList}>
+                        <lightning-layout class="slds-scrollable_y" multiple-rows>
+                            <lightning-layout-item size="12" small-device-size="4" medium-device-size="4" large-device-size="4" padding="around-small" class="custom-box">
+                                <template for:each={excpetionList} for:item="exp">
+                                    <div key={exp.exceptionName}>
+                                        <template if:true={exp.exceptionApproved}>
+                                            {exp.exceptionName} is Applied & Approved.
+                                        </template>
+                                        <template if:true={exp.exceptionPending}>
+                                            {exp.exceptionName} is waiting for approval.Please wait for approval/rejection.
+                                        </template>
+                                        <template if:false={exp.exceptionApproved}>
+                                            <template if:false={exp.exceptionPending}>
+                                            <lightning-input type="checkbox" checked={exp.selected} label={exp.exceptionName} name={exp.exceptionName} onchange={handleCheckBoxChange}></lightning-input>
+                                            <template if:true={exp.isDLD}>
+                                                <template if:true={dldCheck}>
+                                                    <div class="slds-form_horizontal slds-form-element_stacked">
+                                                        <lightning-layout-item size="12" small-device-size="1" medium-device-size="1" large-device-size="1" padding="around-small">
+                                                            <lightning-input type="number" required="true" name="input1" value={exp.exceptionDLDPercentage} onchange={handleDLDExcepChange} label="DLD Exception %" ></lightning-input>
+                                                        </lightning-layout-item>
+                                                    </div>
+                                                </template>
+                                            </template>
+                                            </template>
+                                        </template>
+                                    </div>
+                                </template>
+                            </lightning-layout-item>
+                        </lightning-layout>
+                    </template>
+                    <!--<lightning-dual-listbox 
+                                            label="Day to Day Exception Type"
+                                            source-label="Available"
+                                            selected-label="Selected"
+                                            size="3"
+                                            value={d2dException}
+                                            options={exceptionOption}
+                                            onchange={handleChange}>
+                    </lightning-dual-listbox>-->
+                </div>
+                <!--Document Upload-->
+                <div class="slds-p-around_small slds-align_absolute-center" style="width:100%;">
+                    <template if:false={showFileName}>
+                        <template if:true={documentId}>
+                            <lightning-file-upload 
+                                                label="Approval Document"
+                                                name="fileUploader"
+                                                accept={acceptedFormats}
+                                                record-id={documentId}
+                                                onuploadfinished={onFileUpload}
+                                                >
+                            </lightning-file-upload>
+                        </template>
+                    </template>
+                    <!--Document Name & Removal-->
+                    <div if:true={showFileName} class="slds-grid slds-gridpull-padded" style="margin-top:15px;"> 
+                        <div class="slds-col slds-grid icon-secondary slds-m-left_medium slds-grid_vertical-align-center">
+                            <lightning-icon icon-name="utility:page" 
+                                            alternative-text={fileName} 
+                                            size="x-small"
+                                            title={fileName}>
+                            </lightning-icon>
+                            <span class="slds-m-left--xx-small slds-truncate" style="max-width: 150px;">{fileName}</span>
+                        </div>
+                        <div class="slds-col slds-m-left_small">
+                            <button class="slds-button icon-secondary slds-grid_align-center slds-grid_vertical-align-center" type="button"  onclick={handleRemoveDoc}>
+                                <div class="slds-button__icon1 slds-button__icon_left" aria-hidden="true">
+                                    <lightning-icon icon-name="utility:close" 
+                                                    alternative-text="Remove" 
+                                                    size="xx-small"
+                                                    title="Remove">
+                                    </lightning-icon>
+                                </div>
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            <!--Save & Close Buttons-->
+                <div slot="footer" class="slds-align_absolute-center slds-p-top_small">
+                    <lightning-button variant="brand" disabled={disablebtn} label="Save" onclick={handleSave}></lightning-button>
+                    <lightning-button label="Cancel" onclick={handleCancel} class="slds-m-left_medium"></lightning-button>
+                </div>
+            </div>
+        </article>
+    </lightning-quick-action-panel>
+    
+</template>

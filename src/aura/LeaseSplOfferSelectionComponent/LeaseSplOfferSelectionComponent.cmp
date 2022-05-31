@@ -1,0 +1,262 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:lightningQuickActionWithoutHeader,force:hasRecordId" access="global" Controller="LeaseSplOfferSelectionController"  >
+    <aura:attribute name="selectedCount" type="integer" default="0"
+                    description="selected Records Count"/>
+    <aura:attribute name="totalRecordsCount" type="Integer"/>
+    <aura:attribute name="isSpinner" type="Boolean" default="false" />
+    <aura:attribute name="disableButton" type="boolean" default="false"/>
+    <aura:attribute name="leaseSplOfferScreenDisable" type="boolean" default="false"/>
+    <aura:attribute name="noRcdFoundSplOffTblFlag" type="boolean" default="false"/>
+    <aura:attribute name="mycolumns" type="List"/>
+    <aura:attribute name="splOfferList" type="List"/>
+    <aura:attribute name="selectedOffer" type="List"/>
+    <aura:attribute name="hideResultTblFlag" type="boolean" default="false"/>
+    <aura:attribute name="SplOffTblFlag" type="boolean" default="false"/>
+     <aura:attribute name="errorMsg" type="String"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <div class="slds-m-around_medium">
+        <!-- Code to display spinner -->     
+        <aura:if isTrue="{!v.isSpinner}">
+            <lightning:spinner class="spins" size="medium" variant="brand" alternativeText="Loading" />
+        </aura:if>
+        <!-- Section to display the unit which is tied to the opportunity -->
+        <aura:if isTrue="{!!v.leaseSplOfferScreenDisable}">
+            <aura:if isTrue="{!!v.SplOffTblFlag}">
+                <lightning:card variant="Narrow" title="Special Offers" iconName="custom:custom63" >
+                    <aura:if isTrue="{!!v.noRcdFoundSplOffTblFlag}">
+                    <div class="slds-clearfix">
+                        <div class="slds-float_left">
+                            <p class="slds-m-around_small slds-float--left">
+                                
+                                <span class="slds-badge slds-badge_lightest" style="display:inline-block;background: aliceblue;">
+                                    
+                                    
+                                    Total Records : {!v.selectedCount > 0 ? v.selectedCount + '/' : ''} {!v.totalRecordsCount} 
+                                    
+                                </span>
+                            </p>
+                        </div>
+                        
+                        <div class="slds-float_right">
+                            <lightning:button variant="brand" label="{!v.isSpinner == true ? 'Adding Offer...' : 'Add Offer'}" onclick="{!c.addOffer}" class="{!v.disableButton ? '' : customButton}" disabled="{!v.disableButton}"></lightning:button>
+                        </div></div>
+                    <br/>
+                    <!-- If Condition for the Spl Offer table visibality-->
+                    
+                    <!--aura:if isTrue="{!!v.noRcdFoundSplOffTblFlag}"-->
+                        <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-box" style="background: aliceblue;">
+                            <thead class="header">
+                                <tr class="slds-text-title_caps">
+                                    <!--header checkbox for select all-->
+                                    <th style="width:2.25rem;" class="slds-text-align_right">
+                                        <div class="slds-form-element">
+                                            <div class="slds-form-element__control">
+                                                <!--lightning:input aura:id="selectAllId" type="checkbox-button" label="Input One" name="input1"
+                                                                 checked="{!v.isAllSelected}"
+                                                                 onchange="{!c.selectAllCheckbox}" disabled="{!v.allSelected}"></lightning:input-->
+                                                
+                                            </div>
+                                        </div>
+                                    </th>
+                                    <aura:iteration items="{!v.mycolumns}" var="item">
+                                        <th scope="col">
+                                            <div class="slds-truncate" title="Name">{!item.label}</div>
+                                        </th>
+                                    </aura:iteration>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <aura:iteration items="{!v.splOfferList}" var="obj">
+                                    <tr>
+                                        <th scope="row" class="slds-text-align_right" style="width:3.25rem;">
+                                            
+                                            <div data-caseid="{!obj.unit.Id}" class="slds-form-element__control">
+                                                <lightning:input  type="checkbox-button" name="{!obj.Name}"
+                                                                 checked="{!obj.isChecked}"
+                                                                 disabled="{!obj.propFlag}"></lightning:input>
+                                            </div>
+                                            
+                                        </th>  
+                                        <th scope="row">
+                                            <div class="slds-truncate" title="{!obj.name}">
+                                                {!obj.name}
+                                            </div>
+                                        </th> 
+                                        <th scope="row">
+                                            <div class="slds-truncate" title="{!obj.startDate}">
+                                                {!obj.startDate}
+                                            </div>
+                                        </th> 
+                                        <th scope="row">
+                                            <div class="slds-truncate" title="{!obj.endDate}">
+                                                {!obj.endDate}
+                                            </div>
+                                        </th> 
+                                        <th scope="row">
+                                            <div class="slds-truncate" title="{!obj.projectName}">
+                                                {!obj.projectName}
+                                            </div>
+                                        </th> 
+                                        
+                                        <th scope="row">
+                                            <div class="slds-truncate" title="{!obj.propertyType}">
+                                                {!obj.propertyType}
+                                            </div>
+                                        </th> 
+                                        
+                                        <th scope="row">
+                                            <div class="slds-truncate" title="{!obj.unitType}">
+                                                {!obj.unitType}
+                                            </div>
+                                        </th> 
+                                        <th scope="row">
+                                            <div class="slds-truncate" title="{!obj.noOfBedrooms}">
+                                                {!obj.noOfBedrooms}
+                                            </div>
+                                        </th> 
+                                        <th scope="row">
+                                            <div class="slds-truncate" title="{!obj.rentFreeDays}">
+                                                {!obj.rentFreeDays}
+                                            </div>
+                                        </th> 
+                                        <th scope="row">
+                                            <div class="slds-truncate" title="{!obj.securityDepositPercentage}">
+                                                {!obj.securityDepositPercentage}
+                                            </div>
+                                        </th> 
+                                        
+                                    </tr>
+                                </aura:iteration>
+                            </tbody>
+                        </table>
+                        <aura:set attribute="else">
+                            <div class="slds-float_left">
+                                <h4>
+                                    {!v.errorMsg}
+                                </h4>
+                                
+                            </div>
+                            
+                        </aura:set>
+                    </aura:if>
+                    
+                    <!--End If Condition for the Spl Offer table visibality--> 
+                    <br/>
+                    <br/>
+                    <!-- Result table-->
+                    
+                    <!--End Result Table-->
+                </lightning:card>
+            </aura:if>
+            <aura:if isTrue="{!!v.hideResultTblFlag}">
+                <lightning:card variant="Narrow" title="Selected Special Offers" iconName="custom:custom63">
+                    <!-- Result table-->
+                    <div class="slds-clearfix">
+                        <div class="slds-float_left">
+                            <p class="slds-m-around_small slds-float--left">
+                                
+                                <span class="slds-badge slds-badge_lightest" style="display:inline-block;background: aliceblue;">
+                                    
+                                    
+                                    Total Records : {!v.selectedCount > 0 ? v.selectedCount + '/' : ''} {!v.totalRecordsCount} 
+                                    
+                                </span>
+                            </p>
+                        </div>
+                        
+                        <div class="slds-float_right">
+                            <lightning:button variant="brand" label="Remove Selected Offer" onclick="{!c.removeOffer}" class="{!v.disableButton ? '' : customButton}" disabled="{!v.disableButton}"></lightning:button>
+                        </div></div>
+                    <br/>
+                    <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-box" style="background: aliceblue;">
+                        <thead class="header">
+                            <tr class="slds-text-title_caps">
+                                <!--header checkbox for select all-->
+                                <!--th style="width:2.25rem;" class="slds-text-align_right">
+                                    <div class="slds-form-element">
+                                        <div class="slds-form-element__control">
+                                            <lightning:input aura:id="selectAllId" type="checkbox-button" label="Input One" name="input1"
+                                                             checked="{!v.isAllSelected}"
+                                                             onchange="{!c.selectAllCheckbox}" disabled="{!v.allSelected}"></lightning:input>
+                                            
+                                        </div>
+                                    </div>
+                                </th-->
+                                <aura:iteration items="{!v.mycolumns}" var="item">
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Name">{!item.label}</div>
+                                    </th>
+                                </aura:iteration>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <aura:iteration items="{!v.selectedOffer}" var="obj">
+                                <tr>
+                                    <!--th scope="row" class="slds-text-align_right" style="width:3.25rem;">
+                                        
+                                        <div data-caseid="{!obj.unit.Id}" class="slds-form-element__control">
+                                            <lightning:input  type="checkbox-button" name="{!obj.Name}"
+                                                             checked="{!obj.isChecked}"
+                                                             onchange="{!c.checkboxSelect}" disabled="{!obj.propFlag}"></lightning:input>
+                                        </div>
+                                        
+                                    </th-->  
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.splOfferId}">
+                                            {!obj.name}
+                                        </div>
+                                    </th> 
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.startDate}">
+                                            {!obj.startDate}
+                                        </div>
+                                    </th> 
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.endDate}">
+                                            {!obj.endDate}
+                                        </div>
+                                    </th> 
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.projectName}">
+                                            {!obj.projectName}
+                                        </div>
+                                    </th> 
+                                    
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.propertyType}">
+                                            {!obj.propertyType}
+                                        </div>
+                                    </th> 
+                                    
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.unitType}">
+                                            {!obj.unitType}
+                                        </div>
+                                    </th> 
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.noOfBedrooms}">
+                                            {!obj.noOfBedrooms}
+                                        </div>
+                                    </th> 
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.rentFreeDays}">
+                                            {!obj.rentFreeDays}
+                                        </div>
+                                    </th> 
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.securityDepositPercentage}">
+                                            {!obj.securityDepositPercentage}
+                                        </div>
+                                    </th> 
+                                    
+                                </tr>
+                            </aura:iteration>
+                        </tbody>
+                    </table>
+                    
+                    <!--End Result Table-->
+                </lightning:card>
+            </aura:if>
+        </aura:if>
+    </div>
+</aura:component>

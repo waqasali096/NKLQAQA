@@ -1,0 +1,37 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasSObjectName,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" 
+                controller="AccountInfoOnCallingListController" access="global" >
+    
+<aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+<aura:attribute name="sObjectName" type="String" />
+<aura:attribute name="accountID" type = "String" default=''/>
+  
+ <lightning:card iconName="standard:account" title="Account Information">
+         <aura:if isTrue="{!v.accountID!=''}">
+            <lightning:recordViewForm recordId="{!v.accountID}" objectApiName="Account">
+                 <p class="slds-p-horizontal_small">
+                <!-- Forming a grid of two equal columns -->
+                <div class="slds-grid">
+                    <div class="slds-col slds-size_1-of-2">
+                       
+                        <lightning:outputField fieldName="Name" />     
+                        <lightning:outputField fieldName="Primary_Country_Code__c" />  
+                        <lightning:outputField fieldName="Secondary_Mobile_Country_Code__c" />
+                        <lightning:outputField fieldName="Primary_Email__c" /> 
+                    </div>
+                    <div class="slds-col slds-size_1-of-2">
+                        <lightning:outputField fieldName="Arabic_Name__c" /> 
+                        <lightning:outputField fieldName="Primary_Mobile__c" /> 
+                        <lightning:outputField fieldName="Secondary_Mobile__c" />
+                        
+                       
+                    </div>
+                   
+                </div>
+            </p>
+        </lightning:recordViewForm>
+     </aura:if>
+     <aura:if isTrue="{!v.accountID==''}">
+      <div><b><center>No Account is available on Calling List</center></b></div>   
+      </aura:if>   
+    </lightning:card>    
+</aura:component>

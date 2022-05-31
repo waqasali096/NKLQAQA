@@ -1,0 +1,162 @@
+<aura:component controller="addSpecialOffersController" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickActionWithoutHeader" access="global" >
+    <!--style to increase width-->
+    <aura:html tag="style">
+        .slds-modal__container{
+        max-width: 100rem !important;
+        width:95% !important;
+        }
+    </aura:html>
+    <aura:attribute name="availableDLDOffers" type="addSpecialOffersController.specialOfferWrapper[]"/>
+    <aura:attribute name="availableSinglePPOffers" type="addSpecialOffersController.specialOfferWrapper[]"/>
+    <aura:attribute name="availableSpecialPPDLDOffers" type="addSpecialOffersController.specialOfferWrapper[]"/>
+    <aura:attribute name="dldSelectedCount" type="integer" default="0" description="selected Records Count"/>
+    <aura:attribute name="singleSelectedCount" type="integer" default="0" description="selected Records Count"/>
+    <aura:attribute name="chspinner" type="boolean" default="FALSE"/>
+    <aura:attribute name="recordIds" type="string" access="public"/>
+    <!--<aura:attribute name="recordId" type="String" />-->
+    <aura:registerEvent name="QuickBook" type="c:QuickBookEvent"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler event="aura:waiting" action="{!c.showSpinner}"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/>
+    
+    <aura:if isTrue="{!v.chspinner}">
+        <lightning:spinner class="spins" size="medium" variant="brand" alternativeText="Loading" />
+    </aura:if>
+    
+    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" class="slds-modal slds-fade-in-open slds-modal_small">
+        <div class="slds-modal__container">
+            <div class="slds-modal__header">
+                <p><b>Special Offer</b></p>
+            </div>
+            <div class="slds-modal__content"> 
+                <lightning:card variant="Narrow" title="DLD Special Offers" iconName="custom:custom93" class="slds-card slds-card_boundary">
+                    <div class="slds-card__body slds-card__body_inner">
+                    </div>
+                    <aura:if isTrue="{!v.availableDLDOffers.length==0}">
+                        <span class="slds-align_absolute-center">
+                            <b>No DLD Special Offer Added to Unit</b>
+                        </span>
+                        <aura:set attribute="else">
+                            <div class="slds-scrollable scrollable_x " role="grid">  
+                                <table style="width:100%" class="slds-box slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered slds-no-row-hover slds-table_striped">
+                                    <thead class="header">
+                                        <tr class="slds-text-title-caps">
+                                            <th style="width:2rem;" class="slds-text-align_right">
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Action">Special Offer Name</div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Building">Special Offer Type</div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Unit Type">DLD Customer Share</div>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <aura:iteration items="{!v.availableDLDOffers}" var="unit" indexVar="index">
+                                            <tr>
+                                                <td scope="row" class="slds-text-align_right" style="width:3.25rem;">
+                                                    <!--<div class="slds-form-element__control">
+                                                        <lightning:input  type="checkbox-button" name="input2"
+                                                                         checked="{!unit.SpecialOfferLineExists}" value = "{!unit.SpecialOfferLineId}"
+                                                                         onchange="{!c.dldSelection}"></lightning:input>
+                                                    </div>-->
+                                                </td>
+                                                <td scope="row">
+                                                    <div class="slds-truncate" title="{!unit.SpecialOfferName}">{!unit.SpecialOfferName}</div>
+                                                </td>
+                                                <td scope="row">
+                                                    <div class="slds-truncate" title="{!unit.SpecialOfferType}">DLD Share</div>
+                                                </td>
+                                                <td scope="row">
+                                                    <div class="slds-truncate" title="{!unit.SpecialOfferDLD}">{!unit.SpecialOfferDLD}</div>
+                                                </td>                                    
+                                            </tr>
+                                        </aura:iteration>
+                                    </tbody>
+                                </table>  
+                                <br></br>
+                            </div>
+                        </aura:set>
+                    </aura:if>
+                </lightning:card>
+                <lightning:card variant="Narrow" title="Available Special/Single Offers" iconName="custom:custom93" class="slds-card slds-card_boundary">
+                    <div class="slds-card__body slds-card__body_inner">
+                    </div>
+                    <aura:set attribute="actions">
+                    </aura:set>
+                    <aura:if isTrue="{!v.availableSinglePPOffers.length==0}">
+                        <span class="slds-align_absolute-center">
+                            <b>No Offers Available</b>
+                        </span>
+                        <aura:set attribute="else">
+                            <div class="slds-scrollable scrollable_x " role="grid">  
+                                <table style="width:100%" class="slds-box slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered slds-no-row-hover slds-table_striped">
+                                    <thead class="header">
+                                        <tr class="slds-text-title-caps">
+                                            <th style="width:2rem;" class="slds-text-align_right">
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Action">Special Offer Name</div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Building">Special Offer Type</div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Building">Payment Plan</div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Unit Type">Start date</div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Unit Type">End date</div>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <aura:iteration items="{!v.availableSinglePPOffers}" var="unit" indexVar="index">
+                                            <tr>
+                                                <td scope="row" class="slds-text-align_right" style="width:3.25rem;">
+                                                    <div class="slds-form-element__control">
+                                                        <lightning:input  type="checkbox-button" name="input2"
+                                                                         checked="{!unit.SpecialOfferLineExists}" value = "{!unit.SpecialOfferLineId}"
+                                                                         onchange="{!c.singleSelection}"></lightning:input>
+                                                    </div>
+                                                </td>
+                                                <td scope="row">
+                                                    <div class="slds-truncate" title="{!unit.SpecialOfferName}">{!unit.SpecialOfferName}</div>
+                                                </td>
+                                                <td scope="row">
+                                                    <div class="slds-truncate" title="{!unit.SpecialOfferType}">{!unit.SpecialOfferType}</div>
+                                                </td>
+                                                <td scope="row">
+                                                    <lightning:formattedUrl value="{!unit.masterPaymentPlanId}" label="{!unit.masterPaymentPlanName}" target="_blank"></lightning:formattedUrl>
+                                                    <!--<div class="slds-truncate" title="{!unit.masterPaymentPlanName}">{!unit.masterPaymentPlanName}</div>-->
+                                                </td> 
+                                                <td scope="row">
+                                                    <div class="slds-truncate" title="{!unit.startDate}">{!unit.startDate}</div>
+                                                </td> 
+                                                <td scope="row">
+                                                    <div class="slds-truncate" title="{!unit.endDate}">{!unit.endDate}</div>
+                                                </td> 
+                                            </tr>
+                                        </aura:iteration>
+                                    </tbody>
+                                </table>  
+                                <br></br>
+                            </div>
+                        </aura:set>
+                    </aura:if>
+                </lightning:card>
+            </div>
+            <div class="slds-modal__footer">
+                <lightning:button label="Close" onclick="{!c.closeModal}" />
+                <lightning:button variant="brand-outline" label="Save" onclick="{!c.handleSingleOffers}"/>
+            </div>
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+    
+</aura:component>

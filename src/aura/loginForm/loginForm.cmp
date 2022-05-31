@@ -1,0 +1,98 @@
+<!-- add implements="forceCommunity:availableForAllPageTypes" to surface the component in community builder -->
+<aura:component controller="LightningLoginFormController" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+    <aura:attribute name="showError" type="Boolean" required="true" description="" default="false" access="private"/>
+    <aura:attribute name="errorMessage" type="String" required="false" description="" access="private"/>
+    <aura:attribute name="startUrl" type="String" required="false" description="The url you go to after a successful login" />
+    <aura:attribute name="usernameLabel" type="String" required="false" default="Username"/>
+    <aura:attribute name="passwordLabel" type="String" required="false" default="Password"/>
+    <aura:attribute name="loginButtonLabel" type="String" required="false" default="Login"/>
+    <aura:attribute name="expid" type="String" required="false" description="The branding experience ID" />        
+    
+    <aura:attribute name="forgotPasswordLabel" type="String" required="false" default="Forgot your password?"/>
+    <aura:attribute name="selfRegisterLabel" type="String" required="false" default="Not a member?"/>
+    <aura:attribute name="forgotPasswordUrl" type="String" required="false" default="/ForgotPassword"/>
+    <aura:attribute name="selfRegisterUrl" type="String" required="false" default="/SelfRegister"/>
+    
+    <aura:attribute name="isUsernamePasswordEnabled" type="Boolean" access="private"/>
+    <aura:attribute name="isSelfRegistrationEnabled" type="Boolean" access="private"/>
+    <aura:attribute name="communityForgotPasswordUrl" type="String" access="private"/>
+    <aura:attribute name="communitySelfRegisterUrl" type="String" access="private"/>
+    
+    <aura:registerevent name="sitePropagatedStartUrl" type="c:setStartUrl"/>
+    <aura:handler name="init" value="{!this}" action="{!c.initialize}"/>
+    <aura:dependency resource="c:setStartUrl" type="EVENT"/>
+    <!-- Please uncomment
+    <aura:dependency resource="siteforce:registerQueryEventMap" type="EVENT"/>
+    -->
+    <aura:handler event="c:setStartUrl" action="{!c.setStartUrl}"/>
+    <aura:handler event="c:setExpId" action="{!c.setExpId}"/>    
+    <aura:dependency resource="c:setExpId" type="EVENT"/> 
+    
+    
+    <div class="slds-grid slds-wrap">
+  <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12" style="padding-right:12px;">
+  
+<span>      
+        <h1 class="login-title">Welcome to Nakheel Broker’s Portal</h1>
+        <p class="card-text font-dubai" style="font-size:18px;margin-top:10px;font-weight:400;line-height:22px;">Login now for convenient access to property information, inventory lists, commission details and more.</p>
+         <br></br>   
+   </span>   
+      
+  </div>
+  <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+   <span>
+            <aura:renderIf isTrue="{!v.isUsernamePasswordEnabled}">
+            <span>
+                <aura:renderIf isTrue="{!v.showError}">
+                    <div id="error">
+                        <ui:outputRichText value="{!v.errorMessage}"/>
+                    </div>
+                </aura:renderIf>
+            </span>            
+            <!--<div id="sfdc_username_container" class="sfdc">-->
+                 <!--<span id="sfdc_user" class="login-icon" data-icon="a"></span> -->
+                <ui:inputText value="" aura:id="username" placeholder="Username" keyup="{!c.onKeyUp}" class="input sfdc_usernameinput sfdc" label="{!v.usernameLabel}" labelClass="assistiveText"/>
+           <!-- </div>-->
+    
+           <!-- <div id="sfdc_password_container" class="sfdc">-->
+             <!--    <span id="sfdc_lock" class="login-icon sfdc" data-icon="c"></span> -->
+                <ui:inputSecret value="" aura:id="password" placeholder="{!v.passwordLabel}" keyup="{!c.onKeyUp}" class="input sfdc_passwordinput sfdc" label="{!v.passwordLabel}" labelClass="assistiveText"/>
+           <!-- </div>-->
+    
+                
+                 <div class="slds-grid slds-nowrap">
+                
+           <div class="slds-col slds-size_6-of-12">
+               
+            <!--<div class="sfdc">-->
+                <ui:button aura:id="submitButton" label="Login" press="{!c.handleLogin}" class="sfdc_button"/>
+            <!--</div>-->
+            
+                </div>
+                
+                <div class="slds-col slds-size_6-of-12">
+                    
+            <div id="sfdc_forgot" class="sfdc font-dubai" style="margin-left:20px;margin-top: 28px; " >
+                <!--<span><a href="{!if(v.communityForgotPasswordUrl == null, v.forgotPasswordUrl, v.communityForgotPasswordUrl)}">{!v.forgotPasswordLabel}</a></span>-->
+               <span><a href="{! v.communityForgotPasswordUrl}"  class="font-dubai" style="font-size:14px;">{!v.forgotPasswordLabel}</a></span>
+
+                <!--<aura:renderIf isTrue="{!v.isSelfRegistrationEnabled}">-->
+                    <!--<span style="float:right" ><a href="{!if(v.communitySelfRegisterUrl == null, v.selfRegisterUrl, v.communitySelfRegisterUrl)}">{!v.selfRegisterLabel}</a></span>
+               --> <!--</aura:renderIf>-->    
+            </div> 
+                    
+                </div>
+                
+                </div> 
+                
+                
+        </aura:renderIf>
+      
+      
+</span>
+  </div>
+</div>
+    
+    
+ 
+</aura:component>

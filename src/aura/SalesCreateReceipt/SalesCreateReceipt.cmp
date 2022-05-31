@@ -1,0 +1,434 @@
+<aura:component description="SalesCreateReceipt" implements="flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction,force:appHostable" controller="SalesCreateReceiptController">    
+    <aura:html tag="style">
+        .slds-modal__container{
+        max-width: 100rem !important;
+        width:100% !important;
+        }
+    </aura:html>
+
+    <aura:handler name="init" action="{!c.callUnitMethod}" value="{!this}" />   
+
+    <aura:attribute name="recordId" type="String" description="ID of the record." />
+    <aura:attribute name="showSpinner" type="Boolean" default="false" />
+    
+    <aura:attribute name="ObjectName" type="String" access="global" default="receipt__c"/>
+    <aura:attribute name="receiptObj" type="Receipt__c" access="global" default="{ 'sobjectType': 'Receipt__c'}" />
+    <aura:attribute Name="accountRecord" type="object"  access="public" />
+    
+    <!--<aura:attribute name="ModePicklist" type="String[]" />-->
+    <aura:attribute name="ModePicklist" type="Map" />
+    <aura:attribute name="selectedmode" type="string" />
+    <aura:attribute name="ReceivedForPicklist" type="Map" />
+    <aura:attribute name="receiptMethodPicklist" type="Map"/>
+    <aura:attribute name="seletedReceiptMethodId" type="String"/>
+    <aura:attribute name="selectedReceivedFor" type="string" />
+    <aura:attribute name="installmentTypeValues" type="Map" />
+    <aura:attribute name="selectedinstallmentType" type="string" />
+    <aura:attribute name="bankPicklist" type="Map"/>
+    <aura:attribute name="selectedBank" type="string"/>
+    <aura:attribute name="Payment_Mode__c" type="String" default="Payment_Mode__c" access="global" />
+
+    <aura:attribute name="deal" type="SalesCreateReceiptController.OpportunityWrapper" />
+    <aura:attribute name="newReceipt" type="Object"/>
+    <aura:attribute name="paymentplans" type="SalesCreateReceiptController.PaymentMilestoneWrapper[]" />
+
+    <aura:attribute name="cal" type="List" />
+    <aura:attribute name="receipts" type="List" />
+    <aura:attribute name="receiptMethods" type="List" />
+    
+    <aura:attribute name = "showBankName" type= "boolean" default="false"/>
+    <aura:attribute name = "showBankBranch" type= "boolean" default="false"/>
+    <aura:attribute name = "showMaturityDate" type= "boolean" default="false"/>
+    <aura:attribute name = "bankFieldsRequired" type="boolean" default="false"/>
+    <aura:attribute name= "defaultCustomer" type="boolean" default = "true"/>
+    <aura:attribute name= "defaultCustomerName" type="string" default = ""/>
+
+    <div class="slds-modal__container">
+        
+        <aura:if isTrue="{! v.showSpinner }">
+            <lightning:spinner alternativeText="Loading" />
+        </aura:if>
+        
+        <div class="slds-box slds-theme_shade">
+            <lightning:card variant="Narrow" title="Booking Details">
+                <lightning:layout horizontalAlign="space" verticalAlign="center" multipleRows="true"
+                    class="slds-theme_shade">
+
+                    <lightning:layoutItem size="2" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6"
+                        padding="around-small">
+                        <b>Location Code:</b>&nbsp;
+                        <ui:outputText value="{!v.deal.LocationCode}" />
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="2" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6"
+                        padding="around-small">
+                        <b>Unit Type:</b>&nbsp;
+                        <ui:outputText value="{!v.deal.unitType}" />
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="2" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6"
+                        padding="around-small">
+                        <b>Price:</b>&nbsp;
+                        <ui:outputText value="{!v.deal.price}" />
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="2" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6"
+                        padding="around-small">
+                        <b>Building/Unit:</b>&nbsp;
+                        <ui:outputText value="{!v.deal.building}" />
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="2" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6"
+                        padding="around-small">                        
+                        <b>Customer Name:</b>&nbsp;
+                        <ui:outputText value="{!v.deal.customerName}" />
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="2" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6"
+                        padding="around-small">
+                        <b>Broker:</b>&nbsp;
+                        <ui:outputText value="{!v.deal.brokerName}" />
+                    </lightning:layoutItem>
+                </lightning:layout>
+
+
+            </lightning:card>
+        </div>
+        <div class="slds-box slds-theme_shade">
+            <lightning:card variant="Narrow" title="Payment Plan (Default Payment Plan)" class="slds-scrollable">
+                <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-scrollable">
+                    <thead>
+                        <tr class="slds-text-title_caps">
+
+                            <th scope="col">
+                                <div class="slds-truncate" title=""></div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Estimated Date">Estimated Date</div>
+                            </th>
+                            <!-- <aura:iteration items="{!v.FlatsColumnsList}" var="Unit">  -->
+                            <th scope="col">
+                                <div class="slds-truncate" title="Percentage">Percentage</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Amount">Amount</div>
+                            </th>
+                            <!-- <aura:iteration items="{!v.FlatsColumnsList}" var="Unit">  -->
+                            <th scope="col">
+                                <div class="slds-truncate" title="Milestone">Milestone</div>
+                            </th>
+                            <!-- </aura:iteration> -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <aura:iteration items="{!v.paymentplans}" var="pp" indexVar="index">
+                            <tr>
+                                <td rowspan="1">                                    
+                                    <ui:outputText value="{!index+1}" />
+                                </td>
+                                <td rowspan="1">                                  
+                                    <ui:outputDate value="{!pp.estimatedDate}" />
+                                </td>
+                                <td rowspan="1">                                    
+                                    <ui:outputText value="{!pp.percentage}" />
+                                </td>
+                                <td rowspan="1">
+                                    
+                                    <lightning:formattedNumber value="{!pp.amount}" style="currency" currencyCode="{!pp.currencyIsoCode}" />
+                                    <!--<ui:outputText value="{!pp.amount}" />-->
+                                </td>
+                                <td rowspan="1">
+                                    <ui:outputText value="{!pp.milestoneName}" />
+                                </td>
+                            </tr>
+                        </aura:iteration>
+                        <tr>
+                            <td rowspan="1">
+                            </td>
+                            <td rowspan="1" style="text-align: right;">
+                                Total:
+                            </td>
+                            <td rowspan="1">
+                                <ui:outputText value="{!v.cal[1]}" />
+                            </td>
+                            <td rowspan="1">
+                                <!--AED
+                                <ui:outputText value="{!v.cal[0]}" />-->
+                                <lightning:formattedNumber value="{!v.cal[0]}" style="currency" currencyCode="AED" />
+                            </td>
+                            <td rowspan="1">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </lightning:card>
+        </div>
+		<c:AdditionalChargesRelatedList recordId="{!v.recordId}"></c:AdditionalChargesRelatedList>
+        
+        
+            <div class="slds-box slds-theme_shade">
+            <lightning:card variant="Narrow" title="Receipts" class="slds-scrollable">
+                <div class="slds-float_right slds-p-top_medium slds-p-bottom_medium">
+            		<a href="" style="padding-right:50px;" onclick="{!c.callDocGeneration}">Batch Print</a>
+            	</div>
+                <div class="slds-box slds-theme_shade">
+                <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-scrollable">
+                    <thead>
+                        <!--<lightning:button class="slds-float_right" variant="brand" label="Batch Print">
+                        </lightning:button>-->
+                        <tr class="slds-text-title_caps">
+
+                            <th scope="col">
+                                <div class="slds-truncate" title="Id">Ser. No</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="#Receipt Number">#Receipt Number</div>
+                            </th>
+                            <!-- <aura:iteration items="{!v.FlatsColumnsList}" var="Unit">  -->
+                            <th scope="col">
+                                <div class="slds-truncate" title="Payment Mode">Payment Mode</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Receipt Date">Receipt Date</div>
+                            </th>
+                            <!-- <aura:iteration items="{!v.FlatsColumnsList}" var="Unit">  -->
+                            <th scope="col">
+                                <div class="slds-truncate" title="Drawee Bank">Drawee Bank</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Comments">Comments</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Created By">Created By</div>
+                            </th>
+                            <!-- <aura:iteration items="{!v.FlatsColumnsList}" var="Unit">  -->
+                            <th scope="col">
+                                <div class="slds-truncate" title="Created On">Created On</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Received For">Received For</div>
+                            </th>
+                            <!-- <aura:iteration items="{!v.FlatsColumnsList}" var="Unit">  -->
+                            <th scope="col">
+                                <div class="slds-truncate" title="Amount">Amount</div>
+                            </th>
+                            <!-- </aura:iteration> -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <aura:iteration items="{!v.receipts}" var="rc" indexVar="index">
+                            <tr>
+                                <td>
+                                    {!index+1}
+                                </td>
+                                <td rowspan="1">
+                                    <!--<ui:outputText value="{!bldFlrVal.Building__r.Name}" /><br />-->
+                                    <ui:outputText value="{!rc.Name}" />
+                                </td>
+                                <!--<td rowspan="1">  
+                                    <ui:outputText value="{!rc.Receipt_Number__c}" />
+                                </td>-->
+                                <td rowspan="1">
+                                    <!--<ui:outputText value="{!bldFlrVal.Building__r.Name}" /><br />-->
+                                    <ui:outputText value="{!rc.Payment_Mode__c}" />
+                                </td>
+                                <td rowspan="1">
+                                    <ui:outputDate value="{!rc.Receipt_Date__c}" />
+                                </td>
+                                <td rowspan="1">
+                                    <ui:outputText value="{!rc.Bank__c}" />
+                                </td>
+                                <td rowspan="1">
+
+
+                                    <!--<ui:outputText value="{!bldFlrVal.Building__r.Name}" /><br />-->
+                                    <ui:outputText value="{!rc.Receipt_Comments__c}" />
+
+
+                                </td>
+                                <td rowspan="1">
+
+
+                                    <!--<ui:outputText value="{!bldFlrVal.Building__r.Name}" /><br />-->
+                                    <ui:outputText value="{!rc.CreatedBy.Name}" />
+
+
+                                </td>
+                                <td rowspan="1">
+
+
+                                    <!--<ui:outputText value="{!bldFlrVal.Building__r.Name}" /><br />-->
+                                    <ui:outputDate value="{!rc.CreatedDate}" />
+
+
+                                </td>
+                                <td rowspan="1">
+                                    <ui:outputText value="{!rc.Received_For__c}" />
+                                </td>
+                                
+                                <td rowspan="1">
+                                    <!--AED
+                                    <ui:outputText value="{!rc.Amount__c}" />-->
+                                    <lightning:formattedNumber value="{!rc.Amount__c}" style="currency" currencyCode="{!rc.CurrencyIsoCode}" />
+                                </td>
+                            </tr>
+                        </aura:iteration>
+                        <tr>
+                            <td rowspan="1">
+                            </td>
+                            <td rowspan="1">
+                            </td>
+                            <td rowspan="1" style="text-align: right;">
+                            </td>
+                            <td rowspan="1">
+                            </td>
+                            <td rowspan="1">
+                            </td>
+                            <td rowspan="1" style="text-align: right;">
+                            </td>
+                            <td rowspan="1">
+                            </td>
+                            <td rowspan="1">
+                            </td>
+                            <!--<td rowspan="1" style="text-align: right;">
+                            </td>
+                            <td rowspan="1">
+                            </td>-->
+                            <td rowspan="1" style="text-align : right;">
+                                Total:
+                            </td>
+                            <td rowspan="1">
+                                <!--AED
+                                <ui:outputText value="{!v.cal[2]}" />-->
+                                <lightning:formattedNumber value="{!v.cal[2]}" style="currency" currencyCode="AED" />
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            	</div>
+                </lightning:card>
+        </div>
+        <div class="slds-box slds-theme_shade">
+            <lightning:card variant="Narrow" title="Create New Receipt">
+                <div class="slds-modal__content" >
+                	<div class="slds-form_horizontal slds-form slds-grid slds-wrap">
+                        <div class="slds-col  slds-size_1-of-1  slds-col-section">
+                            <div class=" ">
+                                    <div class="slds-grid slds-wrap">
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                            <lightning:select name="select" label="Payment Mode" required="true" aura:id="modeID" value="{!v.selectedmode}" onchange="{!c.paymentModeChange}" class="slds-m-bottom_large slds-m-top_large">
+                           						 <option value="--None--" />
+                           						 <aura:iteration items="{!v.ModePicklist}" var="val" indexVar="key">
+                                					<option value="{!val.key}" text="{!val.value}"/>  
+                            						</aura:iteration>            
+    		            					</lightning:select>   
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                            <lightning:select name="select" label="Receipt Method" required="true" aura:id="methodId" value="{!v.seletedReceiptMethodId}" class="slds-m-bottom_large slds-m-top_large">
+                            					<option value="--None--" />
+                           						 <aura:iteration items="{!v.receiptMethodPicklist}" var="val" indexVar="key">
+                                				<option value="{!val.value}" text="{!val.key}"/>  
+                            					</aura:iteration>            
+    		            					</lightning:select>
+                                             
+                                        </div>
+                                </div>
+                                
+                                <div class="slds-grid slds-wrap">
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                            <aura:if isTrue="{!v.showMaturityDate}">
+                                                <lightning:input type="date" name="maturityDate" label="Maturity Date"
+                            				        value="{!v.receiptObj.Maturity_Date__c }" required="{!v.bankFieldsRequired}" />
+                                            </aura:if>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                            <aura:if isTrue="{!v.showBankBranch}">
+                                            <lightning:input  type="text" name="bankBranch" label="Bank Branch"
+                                            value="{!v.receiptObj.Bank_Branch__c }" required="{!v.bankFieldsRequired}" /> 
+                                            </aura:if>                                            
+                                        </div>
+                                </div>
+                                
+                                <div class="slds-grid slds-wrap">
+                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                    	<lightning:select name="select" label="Received For" required="true" aura:id="selectID" value="{!v.selectedReceivedFor}" class="slds-m-bottom_large slds-m-top_large">
+                        				<option value="--None--" />
+                       	 					<aura:iteration items="{!v.ReceivedForPicklist}" var="val" indexVar="key">
+                            				<option value="{!val.value}" text="{!val.key}"/>  
+                        					</aura:iteration>            
+                    					</lightning:select> 
+                                    </div>
+                                   <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                    <aura:if isTrue="{!v.showBankName}">
+                                    <lightning:select name="select" label="Bank Name" required="{!v.bankFieldsRequired}" aura:id="bankId" value="{!v.selectedBank}" class="slds-m-bottom_large slds-m-top_large">
+                                        <option value="--none--" />
+                                        <aura:iteration items="{!v.bankPicklist}" var="val" indexVar="key">
+                                        <option value="{!val.value}" text="{!val.key}"/>  
+                                        </aura:iteration>            
+                                    </lightning:select>   
+                                    </aura:if>
+                                        <!--<lightning:select name="select" label="Installment Type" required="true" aura:id="installmentID" value="{!v.selectedinstallmentType}" class="slds-m-bottom_large slds-m-top_large">
+                            					<option value="-None-" />
+                           						 <aura:iteration items="{!v.installmentTypeValues}" var="val" indexVar="key">
+                                				<option value="{!val.key}" text="{!val.value}"/>  
+                            					</aura:iteration>            
+    		            				</lightning:select>-->
+                                       
+                                    </div>
+                                </div>
+                                <div class="slds-grid slds-wrap">
+                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                        <lightning:input  type="text" name="receiptnumber" label="Receipt Number"
+                            				value="{!v.receiptObj.Name}" required="true" />
+                                    	
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                        <lightning:input type="date" name="receiptdate" label="Due Date"
+                            				value="{!v.receiptObj.Due_Date__c}" required="true" />
+                                    	
+                                    </div>
+                                </div>
+                                <div class="slds-grid slds-wrap">
+                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                        <lightning:input type="number" name="receiptamount" label="Amount(AED)"
+                            				value="{!v.receiptObj.Amount__c}" required="true" />
+                                    	
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                    	<lightning:input type="text" name="amountinwords" label="Amount in Words"
+                            				value="{!v.receiptObj.Amount_in_Words__c}" required="true" />
+                                    </div>
+                                </div>
+                                <div class="slds-grid slds-wrap">
+                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                        <aura:if isTrue="{!v.defaultCustomer}">
+                                            <lightning:input type="text"  name="receviedFrom" label="Received From"
+                                                             value="{!v.defaultCustomerName}" readonly="true" aura:id="customer" onchange="{!c.onCustomerChange}"/>
+                                        </aura:if>
+                                        <aura:if isTrue="{!!v.defaultCustomer}">
+                                    	<label class="slds-form-element__label"> <abbr class="slds-required" title="required">* </abbr> Received From</label>
+                        				<c:LookupComponent objectName="Account"
+                                                   field_API_text="Name"
+                                                   field_API_val="Id"
+                                                   limit="8"
+                                                   field_API_search="Name"
+                                                   lookupIcon="custom:custom62" 
+                                                   selItem="{!v.accountRecord}"
+                                                   placeholder="Search "
+                                                           /> </aura:if>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                    	  <lightning:input  type="text" name="receiptcomments"
+                            				label="Receipt Comments" value="{!v.receiptObj.Receipt_Comments__c}" required="true" />
+                                    </div>
+                                </div>
+                                
+                            </div>
+                            <div class="slds-grid">
+                                    <div class="slds-col slds-size_2-of-2 slds-align_absolute-center">
+                                        <lightning:button variant="brand" type="" name="Next" label="Create Receipt" onclick="{!c.saveReceipt}"/>
+                                    </div>
+                                </div>
+                    	</div>
+                    </div>
+                </div>
+            </lightning:card>
+        </div>
+    </div>
+</aura:component>

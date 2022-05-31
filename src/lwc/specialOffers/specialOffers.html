@@ -1,0 +1,128 @@
+<template>
+    <lightning-quick-action-panel header="Create Offer">
+      
+        
+            <template if:true={spinner}>
+                <lightning-spinner alternative-text="Loading" variant="brand" size="large"></lightning-spinner>
+            </template>    
+       
+        <div class="slds-m-left_xx-large slds-m-right_xx-large slds-m-top_small">
+
+            <div class="slds-grid slds-gutters slds-m-left_xx-large slds-m-top_small">
+                <div class="slds-col slds-size_5-of-12 slds-m-left_x-large">
+                    <lightning-input type="number" name="DLD" label="DLD(%)" value={dld} onchange={handleDld} formatter="currency" step="0.01"></lightning-input>
+                </div> 
+                <div class="slds-col slds-size_5-of-12 slds-m-left_x-large">
+                    <lightning-input type="number" name="Agent Commissions" label="Agent Commissions(%)" value={agentComissions} onchange={handleAgentComm} formatter="currency" step="0.01"></lightning-input>
+                </div>
+            </div> 
+            
+            <div class="slds-grid slds-gutters slds-m-left_xx-large slds-m-top_small slds-m-bottom_small">
+                <div class="slds-col slds-size_5-of-12 slds-m-left_x-large">
+                    <lightning-input type="number" name="Staff Commissions" label="Staff Commissions(%)" value={staffCommissions} onchange={handleStaffComm} formatter="currency" step="0.01"></lightning-input>
+                </div>
+                <div class="slds-col slds-size_5-of-12 slds-m-left_x-large">    
+                    <div >
+                        <lightning-input name="enter-search" label="Master Payement Plan" type="search" value={selectedMasterPaymentPlan} onclick={handleMasterPaymentSearch} onchange={handleMasterPaymentSearch} ></lightning-input>
+                    </div>
+                    <template if:true={resultExistingMPP}>
+                        <template for:each={resultExistingMPP} for:item="item">
+                            <fieldset key={item.Id}>
+                                <div class="slds-combobox_container">
+
+                                    <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                                        <li role="presentation" class="slds-item">
+                                            <div class="slds-media slds-listbox__option slds-listbox__option_entity slds-media_center" role="option" onclick={handleMPPSelect} data-id={item.Id} data-name={item.Name}>
+                                                <span class="slds-media__figure slds-listbox__option-icon">
+                                                    <lightning-icon icon-name="standard:account" size="small"> </lightning-icon>
+                                                </span>
+                                                {item.Name}<br />
+                                            </div>
+                                        </li>
+                                    </ul>
+
+                                </div>
+                            </fieldset>
+                        </template>
+                    </template>                     
+                </div>
+                
+            </div>
+            
+            <div class="slds-grid slds-gutters slds-m-left_xx-large slds-m-top_small">
+                <div class="slds-col slds-size_5-of-12 slds-m-left_x-large">
+                    <lightning-input type="date" name="Start Date" label="Start Date" value={startDate} onchange={handleStartDate} ></lightning-input>
+                </div>  
+                <div class="slds-col slds-size_5-of-12 slds-m-left_x-large">
+                    <lightning-input type="date" name="End Date" label="End Date" value={endDate} onchange={handleEndDate} ></lightning-input>
+                </div>
+                <!--
+                <div class="slds-col slds-size_5-of-12 slds-m-left_x-large">    
+                    <div >
+                        <lightning-input name="enter-search" label="Document" type="search" value={selectedDocument} onclick={handleDocSearch} onchange={handleDocSearch}></lightning-input>
+                    </div>
+                    <template if:true={resultExistingDocuments}>
+                        <template for:each={resultExistingDocuments} for:item="item">
+                            <fieldset key={item.Id}>
+                                <div class="slds-combobox_container">
+
+                                    <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                                        <li role="presentation" class="slds-item">
+                                            <div class="slds-media slds-listbox__option slds-listbox__option_entity slds-media_center" role="option" onclick={handleDocumentSelect} data-id={item.Id} data-name={item.File_Name__c}>
+                                                <span class="slds-media__figure slds-listbox__option-icon">
+                                                    <lightning-icon icon-name="standard:account" size="small"></lightning-icon>
+                                                </span>
+                                                {item.File_Name__c}<br />
+                                            </div>
+                                        </li>
+                                    </ul>
+
+                                </div>
+                            </fieldset>
+                        </template>
+                    </template>                     
+                </div>-->
+            </div>
+
+           
+            
+            <div class="slds-grid slds-gutters slds-m-left_xx-large slds-m-top_small">
+                <div class="slds-col slds-size_5-of-12 slds-m-left_x-large">
+                    <lightning-file-upload style="color: green;"
+                        label={labelForDocUpload}
+                        name="fileUploader"
+                        accept={acceptedFormatsDoc}
+                        record-id={recordId}
+                        onuploadfinished={handleUploadFinishedDoc}
+                        multiple
+                        disabled={uploadDisbaleDoc}
+                        >   
+                    </lightning-file-upload>
+                </div> 
+                <div class="slds-col slds-size_5-of-12 slds-m-left_x-large">
+                    <lightning-file-upload style="color: green;"
+                        label={labelForFileUpload}
+                        name="fileUploader"
+                        accept={acceptedFormats}
+                        record-id={recordId}
+                        onuploadfinished={handleUploadFinished}
+                        multiple
+                        disabled={uploadDisbale}
+                        >   
+                    </lightning-file-upload>
+                </div> 
+                
+            </div> 
+
+            <div class="slds-text-align_center slds-m-bottom_x-small slds-m-top_x-large">
+                <lightning-button variant="neutral" label="Cancel" onclick={closePanel}></lightning-button>
+                <lightning-button variant="brand" label="Create" onclick={createCampaignAction} class="slds-m-left_medium" ></lightning-button>    
+            </div>    
+        </div>
+        
+    
+        
+    
+
+</lightning-quick-action-panel>
+</template>

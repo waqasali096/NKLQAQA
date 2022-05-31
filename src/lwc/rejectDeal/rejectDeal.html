@@ -1,0 +1,37 @@
+<!--********************************************************************************************
+* Name			: rejectDeal.html
+* Description	: LWC component to reject deal                               
+* Created Date	: 05/05/2022
+* Created By	: Cloudworks
+* **********************************************************************************************
+* Version		Author	    Date		    Comment   
+* 1.0           Rohit       05/05/2022     Initial Draft
+*********************************************************************************************-->
+<template>
+    <lightning-quick-action-panel header="Reject Deal">
+        <div>
+            <div if:true={isLoading} class="slds-is-relative">
+                <lightning-spinner alternative-text="Loading..." variant="brand" style="top:50px;"></lightning-spinner>
+            </div>
+            <template if:true={errorMessage}>
+                <p style="text-align:center; color:red; margin:0 0 2% 0 ;"> {errorMessage} </p>
+            </template>
+            <div style="display: flex; justify-content:center;">
+                <div style="width: 60%;">
+                    <div>
+                        <lightning-combobox value={value} label="Do you have a Signed Booking Form?"
+                            placeholder="" options={TypeOptions} onchange={handleTypeChange}>
+                        </lightning-combobox>
+                    </div>
+                    <div>
+                        <lightning-textarea required label="Reject Reason" onchange={handleRemarks}></lightning-textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div slot="footer">
+            <lightning-button variant="neutral" label="Cancel" onclick={handleCancel}></lightning-button>
+            <lightning-button variant="brand" label="Reject" class="slds-m-left_x-small" onclick={handleSave}></lightning-button>
+        </div>
+      </lightning-quick-action-panel>
+</template>

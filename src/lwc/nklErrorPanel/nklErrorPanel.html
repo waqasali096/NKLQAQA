@@ -1,0 +1,19 @@
+<!--********************************************************************************************
+* Name			: nklErrorPanel.html
+* Description	: LWC component to show error                          
+* Created Date	: 17/10/2021
+* Created By	: Cloudworks
+* **********************************************************************************************
+* Version		Author		Date		    Comment   
+* 1.0           Rohit       17/10/2021      Initial Draft
+*********************************************************************************************-->
+<template>
+    <div if:true={errorMessage}>
+        <div class="error-div">
+            Review the errors on this page.
+        </div>
+        <div class="error-msg">
+            {errorMessage}
+        </div>
+    </div>
+</template>

@@ -1,0 +1,22 @@
+.THIS .buttonColor{
+   background: steelblue;
+}
+@media (min-width:1025px) { /*Desktop Break point*/
+.THIS.slds-spinner_container {
+    top: 16% !important;
+    bottom: 16% !important;
+    }
+}
+.THIS .header th {
+    background-color:steelblue;
+    color:white;
+    height:50px;
+}
+.THIS .error-text {
+    display:none;
+}
+
+.THIS .show {
+    display:flex;
+    color:red;
+}

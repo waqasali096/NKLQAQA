@@ -1,0 +1,111 @@
+<aura:component implements="flexipage:availableForAllPageTypes,force:appHostable,force:hasRecordId,forceCommunity:availableForAllPageTypes,lightning:actionOverride" 
+                controller="ExistingAgencyRegistrationFormController" access="global">
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:attribute name="accLst" type="List"/>
+    
+    <!-- <aura:handler event="aura:waiting" action="{!c.showSpinner}"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/>	-->
+    <aura:attribute name="Spinner" type="boolean" default="false"/>
+    <aura:attribute name="isVerifyInProgress" type="Boolean" default="false" />
+    <aura:attribute name="mobileVerifyContainer" type="Boolean" default="true" />
+    <aura:attribute name="primaryMobileNumber" type="String" />
+    <aura:attribute name="customerName" type="String" default="husain"/>
+    <aura:attribute name="sendOTPButton" type="Boolean" default="true" />
+    <aura:attribute name="resendOTPButton" type="Boolean" default="false" />
+    <aura:attribute name="sendButtonDisabled" type="Boolean" default="false" />
+    <aura:attribute name="resendButtonDisabled" type="Boolean" default="false" />
+    <aura:attribute name="OTP" type="String"/>
+    <aura:attribute name="showVerifyOTP" type="Boolean" default="false" />
+    <aura:attribute name="isSave" type="Boolean" default="false" />
+    <aura:attribute name="otpNumber" type="String" />
+    <aura:attribute name="otpVerified" type="Boolean" default="false" />
+    <aura:attribute name="otpNotVerified" type="Boolean" default="false" />
+    <aura:attribute name="otpExpired" type="Boolean" default="false" />
+    <aura:attribute name="updateMobileCheckbox" type="Boolean" default="false" />
+    <aura:attribute name="updateMobileNumber" type="Boolean" default="false" />
+    <aura:attribute name="selectedNumber" type="String" />
+    <aura:attribute name="reloadForm" type="boolean" default="true" />
+    <aura:attribute name="primarySelected" type="boolean" default="false" />
+    <aura:attribute name="secondarySelected" type="boolean" />
+    <aura:attribute name="tertiarySelected" type="boolean" />
+    <aura:attribute name="mobileCategorySelectedSaveButton" type="boolean" />
+    
+    <aura:attribute name="endTime" type="String"/>
+    <aura:attribute name="minutes" type="Integer" default="1"/> 
+    <aura:attribute name="countDownMinutes" type="Integer" default="0"/> 
+    <aura:attribute name="countDownSeconds" type="Integer" default="0"/> 
+    <aura:attribute name="timeLeft" type="String"/>
+    <aura:attribute name="mobile" type="String"/>
+    <aura:attribute name="emailad" type="String"/>
+    <!-- Attributes from ExistingAgency -->
+    <aura:attribute name="recordId" type="String" default=""/>
+    <aura:attribute name="email" type="String" default=""/>
+    <aura:attribute name="brokerNumber" type="String" default=""/>
+    <aura:attribute name="phone" type="String" default=""/>
+    <aura:attribute name="phoneCode" type="String" default=""/>
+    <aura:attribute name="fields" type="String[]" default="['Company_Name__c','Trade_Licence_Number__c','Agency_Type__c']" />
+    
+
+
+    
+    <div class="slds-m-around--xx-large">
+        <aura:if isTrue="{!v.recordId != ''}">
+         <aura:if isTrue="{!v.isVerifyInProgress}" >
+               
+                <aura:set attribute="else">
+            		<c:AgencyRegistrationForm agencyRecordId="{!v.recordId}"></c:AgencyRegistrationForm>
+                </aura:set>
+               
+            </aura:if> 
+            
+            <!--<lightning:notificationsLibrary aura:id="notifLib"/>
+            <lightning:recordForm recordId="{!v.recordId}" objectApiName="Broker__c" fields="{!v.fields}" onsuccess="{!c.handleSuccess}" />
+            -->
+            
+            <aura:set attribute="else">
+                <lightning:card title="Existing Agency Registration Form" iconName="standard:form" class="slds-p-around_medium">
+                    <div class="slds-section slds-is-open">
+                        <h3 class="slds-section__title slds-theme_shade">
+                            <span class="slds-truncate slds-p-horizontal_small" title="Section Title">Search Existing Agency Registration Form</span>
+                        </h3>
+                    </div>
+                    
+                    <!--<lightning:recordEditForm aura:id="registrationForm" 
+                                              objectApiName="Broker__c">-->
+                        <lightning:messages />
+                        <div>
+                            <div class="slds-form_horizontal slds-form slds-grid slds-wrap">
+                          
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                    <lightning:input  name="" label="Agency Email" type="text" maxlength="50" value="{!v.email}" required="true"/>
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                    <lightning:input title="Please enter Agency Registration Number in the format of XXXXXX"  name="" label="Agency Registration Number" type="text" maxlength="50" value="{!v.brokerNumber}" required="true"/>
+                                </div>
+                              <!--<div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-large-size_4-of-12">
+                                    <lightning:inputField fieldName="Mobile_Country_Code__c" value="{!v.phoneCode}" required="true"/>
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-large-size_4-of-12">
+                                    <lightning:inputField fieldName="Mobile__c" value="{!v.phone}" required="true"/>
+                                </div>-->
+                            </div>
+                            
+                            <div class="slds-grid">
+                                
+                            </div>
+                        </div>
+                   <!-- </lightning:recordEditForm>-->
+                    
+                    
+                    <div class="slds-grid">
+                        <div class="slds-col slds-size_2-of-2 slds-p-around_medium">
+                            <lightning:button variant="brand" type="" name="Search" label="Search" onclick="{!c.searchRecord}" class="slds-align_absolute-center next"/>
+                        </div>
+                    </div>
+                </lightning:card>
+            </aura:set>
+        </aura:if> 
+    </div>
+    
+</aura:component>

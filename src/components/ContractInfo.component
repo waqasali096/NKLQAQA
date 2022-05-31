@@ -1,0 +1,54 @@
+<!--
+* @description       Contract table for VF Template 
+* @param            ConrtactId
+* @return           List<Lease_Contract__c>
+* @throws           NA
+* @author Kshitij Tiwari
+--> 
+<apex:component controller="ContractTemplate" access="global">
+    <apex:attribute name="RecId" type="Id" description="Id of the contract" assignTo="{!ContractId}"/>
+    <style>
+        table {
+        border-collapse: collapse;
+        width: 100%;
+        }
+        
+        td  {
+        border: 1px solid;
+        text-align: left;
+        padding: 8px;
+        }
+        
+        tr:nth-child(even) {
+        background-color: #dddddd;
+        }
+    </style>
+    <table  border="1" cellspacing = "0">
+        <tr>
+            <td><b>Location Code</b></td>
+            <td><b>Project</b></td>
+            <td><b>Deal Stage</b></td> 
+            <td><b>Lease Start Date</b></td>
+            <td><b>Lease End Date</b></td>
+            <td><b>Amount</b></td>
+        </tr>
+     
+        <apex:repeat value="{!contracts}" var="c">
+            <tr>
+                <td>{!unitCode}</td>
+                <td>{!c.Opportunity__r.Project__r.Name}</td>
+                <td>{!c.Contract_Stages__c}</td>
+                <td>    <apex:outputText value="{0,date,EE MM/dd/yyyy}">
+                    <apex:param value="{!c.Contract_Start_Date__c}" /> 
+                    </apex:outputText></td>
+                <!--  <td>DATEVALUE({!c.Contract_Start_Date__c})</td>-->
+                <td><apex:outputText value="{0,date,EE MM/dd/yyyy}">
+                    <apex:param value="{!c.Contract_End_Date__c}" /> 
+                    </apex:outputText>
+                </td>
+                <td>{!Amount}</td>
+            </tr>
+        </apex:repeat>   
+        
+    </table>
+</apex:component>

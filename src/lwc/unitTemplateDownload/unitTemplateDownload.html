@@ -1,0 +1,13 @@
+<template>
+  <lightning-card title="Download Template" variant="Narrow" icon-name="standard:account">
+    <div class="slds-p-around_medium">
+    <a target="_self" class="slds-text-heading_small slds-m-bottom_small" download="ExportToCSV.csv" href={hrefdata} onclick={exportToCSV}>Download Excel</a>
+  </div>
+  </lightning-card>  
+
+  <div class="slds-p-around_medium">  
+      <lightning-datatable data={unitList} columns={unitColumns} key-field="id"  
+        hide-checkbox-column="true">  
+      </lightning-datatable>  
+  </div>
+  </template>

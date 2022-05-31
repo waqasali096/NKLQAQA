@@ -1,0 +1,261 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:lightningQuickActionWithoutHeader,force:hasRecordId" access="global"
+                Controller="CaseUnitController">
+    
+    
+    <aura:html tag="style">
+        .slds-modal__container{
+        max-width: 100rem !important;
+        width:95% !important;
+        }
+        .cuf-content {
+        padding: 0 0rem !important;
+        }
+        .slds-p-around--medium {
+        padding: 0rem !important;
+        }
+        .slds-modal__content {
+        overflow-y: hidden !important;
+        height: unset !important;
+        max-height: unset !important;
+        }        
+    </aura:html>
+    <!-- call doInit method on component load -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <!-- aura attributes to store data/values --> 
+    <aura:attribute name="listOfProperty" type="list"/> 
+    <aura:attribute name="oppMap" type="Map"/>
+    <aura:attribute name="PaginationList" type="list"/> 
+    <aura:attribute name="selectedCount" type="integer" default="0"
+                    description="selected Records Count"/>
+    <aura:attribute name="startPage" type="Integer" />
+    <aura:attribute name="endPage" type="Integer"/>
+    <aura:attribute name="totalRecordsCount" type="Integer"/>
+    <aura:attribute name="pageSize" type="Integer" default="2"
+                    description="number of records to be display on per page"/>
+    <aura:attribute name="currentPage" type="integer" default="1"/>
+    <aura:attribute name="totalPagesCount" type="integer"/>
+    <aura:attribute name="bNoRecordsFound" type="boolean" default = "false"/>
+    <aura:attribute name="isAllSelected" type="boolean" default = "false"/>
+    <aura:attribute name="selectedOpp" type="String"/>
+    <aura:attribute name="totalList" type="list"/> 
+    <aura:attribute name="isShowTable" type= "boolean" default = "false"/>
+    <aura:attribute name="renewalType" type= "String"/>
+    <aura:attribute name="noOfCheques" type= "String"/>
+    <aura:attribute name="noOfMonths" type= "String"/>
+    
+    
+    <header class="slds-modal__header" style="background: steelblue;">
+        <h4 class="title slds-text-heading--medium slds-text-color_inverse"><span>Add Unit(s)</span></h4>
+    </header>
+    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+        
+        <aura:if isTrue="{!v.bNoRecordsFound}">
+            <!--display error message if there is no records available -->
+            <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_info" role="alert">
+                <span class="slds-assistive-text">error</span>
+                <h2>No record found.</h2>
+            </div>
+            <aura:set attribute="else">
+                <!-- lightning:button to get selected rows data -->
+                <div class="slds-page-header" style="cursor: pointer;background: aliceblue;" onclick="{!c.sectionOne}">
+                    <section class="slds-clearfix">
+                        <div class="slds-float--left " style="margin-top: 8px;">
+                            <lightning:icon class="slds-hide" aura:id="articleOne" iconName="utility:add" size="x-small" alternativeText="Indicates add"/>
+                            <lightning:icon class="slds-show" aura:id="articleOne" iconName="utility:dash" size="x-small" alternativeText="Indicates dash"/>
+                        </div>
+                        <div class="slds-m-left--large"><!--lightning:card variant="Narrow" title="Select Opportunity" iconName="custom:custom63" > </lightning:card-->
+                            <lightning:icon iconName="custom:custom46" alternativeText="Select Opportunity" title="Select Opportunity" />
+                            &nbsp;&nbsp;
+                            <b>Select Opportunity</b>
+                        </div>
+                    </section>
+                </div>
+                <div class="slds-show slds-p-around--medium" aura:id="articleOne">
+                    
+                    <lightning:select  aura:id="oppPicklist" value="{!v.selectedOpp}" onchange="{!c.showUnits}" name="Deal" 
+                                      label="Deal" required="true">
+                        <option value="">--None--</option>
+                        <aura:iteration items="{!v.oppMap}" var="i" indexVar="key">
+                            <option text="{!i.value}" value="{!i.key}"/>
+                        </aura:iteration>
+                    </lightning:select>
+                </div>
+                <br/>
+                <br/>
+                <aura:if isTrue="{!v.isShowTable}">
+                    <div class="slds-page-header" style="cursor: pointer;background: aliceblue;" onclick="{!c.sectionTwo}">
+                        <section class="slds-clearfix" >
+                            <div class="slds-float--left " style="margin-top: 8px;">
+                                <lightning:icon class="slds-hide" aura:id="articleTwo" iconName="utility:add" size="x-small" alternativeText="Indicates add"/>
+                                <lightning:icon class="slds-show" aura:id="articleTwo" iconName="utility:dash" size="x-small" alternativeText="Indicates dash"/>
+                            </div>
+                            <div class="slds-m-left--large"><!--lightning:card variant="Narrow" title="Select Opportunity" iconName="custom:custom63" > </lightning:card-->
+                                <lightning:icon iconName="custom:custom63" alternativeText="Select Opportunity" title="Select Opportunity" />
+                                &nbsp;&nbsp;
+                                <b>Select Unit/(s)</b>
+                            </div>
+                        </section>
+                    </div>
+                    
+                    <div class="slds-show slds-p-around--medium" aura:id="articleTwo">
+                        
+                        <p class="slds-m-around_small slds-float--left">
+                            
+                            <span class="slds-badge slds-badge_lightest" style="display:inline-block;background: aliceblue;">
+                                
+                                
+                                Total Records : {!v.selectedCount > 0 ? v.selectedCount + '/' : ''} {!v.totalRecordsCount} 
+                                
+                            </span>
+                        </p>  
+                        
+                        
+                        <!-- display total record and selected record count -->   
+                        
+                        <div class="slds-grid slds-grid_align-end slds-var-m-around_large slds-gutters">
+                            <div class="slds-col">
+                                
+                            </div>  
+                            <lightning:select  class="slds-col" aura:id="renewalType" value="{!v.renewalType}" name="renewalType" 
+                                              label="Renewal Type"  disabled="{!v.selectedCount == 0}">
+                                <option value="">--None--</option>
+                                 <option text="Full" value="Full"/>
+                                 <option text="Extension" value="Extension"/>
+                            </lightning:select>
+                          <lightning:input class="slds-col" type="number" name="noOfMonths" value="{!v.noOfMonths}" label="No. of Months" placeholder="number..."
+                                             disabled="{!v.selectedCount == 0}"/>
+                            
+                          <lightning:input class="slds-col" type="number" name="noOfCheque" value="{!v.noOfCheques}" label="No. of Cheques" placeholder="number..."
+                                             disabled="{!v.selectedCount == 0}"/>
+                            
+                        </div>
+                        
+                        <!-- data table start-->  
+                        <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-box" style="background: aliceblue;">
+                            
+                            <thead class="header">
+                                
+                                <tr class="slds-text-title_caps">
+                                    <!--header checkbox for select all-->
+                                    <th style="width:2.25rem;" class="slds-text-align_right">
+                                        <div class="slds-form-element">
+                                            <div class="slds-form-element__control">
+                                                <!---ui:inputCheckbox disabled="{!v.totalRecordsCount == 0}"
+                                                          aura:id="selectAllId"
+                                                          change="{!c.selectAllCheckbox}"/-->
+                                                <lightning:input aura:id="selectAllId" type="checkbox-button" label="Input One" name="input1"
+                                                                 checked="{!v.isAllSelected}"
+                                                                 onchange="{!c.selectAllCheckbox}" disabled="{!v.totalRecordsCount == 0}"></lightning:input>
+                                                
+                                            </div>
+                                        </div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Name">Unit</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Phone">Opportunity</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Type">Start Date</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Type">End Date</div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            
+                            <tbody>
+                                <aura:iteration items="{!v.PaginationList}" var="obj">
+                                    <tr>
+                                        <th scope="row" class="slds-text-align_right" style="width:3.25rem;">
+                                            
+                                            <div class="slds-form-element__control">
+                                                <!--ui:inputCheckbox text="{!obj.objAccount.Id}"
+                                                              value="{!obj.isChecked}"
+                                                              change="{!c.checkboxSelect}"/-->
+                                                <lightning:input  type="checkbox-button" name="input2"
+                                                                 checked="{!obj.isChecked}"
+                                                                 onchange="{!c.checkboxSelect}"></lightning:input>
+                                            </div>
+                                            
+                                        </th>
+                                        <th scope="row">
+                                            <div class="slds-truncate" title="{!obj.Unit__r.Name}">
+                                                <a data-caseid="{!obj.Unit__c}" onclick="{!c.navigateToRecord}">{!obj.Unit__r.Name}</a>
+                                            </div>
+                                        </th> 
+                                        <th scope="row">
+                                            <div class="slds-truncate" title="{!obj.Opportunity__r.Name}">
+                                                <a data-caseid="{!obj.Deal__c}" onclick="{!c.navigateToRecord}">{!obj.Deal__r.Name}</a>
+                                            </div>
+                                        </th>
+                                        <th scope="row">
+                                            <div class="slds-truncate" title="{!obj.Start_Date__c}">
+                                                {!obj.Start_Date__c}
+                                            </div>
+                                        </th>
+                                        <th scope="row">
+                                            <div class="slds-truncate" title="{!obj.End_Date__c}">
+                                                {!obj.End_Date__c}
+                                            </div>
+                                        </th>
+                                    </tr>
+                                </aura:iteration>
+                            </tbody>
+                        </table>
+                        <!-- DataTable End -->
+                        <br/>
+                        <!--  Pagination Buttons Start -->
+                        <div class="slds-align_absolute-center">         
+                            <lightning:button variant="brand"
+                                              label="Previous"
+                                              disabled="{!v.startPage == 0}" 
+                                              class="{!v.startPage == 0 ? '' : 'buttonColor' }"
+                                              onclick="{!c.navigation}"
+                                              iconName="utility:back"
+                                              name="previous"/>
+                            
+                            <span class="slds-badge slds-badge_lightest"
+                                  style="margin-right: 10px;margin-left: 10px;">
+                                Page {!v.currentPage} out of {!v.totalPagesCount}
+                            </span>
+                            
+                            <lightning:button variant="brand"
+                                              label="Next"
+                                              disabled="{!(v.endPage + 1) >= v.totalRecordsCount}" 
+                                              class="{!(v.endPage + 1) >= v.totalRecordsCount  ? '' : 'buttonColor' }"
+                                              onclick="{!c.navigation}"
+                                              iconName="utility:forward"
+                                              iconPosition="right"
+                                              name="next"/>
+                        </div>  
+                    </div>
+                </aura:if>
+                <!--  Pagination Buttons End -->
+                
+            </aura:set> 
+            
+        </aura:if>
+        
+    </div>
+    <footer class="slds-modal__footer">
+        <lightning:button variant="brand"
+                          label="Cancel"
+                          title="Cancel"
+                          onclick="{! c.closeModel }"
+                          class="buttonColor"/>
+        <lightning:button variant="brand"
+                          label="Add Selected Records"
+                          title="Add Selected Records"
+                          onclick="{!c.addSelectedRecords}"
+                          class="{!v.selectedCount!=0  ? 'buttonColor' : '' }"
+                          disabled="{!v.selectedCount == 0}"
+                          />
+    </footer>
+    
+    
+    
+    
+</aura:component>

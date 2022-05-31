@@ -1,0 +1,457 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction"
+                controller="Broker_Portal_FileUploadController">
+    
+    <aura:dependency resource="markup://force:showToast" type="EVENT" />
+    <aura:handler event="force:showToast" action="{!c.doInit}" />
+    <!-- 'parentId' Aura Attribute for store the Id for Parent Record where we are attach our file -->  
+    <aura:attribute name="parentId" type="Id" default="{!v.recordId}"/>
+    <!-- 'showLoadingSpinner' attribute for show/hide the uploading image and msg in aura:if-->
+    <aura:attribute name="showLoadingSpinner" type="boolean" default="false" />
+    <!-- 'fileName' attribute for display the selected file name -->  
+    <aura:attribute name="files" type="ContentDocument[]"/>  
+    <aura:attribute name="requiredDocumentList" type="List"/>  
+    <aura:attribute name="accept" type="List" default="['.jpg', '.jpeg','.gif','.doc','.docx', '.pdf','.csv','.xls','.xlsx','.png','.txt','.msg']"/>  
+    <aura:attribute name="multiple" type="Boolean" default="false"/>      
+    <aura:attribute name="fileName" type="String" default="No File Selected.." />
+    <aura:attribute name="mdtDocumentList" type="List" />
+    <aura:attribute name="selectedDocumentId" type="string"/>
+    <aura:attribute name="recId" type="string"/>
+    <aura:attribute name="isModalOpen" type="Boolean" default="false"/>  
+    <aura:attribute name="hasModalOpen" type="boolean" default="false"/>
+    <!-- Lightning Input with file type and on file change call the 'handleFilesChange' controller --> 
+    
+    <aura:attribute name="custDoc" type="Document__c" default="{'sobjectType': 'Document__c'}" />
+    <aura:attribute name="docEdit" type="Document__c" default="{'sobjectType': 'Document__c'}" />
+
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="cusRecList" type="Document__c[]"/>
+    <!-- <aura:attribute name="deleteRecord" type="Id"/> -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:attribute name="docType" type="Document__c" />
+    <aura:attribute name="expDateMandatory" type="boolean" default="false" />
+    <aura:attribute name="expDateValidationError" type="boolean" default="false" />
+    <aura:attribute name="issueDateMandatory" type="boolean" default="false" /> 
+    <aura:attribute name="DoccumentIDMandatory" type="boolean" default="false" />  
+    <aura:attribute name="isEmiratesId" type="boolean" default="false" />
+    <aura:attribute name="issueDateValidationError" type="boolean" default="false" /> 
+    <aura:attribute name="docTypeValidationError" type="boolean" default="false" /> 
+    <!--<aura:attribute name="isEmirates" type="boolean" default="false" /> 
+    <aura:attribute name="isPassport" type="boolean" default="false" /> -->
+    <aura:attribute name="AccountMap" type="Map"/>
+    <aura:attribute name="docRequireMap" type="Map"/>
+    <aura:attribute name="IsallrequiredFilesUploaded" type="boolean" default="true"/>
+    <aura:attribute name="documentsUploadedSet" type="Set" />
+    <aura:attribute name="documentsUploadedLst" type="String[]" default="[]"/>
+    <aura:attribute name="requiredDocList" type="List"/> 
+    <aura:attribute name="currentUserID" type="String"/>  
+    <aura:attribute name="AgencyApprovalStatus" type="String"/> 
+     <aura:attribute name="editDisabled"  type="boolean" default="false"/>  
+    <aura:attribute name="agencyID"  type="String" default=""/>  
+    <aura:attribute name="isExistingBroker" type="boolean" default="false"/><!--Added By Mamta-->
+
+
+
+
+
+
+
+
+
+     <aura:if isTrue="{!!v.editDisabled}">
+    <lightning:layout multipleRows="true">
+        <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12" largeDeviceSize="12" padding="around-small">
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col" style="padding-bottom: 5px;">
+                    <div role="listitem">
+                        <div class="slds-form-element  slds-is-editing">
+                            <!-- <div class="slds-form-element__control">
+                        <lightning:input type="Picklist" name="input2" value="{!v.custDoc.Document_Type__c}" />
+                    </div> -->
+                            <lightning:select value="{!v.custDoc.Document_Type__c}" onchange="{!c.checkDocumentType }" label="Document Type" name="university" required="true">
+                                <option value="">Select One.....</option>
+                                <aura:iteration items="{!v.docType}" var="option">
+                                    <option value="{!option}">{!option}</option>
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="slds-col" style="padding-bottom: 5px;">
+                    <div role="listitem">
+                        <div class="slds-form-element slds-is-editing">
+                            <div class="slds-form-element__control">
+                    
+                                <aura:if isTrue="{!v.isEmiratesId}">
+                                    <lightning:input label="Emirates ID" 
+                                                 name="" 
+                                                 type="text" 
+                                                 minlength="18" 
+                                                 maxlength="18" 
+                                                 placeholder="###-####-#######-#" 
+                                                 pattern="[0-9]{3}-[0-9]{4}-[0-9]{7}-[0-9]{1}" 
+                                                 messageWhenPatternMismatch="Enter valid Emirates Id." 
+                                                 value="{!v.custDoc.Document_ID_Number__c}"  
+                                                 aura:id="myinput" 
+                                                 required="{!v.DoccumentIDMandatory}"
+                                                 onchange="{!c.handleEmiratesIdChange}"  />
+                                    <aura:set attribute="else">
+                                        <lightning:input type="Text" name="input2" 
+                                                         pattern="^[a-zA-Z0-9]*$" messageWhenPatternMismatch="Enter valid Doucment ID/Number."
+                                                         value="{!v.custDoc.Document_ID_Number__c}" required="{!v.DoccumentIDMandatory}" 
+                                                         label="Document ID/Number"/> 
+                                    </aura:set>
+                                </aura:if> 
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col" style="padding-bottom: 5px;">
+                    <div role="listitem">
+                        <div class="slds-form-element slds-is-editing">
+                            <div class="slds-form-element__control">
+                                <lightning:input type="Date" name="input2" value="{!v.custDoc.Issue_Date__c}" 
+                                                 onchange="{!c.validateIssueDate}" required="{!v.issueDateMandatory}" 
+                                                 label="Issue Date" autocomplete="off" format="dd/MM/yyyy" dateStyle="short"/>
+                                <aura:if isTrue="{!v.issueDateValidationError}">
+                                    <div class="slds-text-color_error slds-p-left_x-small">
+                                        Date must be today or in past.
+                                    </div>
+                                </aura:if>  
+                                
+                            </div>  
+                        </div>
+                    </div>
+                </div>
+                <aura:if isTrue="{!$Label.c.VAT_certificate!=v.custDoc.Document_Type__c}">
+                <div class="slds-col" style="padding-bottom: 5px;">
+                    <div role="listitem">
+                        <div class="slds-form-element slds-is-editing">
+                            <div class="slds-form-element__control">
+                                
+                                <lightning:input type="Date" name="input2" value="{!v.custDoc.Expiry_Date__c}" 
+                                                 onchange="{!c.validateExpiryDate}" required="{!v.expDateMandatory}" 
+                                                 label="Expiry Date" autocomplete="off" format="dd/MM/yyyy" dateStyle="short"  />
+                                <aura:if isTrue="{!v.expDateValidationError}">
+                                    <div class="slds-text-color_error slds-p-left_x-small">
+                                        Expriy date must be in future.
+                                    </div>
+                                </aura:if>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+             </aura:if>      
+            </div>
+            
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col" style="padding-bottom: 4px;">
+                    <div role="listitem">
+                        <div class="slds-form-element slds-is-editing">
+                            <div class="slds-form-element__control">
+                                <lightning:input name="input2" value="{!v.custDoc.Place_of_Issue__c}" label="Place of Issue" autocomplete="off"/>
+                            </div>                        
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col" >
+                    <div role="listitem">
+                        <div class="slds-form-element slds-is-editing">
+                            <div class="slds-form-element__control">
+                                <lightning:textarea name="input2" value="{!v.custDoc.Remark__c}" label="Remark"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>  
+            </div>
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col" >
+                    <div class="slds-grid " aura:id="fileDiv">  
+                        <div style="width:100%">
+                            <aura:if isTrue="{!and (v.expDateValidationError,v.issueDateValidationError)}" >
+                            </aura:if>
+                            <lightning:fileUpload multiple="{!v.multiple}"
+                                                  fileFieldName="Guest_Record_fileupload__c"
+                                                  accept="{!v.accept}" 
+                                                  recordId="{!v.currentUserID}" 
+                                                  onclick="{!c.validateDateFields}"  
+                                                  onuploadfinished="{!c.uploadFinished}" 
+                                                  label="Upload Files"/> 
+                        </div>  
+                    </div>
+                </div>   
+            </div>  
+        </lightning:layoutItem>
+    </lightning:layout>
+         
+    </aura:if>   
+    <!--<div class="slds-grid " aura:id="fileDiv">  
+        <div style="width:100%">  
+            <center>
+                <aura:if isTrue="{!and (v.expDateValidationError,v.issueDateValidationError)}" >
+                </aura:if>
+                <lightning:fileUpload  multiple="{!v.multiple}"   
+                                      accept="{!v.accept}" recordId="{!v.recordId}"   
+                                      onuploadfinished="{!c.uploadFinished}" />  
+            </center>
+        </div>  
+    </div><br/> -->
+    
+    <!--use aura:if for show-hide the loading spinner image--> 
+    <aura:if isTrue="{!v.showLoadingSpinner}">
+        <div class="spinner">
+            <lightning:spinner alternativeText="Loading" size="medium" />
+        </div>
+    </aura:if>  
+    
+    <!-- Document table start... -->
+    <!--<article class="slds-card">
+        <div class="slds-card__header slds-grid">
+            <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                <div class="slds-media__figure">
+                    <lightning:icon iconName="standard:document" alternativeText="document" />
+                </div>
+                <div class="slds-media__body">
+                    <h2 class="slds-card__header-title">
+                        <a href="javascript:void(0);" class="slds-card__header-link slds-truncate" title="Accounts">
+                            <span>Documents</span>
+                        </a>
+                    </h2>
+                </div>
+            </header>
+        </div>
+    </article>-->
+    <h2 class="docheading">
+        <a href="javascript:void(0);" class="slds-card__header-link slds-truncate" title="Accounts">
+            <span>Required Documents</span>
+        </a>
+    </h2>
+    <div>
+        <aura:if isTrue="{!not(empty(v.requiredDocumentList))}">
+            <!--<aura:iteration items="{!v.requiredDocumentList}" var="Doc">
+                <div class="slds-box slds-box_xx-small">
+                    <ul class="slds-text-color_error" >
+                        <li>{!Doc} </li>
+                    </ul>
+                </div>
+            </aura:iteration>-->
+            <aura:iteration items="{!v.requiredDocList}" var="Doc">
+                <div class="slds-box slds-box_xx-small">
+                   <aura:if isTrue="{!(Doc.value==true)}">
+
+                    <ul class="slds-text-color_success" >
+                        <li>{!Doc.name} </li>
+                    </ul>
+                 </aura:if> 
+                     <aura:if isTrue="{!(Doc.value==false)}">
+                    <ul class="slds-text-color_error" style="text-align: left;"  >
+                        <li>{!Doc.name} </li>
+                    </ul>
+                 </aura:if> 
+                </div>
+            </aura:iteration>
+        </aura:if>
+        <aura:if isTrue="{!(empty(v.requiredDocumentList))}">
+            <div class="slds-text-color_success">
+                <b> All documents are optional.</b>
+            </div>
+        </aura:if>
+    </div>
+    <h2 class="docheading">
+        <a href="javascript:void(0);" class="slds-card__header-link slds-truncate" title="Accounts">
+            <span>Documents</span>
+        </a>
+    </h2>
+    <div class="docviewtable">
+        <table class="slds-table">
+            <thead>
+                <tr class="slds-line-height_reset">
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Opportunity Name">Document Type</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Document No">Document No</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Account Name">Place of Issue</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Close Date">Expiry Date</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Stage">Issue Date</div>
+                    </th>
+                    
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Stage">Approval Status</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Confidence">Remark</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Confidence">View</div>
+                    </th>
+                    <aura:if isTrue="{!!v.editDisabled}">
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Confidence">Edit</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Confidence">Delete</div>
+                    </th>
+                    </aura:if>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                <aura:iteration items="{!v.cusRecList}" var="col">
+                    <tr class="slds-hint-parent">
+                        <td data-label="DocumentType" scope="row">
+                            <div class="slds-truncate" title="DocumentType">{!col.Document_Type__c}
+                                
+                            </div>
+                        </td>
+                        <td data-label="DocumentName">
+                            <div class="slds-truncate" title="DocumentName">{!col.Name}</div>
+                        </td>
+                        <td data-label="Account">
+                            <div class="slds-truncate" title="Account">{!col.Place_of_Issue__c}</div>
+                        </td>
+                        <td data-label="ExpiryDate">
+                            <div class="slds-truncate" title="ExpiryDate"><ui:outputDate value="{!col.Expiry_Date__c}" format="dd/MM/yyyy"/></div>
+                        </td>
+                        <td data-label="IssueDate">
+                            <div class="slds-truncate" title="IssueDate"><ui:outputDate value="{!col.Issue_Date__c}" format="dd/MM/yyyy"/></div>
+                        </td>
+                        <td data-label="ApprovalStatus">
+                            <div class="slds-truncate" title="IssueDate">{!col.Approval_Status__c}</div>
+                        </td>
+                        <td data-label="Remark">
+                            <div class="slds-truncate" title="Remark">{!col.Remark__c}</div>
+                        </td>
+                        <td data-label="Confidence">
+                            
+                            <a onclick="{!c.getSelected}" data-Id="{!col.Attachment_Id__c}"><i class="fa fa-eye" aria-hidden="true" style="padding-left: 15px;"></i></a>
+                        </td>
+                         <aura:if isTrue="{!!v.editDisabled}">
+                        <td data-label="Confidence">
+                          <a onclick="{!c.editRecord}"  id="{!col.Id}" data-Id="{!col.Attachment_Id__c}" disabled="{!v.editDisabled}"><i class="fa fa-edit" aria-hidden="true" style="padding-left: 15px;"></i></a>
+                         </td>
+                          </aura:if>
+                         <aura:if isTrue="{!!v.editDisabled}">
+                        <td data-label="Confidence">
+                           
+                            <a onclick="{!c.doDelete}" id="{!col.Id}" value="{!col.Id}" > 
+                                <i class="fa fa-trash" aria-hidden="true" style="padding-left: 15px;"></i>
+                            </a>
+                          
+                        </td></aura:if>
+                    </tr>
+                </aura:iteration>
+            </tbody>
+        </table>
+    </div>
+    <!-- the container element determine the height of the datatable -->
+    
+    <!-- Custom DataTable to Display List Of Available ContentDocuments End-->  
+    <!--###### FILE PREVIEW MODAL BOX START ######--> 
+    <aura:if isTrue="{!v.hasModalOpen}">
+        <section onclick="{!c.closeModel}"
+                 role="dialog"
+                 aria-modal="true"
+                 class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <div class="slds-modal__content slds-p-around_medium slds-text-align_center"
+                     style="background: transparent;">
+                    <div class="imgview">
+                        <!--<lightning:fileCard> to preview file using content document Id -->
+                        <lightning:fileCard fileId="{!v.selectedDocumentId}"/>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+    <!--###### FILE PREVIEW MODAL BOX END ######-->
+    <aura:if isTrue="{!v.isModalOpen}">
+        
+        <!-- Modal/Popup Box starts here-->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- Modal/Popup Box Header Starts here-->
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close"
+                                          onclick="{!c.stopModal}"
+                                          alternativeText="close"
+                                          variant="bare-inverse"
+                                          class="slds-modal__close"/>
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Document Edit</h2>
+                </header>
+                <!--Modal/Popup Box Body Starts here-->
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    <!--<lightning:recordEditForm aura:id="form"
+                                              recordId="{!v.recId}"
+                                              objectApiName="Document__c"
+                                              onsuccess="{!c.handleOnSuccess}"
+                                              class="">
+                        
+                        <lightning:messages/>
+                        <lightning:inputField fieldName="Name"/>
+                        <lightning:inputField fieldName="Document_Type__c" aura:id="doctype" readonly="true" />
+                        <lightning:inputField fieldName="Issue_Date__c" aura:id="departmentText"/>
+                        <lightning:inputField fieldName="Expiry_Date__c" aura:id="departmentText"/>
+                        <lightning:inputField fieldName="Place_of_Issue__c" aura:id="departmentText"/>
+                        
+                        <lightning:button type="submit" label="Submit" variant="brand"/>
+                    </lightning:recordEditForm>-->
+                   <lightning:input type="text" name="input1" value="{!v.docEdit.Name}"  label="Document ID" disabled="true"/>
+                   <lightning:input type="text" name="input2" value="{!v.docEdit.Document_Type__c}"  label="Document Type" disabled="true"/>
+                   <lightning:input type="Date" name="input3" value="{!v.docEdit.Issue_Date__c}"  label="Issue Date" format="dd/MM/yyyy" dateStyle="short"/>
+                   <lightning:input type="Date" name="input4" value="{!v.docEdit.Expiry_Date__c}"  label="Expiry Date" format="dd/MM/yyyy" dateStyle="short"/>
+                   <lightning:input type="text" name="input5" value="{!v.docEdit.Place_of_Issue__c}"  label="Place of Issue"/>
+					
+                    
+                 <!--Start Added by Mamta--> 
+                 <!-- Replace document uploaded-->   
+                <!-- <div class="slds-grid slds-gutters">
+                <div class="slds-col">
+                    <div class="slds-grid " aura:id="fileDiv">  
+                        <div style="width:100%">
+                            <aura:if isTrue="{!and (v.expDateValidationError,v.issueDateValidationError)}" >
+                            </aura:if>
+                            <lightning:fileUpload multiple="{!v.multiple}"
+                                                  fileFieldName="Guest_Record_fileupload__c"
+                                                  accept="{!v.accept}" 
+                                                  recordId="{!v.docEdit.Attachment_Id__c }" 
+                                                  onuploadfinished="{!c.uploadFinished}" 
+                                                  label="Upload Files"/> 
+                        </div>  
+                    </div>
+                </div>   
+            </div>  -->
+             <!--End Added by Mamta-->   
+
+
+  
+  
+
+                </div>
+                <!--Modal/Popup Box Footer Starts here-->
+                <footer class="slds-modal__footer">
+                    <!--<button class="slds-button slds-button_neutral">Cancel</button>-->
+                    <button class="slds-button slds-button_brand" onclick="{!c.handleOnSuccess}">Submit</button>
+                </footer>
+                
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+</aura:component>

@@ -1,0 +1,492 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:lightningQuickActionWithoutHeader,force:hasRecordId" access="global"
+                controller="ScheduleAmendmentController">
+    
+    
+    <aura:html tag="style">
+        .slds-modal__container{
+        max-width: 100rem !important;
+        width:95% !important;
+        height : 100%;
+        }
+        .cuf-content {
+        padding: 0 0rem !important;
+        }
+        .slds-p-around--medium {
+        padding: 0rem !important;
+        }
+        .slds-modal__content {
+        overflow-y: hidden !important;
+        height: unset !important;
+        max-height: unset !important;
+        }        
+    </aura:html>
+    <!-- call doInit method on component load -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <!-- aura attributes to store data/values -->
+    <aura:attribute name="parentWrapper" type="ScheduleAmendmentController.ParentWrapper"/> 
+    <aura:attribute name="installmentList" type="ScheduleAmendmentController.ResultWrapper[]"/> 
+    <aura:attribute name="totalAmount" type="decimal"/>
+    <aura:attribute name="isEdit" type="Boolean" default="false"/>
+    <aura:attribute name="oppMap" type="Map"/>
+    <aura:attribute name="PaginationList" type="list"/> 
+    <aura:attribute name="selectedCount" type="integer" default="0"
+                    description="selected Records Count"/>
+    <aura:attribute name="startPage" type="Integer" />
+    <aura:attribute name="endPage" type="Integer"/>
+    <aura:attribute name="totalRecordsCount" type="Integer"/>
+    <aura:attribute name="pageSize" type="Integer" default="2"
+                    description="number of records to be display on per page"/>
+    <aura:attribute name="currentPage" type="integer" default="1"/>
+    <aura:attribute name="totalPagesCount" type="integer"/>
+    <aura:attribute name="bNoRecordsFound" type="boolean" default = "false"/>
+    <aura:attribute name="isAllSelected" type="boolean" default = "false"/>
+    <aura:attribute name="isSpinner" type="boolean" default = "false"/>
+    <aura:attribute name="isBankTransfer" type="boolean" default = "false"/>
+    <aura:attribute name="isChequeMode" type="boolean" default = "false"/>
+    
+    <aura:attribute name="selectedOpp" type="String"/>
+    <aura:attribute name="totalList" type="list"/> 
+    <aura:attribute name="isTable" type="boolean" default = "false"/>
+    <aura:attribute name="todaysDate" type="date"/>
+    <aura:attribute name="thresDate" type="date"/>
+    <aura:attribute name="thresDays" type="Integer"/>
+    <aura:attribute type="Boolean" name="sortAsc" />
+    <aura:attribute type="String" name="sortField" />
+    <aura:attribute type="String" name="selectedTabsoft" />
+    <aura:attribute type="List" name="bankList"/>
+    <aura:attribute name="paymentOptions" type="List"/>
+    <aura:handler event="aura:waiting" action="{!c.showSpinner}"/>
+    <aura:attribute name="is" type="boolean" default = "false"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/>
+    <!--create a component attributs -->
+   
+    
+    <header class="slds-modal__header" style="background: steelblue; ">
+        <h4 class="title slds-text-heading--medium slds-text-color_inverse"><span>Review Payment Schedule</span></h4>
+    </header>
+    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+        
+        <!-- display total record and selected record count -->   
+        <div class = "slds-box">  
+            <div class="slds-float_left">
+                <p class="slds-m-around_small slds-float--left">
+                    <span class="slds-badge slds-badge_lightest" style="display:inline-block;background: aliceblue;">
+                        <h1>Total Amount : <lightning:formattedNumber value="{!v.parentWrapper.totalAmount}" style="currency" minimumFractionDigits="2" maximumFractionDigits="2"/></h1>
+                    </span>
+                </p> 
+            </div>
+                <div class="slds-float_right">
+                <lightning:button variant="brand"
+                          label="Cancel"
+                          title="Cancel"
+                          onclick="{!c.closeModal}"
+                          class="buttonColor"/>
+        <aura:if isTrue="{!v.parentWrapper.isBooking}"> 
+            <lightning:button variant="brand"
+                              label="Submit"
+                              title="Add Selected Records"
+                              onclick="{!c.doSubmitBooking}"
+                              class="buttonColor"
+                              />
+            <aura:set attribute="else">
+                <lightning:button variant="brand"
+                                  label="Submit"
+                                  title="Add Selected Records"
+                                  onclick="{!c.doSubmit}"
+                                  class="buttonColor"
+                                  />
+            </aura:set>
+        </aura:if>
+              
+            </div> 
+            <br></br>
+            <br></br>
+            <br></br>
+            <br></br>
+            <!--loading spinner start... style=Brand Medium (blue dots)-->
+                        <div style="position:relative">
+            <aura:if isTrue="{!v.isSpinner}">
+                <div aura:id="spinnerId" class="slds-spinner_container">
+                    <div class="slds-spinner--brand  slds-spinner slds-spinner--large " role="alert">
+                        <span class="slds-assistive-text">Loading</span>
+                        <div class="slds-spinner__dot-a"></div>
+                        <div class="slds-spinner__dot-b"></div>
+                    </div>
+                </div>
+            </aura:if>
+            
+            <!-- Loading spinner end-->   
+            
+            <!-- data table start-->  
+            <aura:if isTrue="{!v.isTable}">
+                <div class="slds-scrollable--y" style="height:500px">
+                    <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered slds-no-row-hover " style="background: aliceblue;">
+                        
+                        <thead class="header">
+                            
+                            <tr class="slds-text-title_caps " style="background: aliceblue;">
+                                <aura:if isTrue="{!v.parentWrapper.isBooking}">
+                                    <th scope="col">
+                                        <div class="slds-truncate " title="Name">Item Description</div>
+                                    </th>
+                                    <th scope="col" >
+                                        <div class="slds-truncate " title="Item Description">Due Date</div>
+                                    </th>
+                                    <th scope="col" >
+                                        <div class="slds-truncate " title="Due Date">Amount</div>
+                                    </th>
+                                    <th scope="col" >
+                                        <div class="slds-truncate " title="Unit Code">Payment Method</div>
+                                    </th>
+                                    <aura:if isTrue="{!v.isBankTransfer}">
+                                        <th scope="col" >
+                                      <div class="slds-truncate " title="Transaction Id">Transaction Id</div>
+                                        </th>
+                                    </aura:if> 
+                                    <!--th scope="col" >
+                                        <div class="slds-truncate " title="Unit Code">Bank</div>
+                                    </th-->
+                                     
+                                    <th scope="col">
+                                        <div class="slds-truncate slds-cell-wrap " title="Remarks">Remarks</div>
+                                    </th>
+                                    
+                                    <aura:set attribute="else">
+                                        <!--th scope="col" style="width:2.25rem;">
+                                            <div class="slds-truncate slds-cell-wrap" title="Name">Payment Term Type</div>
+                                        </th-->
+                                        <th scope="col" >
+                                            <div class="slds-truncate slds-cell-wrap" title="Item Description">Item Description</div>
+                                        </th>
+                                        <!--th scope="col" >
+                                            <div class="slds-truncate  slds-cell-wrap" title="Unit Code">Unit Code</div>
+                                        </th-->
+                                        <th scope="col" >
+                                            <div class="slds-truncate slds-cell-wrap " title="Payable Amount">Amount</div>
+                                        </th>
+                                        <th scope="col" >
+                                            <div class="slds-truncate slds-cell-wrap " title="Vat Rate">Vat Amount</div>
+                                        </th>
+                                        <th scope="col">
+                                            <div class="slds-truncate slds-cell-wrap" title="Total Amount">Total Amount</div>
+                                        </th>
+                                        <th scope="col">
+                                            <div class="slds-truncate slds-cell-wrap " title="Proposed Amount">Proposed Amount</div>
+                                        </th>
+                                        <th scope="col">
+                                            <div class="slds-truncate slds-cell-wrap " title="Proposed Date">Proposed Date</div>
+                                        </th>
+                                        <th scope="col" >
+                                            <div class="slds-truncate slds-cell-wrap" title="Unit Code">Payment Method</div>
+                                        </th>
+                                        <aura:if isTrue="{!v.isBankTransfer}">
+                                        <th scope="col" >
+                                      <div class="slds-truncate slds-cell-wrap" title="Unit Code">Transaction Id</div>
+                                        </th>
+                                    </aura:if>
+                                        <aura:if isTrue="{!v.isChequeMode}">
+                                        <th scope="col" >
+                                            <div class="slds-truncate " title="Unit Code">Bank</div>
+                                        </th>
+                                        <th scope="col" >
+                                            <div class="slds-truncate slds-cell-wrap" title="Unit Code">Cheque No</div>                                        
+                                        </th>
+                                        </aura:if>
+                                        <!--th scope="col" >
+                                            <div class="slds-truncate " title="Unit Code">Allocate to</div>
+                                        </th-->
+                                        <!--th scope="col">
+                                            <div class="slds-truncate slds-cell-wrap " title="Allocate">Allocate</div>
+                                        </th>
+                                        <th scope="col">
+                                            <div class="slds-truncate slds-cell-wrap " title="Allocate Comment">Allocate Comment</div>
+                                        </th-->
+                                        <th scope="col">
+                                            <div class="slds-truncate slds-cell-wrap " title="Remarks">Remarks</div>
+                                        </th>
+                                        <aura:if isTrue ="{!!v.parentWrapper.isBulk}">
+                                            <th scope="col">
+                                                <div class="slds-truncate slds-cell-wrap" title="Split">Split</div>
+                                            </th>
+                                        </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </tr>
+                        </thead>
+            
+                        <tbody> 
+                            <!-- for additional charges --> 
+                            
+                            <aura:iteration items="{!v.installmentList}" var="obj" indexVar="indx">
+                                <tr class="{!obj.isReceiptCreated ? 'slds-theme_shade' : ''}"><!---->
+                                    <aura:if isTrue="{!v.parentWrapper.isBooking}">
+                                        <td scope="row">
+                                            <div class="slds-truncate" title="{!obj.paymentTermType }">
+                                                {!obj.itemDescription}
+                                            </div>
+                                        </td>
+                                        <td scope="row">
+                                            <div class="slds-truncate" title="{!obj.dueDate}">
+                                                {!obj.dueDate}
+                                            </div>
+                                        </td>
+                                        <td scope="row">
+                                            <div class="slds-truncate" title="{!obj.proposedAmount}">
+                                                <lightning:formattedNumber  value="{!obj.proposedAmount}" style="currency" minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                            </div>
+                                        </td>
+                                        <td data-label="Payment Method" style="padding-bottom: 1%;">
+                                            <lightning:select aura:id="fieldId" value="{!obj.paymentMode}" name="{!indx}" disabled = "{!obj.isReceiptCreated }" onchange="{!c.onPaymentMethodChange}">
+                                                 <aura:iteration items="{!v.paymentOptions}" var="typ" indexVar="key">
+                                                    <aura:if isTrue="{!typ.label != 'Cheque'}">
+                                                    <option text="{!typ.label}" value="{!typ.value}" />
+                                                     </aura:if>
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </td>  
+                                        <aura:if isTrue="{!v.isBankTransfer}">
+                                            
+                                                <td>
+                                                    <div class="slds-truncate slds-cell-wrap" title="{!obj.transactionId}">
+                                              <lightning:input type="text" name="{!indx}" aura:id = "fieldId" value="{!obj.transactionId}" required="{!!obj.isTransactionId}" 
+                                                              disabled="{!or(obj.isTransactionId,obj.isReceiptCreated)}" />
+                                                    </div>
+                                                    </td>
+                                        </aura:if> 
+                                        
+                                        <!--td scope="row">
+                                            <div class="slds-truncate slds-cell-wrap" title="{!obj.bankBranch}">
+                                                <lightning:input type="text" name="input1"  value="{!obj.bankBranch}" disabled="{!or(obj.bankName == '',obj.isReceiptCreated)}"/>
+                                            </div>
+                                        </td>
+                                        <td scope="row">
+                                            <div class="slds-truncate slds-cell-wrap" title="{!obj.bankCity}">
+                                                <lightning:input type="text" name="input1"  value="{!obj.bankCity}" disabled="{!or(obj.bankName == '',obj.isReceiptCreated)}"/>
+                                            </div>
+                                        </td-->
+                                        <!--td scope="row">
+                                            <div class="slds-truncate slds-cell-wrap" title="{!obj.chequeNo}">
+                                                <lightning:input type="text" name="fieldId" aura:id="bookingField" value="{!obj.chequeNo}" required="{!obj.paymentMode == 'Cheque'}" disabled="{!or(obj.bankName == '',obj.isReceiptCreated)}"/>
+                                            </div>
+                                        </td-->
+                                        <td scope="row">
+                                            <div class="slds-truncate slds-cell-wrap" title="{!obj.execRemarks}">
+                                                <lightning:input type="text" name="input1"  value="{!obj.execRemarks}" disabled="{!obj.isReceiptCreated}"/>
+                                            </div>
+                                        </td>
+                                        
+                                        <aura:set attribute="else">
+                                            <!--td scope="row">
+                                                <div class="slds-truncate slds-cell-wrap" title="{!obj.paymentTermType }">
+                                                    {!obj.paymentTermType}
+                                                </div>
+                                            </td-->
+                                            <td scope="row">
+                                                <div class="slds-truncate slds-cell-wrap" title="{!obj.itemDesValue}">
+                                                    {!obj.itemDesValue}
+                                                </div>
+                                            </td>
+                                            <!--td scope="row">
+                                            <div class="slds-truncate slds-cell-wrap" title="{!obj.dueDate}">
+                                                {!obj.unitCode}
+                                            </div>
+                                        </td-->
+                                            <td scope="row">
+                                                <div class="slds-truncate slds-cell-wrap" title="{!obj.amount}">
+                                                    <lightning:formattedNumber value="{!obj.amount}" style="currency" minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                                </div>
+                                            </td>
+                                            <td scope="row">
+                                                <div class="slds-truncate slds-cell-wrap" title="{!obj.vatAmount}">
+                                                    <lightning:formattedNumber value="{!obj.vatAmount}" style="currency" minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                                </div>
+                                            </td>
+                                            <td scope="row">
+                                                <div class="slds-truncate slds-cell-wrap" title="{!obj.totalAmount}">
+                                                    <lightning:formattedNumber value="{!obj.totalAmount}" style="currency" minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                                </div>
+                                            </td>
+                                            <td scope="row">
+                                                <div class="slds-truncate slds-cell-wrap" title="{!obj.proposedAmount}" >
+                                                    <lightning:input type="number" name="input2" value="{!obj.proposedAmount}" step="0.01" disabled = "{!obj.isReceiptCreated}"/>
+                                                </div>
+                                            </td>
+                                            <td scope="row">
+                                                <aura:if isTrue = "{!obj.isReceiptCreated}">
+                                                    <div class="slds-truncate slds-cell-wrap" title="{!obj.proposedDate}">
+                                                        <lightning:input type="date" aura:id="fieldId" name="proposedDate" value="{!obj.proposedDate}" min="{!v.todaysDate}" max="{!obj.proposedThresholdDate}"
+                                                                         disabled = "{!obj.isReceiptCreated}"/>
+                                                    </div>
+                                                    <aura:set attribute="else">
+                                                        <div class="slds-truncate slds-cell-wrap" title="{!obj.proposedDate}">
+                                                            <lightning:input type="date" aura:id="fieldId" name="proposedDate" value="{!obj.proposedDate}" min="{!v.todaysDate}" max="{!obj.proposedThresholdDate}"
+                                                                             disabled = "{!or(obj.itemDescription =='01-JGE',obj.itemDescription=='SEC')}"/>
+                                                        </div>
+                                                    </aura:set>
+                                                </aura:if>
+                                            </td>
+                                            <td data-label="Payment Method">
+                                                <aura:if isTrue="{!or(empty(obj.proposedAmount),obj.proposedAmount=='0')}">
+                                                    <lightning:select  value="{!obj.paymentMode}" aura:id="fieldId" disabled = "true" required="true" >
+                                                        <aura:iteration items="{!v.paymentOptions}" var="typ" indexVar="key">
+                                                            <option text="{!typ.label}" value="{!typ.value}" />
+                                                        </aura:iteration>
+                                                    </lightning:select>
+                                                    <aura:set attribute="else">
+                                                        <lightning:select  value="{!obj.paymentMode}" aura:id="fieldId" name="{!indx}"  disabled = "{!obj.isReceiptCreated}" required="true" onchange="{!c.onPaymentMethodChange}">
+                                                            <aura:iteration items="{!v.paymentOptions}" var="typ" indexVar="key">
+                                                                <option text="{!typ.label}" value="{!typ.value}" />
+                                                            </aura:iteration>
+                                                        </lightning:select>
+                                                    </aura:set>
+                                                </aura:if>
+                                                
+                                            </td>
+                                            <aura:if isTrue="{!v.isBankTransfer}">
+                                                <td scope="row">
+                                                    <div class="slds-truncate slds-cell-wrap" title="{!obj.transactionId}">
+                                              <lightning:input type="text" name="{!indx}" aura:id = "fieldId" value="{!obj.transactionId}" required="{!!obj.isTransactionId}" 
+                                                               disabled="{!or(obj.isTransactionId,obj.isReceiptCreated)}"/>
+                                                    </div>
+                                                    </td>
+                                        </aura:if> 
+                                             <aura:if isTrue="{!v.isChequeMode}">
+                                            <td>
+                                                <aura:if isTrue="{!obj.paymentMode == 'Cheque'}">
+                                                    <lightning:select  name="{!indx}" value="{!obj.bankName}" aura:id="fieldId" required="{!obj.paymentMode == 'Cheque'}" disabled="{!obj.isReceiptCreated}"
+                                                                      onchange="{!c.handleBankChange}">
+                                                        <option text="--None--" value="" />       
+                                                        <aura:iteration items="{!v.bankList}" var="typ" indexVar="key">
+                                                            <option text="{!typ.label}" value="{!typ.value}"/>
+                                                        </aura:iteration>
+                                                    </lightning:select>
+                                                    <aura:set attribute="else">
+                                                        <lightning:select  value="" aura:id="" disabled="true">
+                                                            <option text="--None--" value="" />       
+                                                            
+                                                        </lightning:select>
+                                                    </aura:set>
+                                                </aura:if>  
+                                                
+                                            </td>
+                                            <td scope="row">
+                                                <div class="slds-truncate" title="{!obj.chequeNo}">
+                                                    <lightning:input type="text" name="{!indx}" title="{!obj.previousChequeNo}" aura:id = "fieldId" value="{!obj.chequeNo}" required="{!obj.paymentMode == 'Cheque'}" 
+                                                                     disabled="{!or(obj.paymentMode != 'Cheque',obj.isReceiptCreated)}" onblur ="{!c.handleChequeChange}"/>
+                                                </div>
+                                            </td>
+                                            </aura:if>
+                                            <td scope="row">
+                                                <div class="slds-truncate slds-cell-wrap" title="{!obj.execRemarks}">
+                                                    <lightning:input type="text" name="input1"  value="{!obj.execRemarks}" disabled="{!obj.isReceiptCreated}"/>
+                                                </div>
+                                            </td>
+                                            <!--td data-label="Allocate to">
+                                                <aura:if isTrue="{!!obj.isRemove}">
+                                                    <lightning:select  value="{!obj.adjustedTo}" aura:id="" disabled = "{!and(not(empty(obj.proposedAmount)),obj.proposedAmount!='0')}" required="">
+                                                        <option text="None" value="" />
+                                                        <aura:iteration items="{!v.parentWrapper.adjustmentList}" var="typ" indexVar="key">
+                                                            <aura:if isTrue ="{! typ.value != obj.itemDesValue }">
+                                                                <option text="{!typ.value}" value="{!typ.id}" />
+                                                            </aura:if>
+                                                        </aura:iteration>
+                                                    </lightning:select>
+                                                    <aura:set attribute="else">
+                                                        <lightning:select  value="{!obj.adjustedTo}" aura:id="" disabled = "true" required="">
+                                                            <option text="None" value="" />
+                                                            <aura:iteration items="{!v.parentWrapper.adjustmentList}" var="typ" indexVar="key">
+                                                                <option text="{!typ.value}" value="{!typ.id}" />
+                                                            </aura:iteration>
+                                                        </lightning:select>
+                                                    </aura:set>
+                                                </aura:if>
+                                            </td-->
+                                            <!--td scope="row">
+                                            <div class="slds-truncate slds-cell-wrap" title="{!obj.allocate}">
+                                                <aura:if isTrue="{!!obj.isRemove}">
+                                                    <lightning:input type="checkbox" name="input1"  value="{!obj.allocate}" checked="{!obj.allocate}"/>
+                                                </aura:if>
+                                            </div>
+                                        </td>
+                                        <td scope="row">
+                                            <div class="slds-truncate slds-cell-wrap" title="{!obj.allocateComments}">
+                                                <aura:if isTrue="{!!obj.isRemove}">
+                                                    <lightning:input type="text" name="input1"  value="{!obj.allocateComments}" disabled="{!!obj.allocate}"/>
+                                                </aura:if>
+                                            </div>
+                                        </td-->
+                                            <aura:if isTrue ="{!!v.parentWrapper.isBulk}">
+                                                <td scope="row">
+                                                    <aura:if isTrue="{!!obj.isRemove}">
+                                                        <div class="slds-truncate" title="Split">
+                                                            <lightning:button variant="brand"
+                                                                              label="Split"
+                                                                              title="Split"
+                                                                              onclick="{!c.doSplit}"
+                                                                              value="{!obj.recordId + indx}"
+                                                                              class="{!obj.isReceiptCreated ? '' : 'buttonColor'}"
+                                                                              disabled = "{!obj.isReceiptCreated}"
+                                                                              />
+                                                        </div>
+                                                        <aura:set attribute="else">
+                                                            <div class="slds-truncate" title="Split">
+                                                                <lightning:button variant="brand"
+                                                                                  label="Remove"
+                                                                                  title="Remove"
+                                                                                  onclick="{!c.doRemove}"
+                                                                                  value="{!obj.oppId + indx}"
+                                                                                  class="buttonColor"
+                                                                                  />
+                                                            </div>
+                                                            
+                                                        </aura:set>
+                                                    </aura:if>
+                                                    
+                                                </td>
+                                            </aura:if>
+                                        </aura:set>
+                                    </aura:if>
+                                </tr>
+                            </aura:iteration>
+                        </tbody>
+                    </table>
+                </div>
+                
+            </aura:if>
+            <!-- DataTable End -->
+            <br/>
+            <!--  Pagination Buttons Start -->
+            </div>
+        </div>       
+    </div>
+    <footer class="slds-modal__footer" >
+        
+        <!--lightning:button variant="brand"
+                          label="Cancel"
+                          title="Cancel"
+                          onclick="{!c.closeModal}"
+                          class="buttonColor"/>
+        <aura:if isTrue="{!v.parentWrapper.isBooking}"> 
+            <lightning:button variant="brand"
+                              label="Submit"
+                              title="Add Selected Records"
+                              onclick="{!c.doSubmitBooking}"
+                              class="buttonColor"
+                              />
+            <aura:set attribute="else">
+                <lightning:button variant="brand"
+                                  label="Submit"
+                                  title="Add Selected Records"
+                                  onclick="{!c.doSubmit}"
+                                  class="buttonColor"
+                                  />
+            </aura:set>
+        </aura:if>
+<-->
+    </footer>
+    
+    
+    
+    
+</aura:component>

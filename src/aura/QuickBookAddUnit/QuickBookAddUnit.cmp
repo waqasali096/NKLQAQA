@@ -1,0 +1,292 @@
+<aura:component controller="QuickBookAddUnitController" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickActionWithoutHeader,force:hasSObjectName,lightning:isUrlAddressable,lightning:actionOverride,lightning:hasPageReference" access="global" >
+    <!--style to increase width-->
+    <aura:html tag="style">
+        .slds-modal__container{
+        max-width: 100rem !important;
+        width:95% !important;
+        }
+    </aura:html>
+    
+    <aura:attribute name="sobjecttype" type="String" default="{!v.sObjectName}"/>
+    <!-- Attributes for filters -->
+    <aura:attribute name="projectsMap" type="Map"/>
+    <aura:attribute name="locationCode" type="string" />
+    <aura:attribute name="salesEventMap" type="Map"/>
+    <aura:attribute name="unitTypeMap" type="Map"/>
+    <aura:attribute name="buildingMap" type="List"/>
+    <aura:attribute name="bedroomsMap" type="List"/>
+    <aura:attribute name="selectedprojects" type="string" />
+    <aura:attribute name="selectedLocationCode" type="string" />
+    <aura:attribute name="selectedSalesEvent" type="string" />
+    <aura:attribute name="selectedUnitType" type="string" />
+    <aura:attribute name="selectedBuilding" type="string" />
+    <aura:attribute name="selectedBedroom" type="string" />
+    <!-- Attribute for lookup filters-->
+    <aura:attribute Name="Projectrecord" type="object"  access="public" />
+    <aura:attribute Name="Project" type="String"  access="public" />
+    <aura:attribute Name="Buildingrecord" type="object"  access="public" />
+    <!-- Attribute for table sorting-->
+    <aura:attribute name="sortDirection" type="String" default="asc" />
+    <aura:attribute name="defaultSortDirection" type="String" default="asc" />
+    <aura:attribute name="sortedBy" type="String" />
+    <!-- Attribute for unit lists-->
+    <aura:attribute name="currentUnitList" type="List"/>
+    <aura:attribute name="onloadUnitList" type="QuickBookAddUnitController.ResultWrapper[]"/>
+    <aura:attribute name="columnsforexistingUnit" type="List"/>
+    <aura:attribute name="columnsforOnloadUnit" type="List"/>
+    <aura:attribute name="selectedUnits" type="List"/>
+    <aura:attribute name="unitsToDelete" type="List"/>
+    <!-- Flags-->
+    <aura:attribute name="DisplayMsgFlg" type="Boolean" default="false" />
+    <aura:attribute name="DisplaySearchResultFlg" type="Boolean" default="false" />
+    <aura:attribute name="showExistingUnit" type="Boolean" default="True"/>
+    <aura:attribute name="recordId" type="String" description="ID of the record."/>
+    <!--Added for pagination-->
+    <aura:attribute name="isAllSelected" type="boolean" default = "false"/>
+    <aura:attribute name="selectedCount" type="integer" default="0" description="selected Records Count"/>
+    <aura:attribute name="totalRecordsCount" type="Integer"/>
+    <aura:attribute name="pageSize" type="Integer" default="4"/>
+    <aura:attribute name="startPage" type="Integer" />
+    <aura:attribute name="endPage" type="Integer"/>
+    <aura:attribute name="allUnitsList" type="QuickBookAddUnitController.ResultWrapper[]"/>
+    <aura:attribute name="currentPage" type="integer" default="1"/>
+    <aura:attribute name="totalPagesCount" type="integer"/>  
+    
+    <aura:attribute name="second" type="string"/>
+    <aura:attribute name="minute" type="string"/>
+    <aura:attribute name="hour" type="string"/>
+    <aura:attribute name="day" type="string"/>
+    <aura:attribute name="timerMap" type="Map"/>
+    <aura:attribute name="bookingFormGen" type="Boolean" default="FALSE"/>
+    <!-- spinner-->
+    <aura:attribute name="spinner" type="boolean" default="FALSE"/>
+    <!-- child component attributes-->
+    <aura:attribute name="modalContainer" type="boolean" default = "false"/>
+    <aura:attribute name="salesOfferContainer" type="boolean" default = "false"/>
+    <aura:attribute name="bulkOfferContainer" type="boolean" default = "false"/>
+    <aura:attribute name="unitDetailId" type="string"/>
+    <aura:attribute name="salesOfferId" type="string" />
+    <!-- handlers-->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler event="force:refreshView" action="{!c.doInit}" />
+    <!--Events-->
+    <aura:registerEvent name="QuickBook" type="c:QuickBookEvent"/>  
+    <aura:handler event="c:QuickBookEvent" action="{!c.handleSearchRefresh}"/>
+    <!-- Displaying spinner -->
+    <aura:if isTrue="{!v.spinner}">
+        <lightning:spinner class="spins" size="medium" variant="brand" alternativeText="Loading" />
+    </aura:if>
+
+    <!-- Search and Filters section --> 
+    <aura:if isTrue="{!!v.bookingFormGen}">
+        <lightning:card variant="Narrow">
+            <lightning:layout verticalAlign="end" multipleRows="true">
+                <lightning:layoutItem class="slds-scrollable_y" padding="around-small" size="12" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="4">
+                    <lightning:select aura:id="selectedprojects" value="{!v.selectedprojects}" label="Project">
+                        <option value="">--None--</option>
+                        <aura:iteration items="{!v.projectsMap}" var="typ" indexVar="key">
+                            <option text="{!typ.value}" value="{!typ.key}"/>
+                        </aura:iteration>
+                    </lightning:select>
+                </lightning:layoutItem>
+                <lightning:layoutItem class="slds-scrollable_y" padding="around-small" size="12" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="4">
+                    <lightning:select aura:id="selectedBuilding" value="{!v.selectedBuilding}" label="Building">
+                        <option value="">--None--</option>
+                        <aura:iteration items="{!v.buildingMap}" var="type" indexVar="key">
+                            <option text="{!type.value}" value="{!type.key}"/>
+                        </aura:iteration>
+                    </lightning:select>
+                </lightning:layoutItem> 
+                <lightning:layoutItem class="slds-scrollable_y" padding="around-small" size="12" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="4">
+                    <lightning:select aura:id="selectedUnitType" value="{!v.selectedUnitType}" label="Unit Type">
+                        <option value="">--None--</option>
+                        <aura:iteration items="{!v.unitTypeMap}" var="type" indexVar="key">
+                            <option text="{!type.value}" value="{!type.key}"/>
+                        </aura:iteration>
+                    </lightning:select>
+                </lightning:layoutItem>
+                <lightning:layoutItem class="slds-scrollable_y" padding="around-small" size="12" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="4">
+                    <lightning:select aura:id="selectedBedroom" value="{!v.selectedBedroom}" label="No. of Bedrooms">
+                        <option value="">--None--</option>
+                        <aura:iteration items="{!v.bedroomsMap}" var="type" indexVar="key">
+                            <option text="{!type.value}" value="{!type.key}"/>
+                        </aura:iteration>
+                    </lightning:select>
+                </lightning:layoutItem>
+                <lightning:layoutItem class="slds-scrollable_y" padding="around-small" size="12" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="4">
+                    <lightning:select aura:id="selectedSalesEvent" value="{!v.selectedSalesEvent}" label="Sales Event">
+                        <option value="">--None--</option>
+                        <aura:iteration items="{!v.salesEventMap}" var="typ" indexVar="key">
+                            <option text="{!typ.value}" value="{!typ.key}"/>
+                        </aura:iteration>
+                    </lightning:select>
+                </lightning:layoutItem>
+                <lightning:layoutItem class="slds-scrollable_y" padding="around-small" size="12" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="4">
+                    <lightning:input type="search" name="locationCode" value="{!v.selectedLocationCode}" aura:id="locationCode" label="Unit Code" placeholder="Location Code" />
+                </lightning:layoutItem>
+            </lightning:layout>
+            <div class="slds-align_absolute-center slds-p-around_x-small slds-m-around_medium">
+                <lightning:button label="{!v.spinner == true ? 'Searching...' : 'Search Units'}" onclick="{!c.search}"></lightning:button>
+                <lightning:button label="Reset" onclick="{!c.reset}"></lightning:button>
+            </div>
+        </lightning:card>
+    </aura:if>
+    
+    <!-- Unit Search Results -->
+    <aura:if isTrue="{!v.DisplaySearchResultFlg}"> 
+        <div class="slds-box slds-theme_default slds-p-top_x-small">
+            <div class="slds-float_left">
+                <lightning:card variant="Narrow" title="Select Units" iconName="custom:custom63"></lightning:card>
+                <br/>
+                <b>Available Units : {!v.selectedCount > 0 ? v.selectedCount + '/' : ''} {!v.totalRecordsCount}</b> 
+            </div>
+            <br/><br/>
+            <div class="slds-grid slds-grid_align-end">
+                <lightning:buttonGroup>
+                    <lightning:button label="Add Units" variant="brand-outline" disabled="{!v.selectedCount == 0}" onclick="{!c.callAddUnitstoOpp}" class="slds-button"></lightning:button>
+                    <lightning:button aura:id="salesOffer"  label="Sales Offer" variant="brand-outline" disabled="{!v.selectedCount == 0}" onclick="{!c.callSalesOffer}" class="slds-button"></lightning:button>
+                    <lightning:button aura:id="bulkOffer" label="Bulk Offer" variant="brand-outline" disabled="{!v.selectedCount == 0}" onclick="{!c.callSalesOffer}" class="slds-button"></lightning:button>
+                </lightning:buttonGroup>
+            </div>
+            <br/>
+            <div class="slds-scrollable scrollable_x " role="grid">  
+                <!--New Unit Custom Table-->
+                <table style="width:100%" class="slds-table slds-table_bordered slds-table_col-bordered">
+                    <thead>
+                        <tr class="slds-text-title--caps">
+                            <th style="width:1rem;" class="slds-text-align_right">
+                                <div class="slds-form-element">
+                                    <div class="slds-form-element__control">
+                                        <lightning:input aura:id="selectAllId" type="checkbox-button" label="Input One" name="input1"
+                                                         checked="{!v.isAllSelected}" onchange="{!c.selectAllCheckbox}" 
+                                                         disabled="{!v.totalRecordsCount == 0}"></lightning:input>
+                                    </div>
+                                </div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Action">Unit Code</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Installment">Building</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Installment">Unit Type</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Installment">Style</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Installment">Unit Theme</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Installment">BUA/Internal Area</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Installment">Status</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Installment">No.of Bedrooms</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Installment">Selling Price</div>
+                            </th>
+                            <th scope="col" class="slds-text-align_center">
+                                <div class="slds-truncate" title="Installment">View Details</div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <aura:iteration items="{!v.onloadUnitList}" var="unit" indexVar="index">
+                            <tr>
+                                <aura:if isTrue="{!!unit.preBooked}">
+                                    <td scope="row" class="slds-text-align_right" style="width:3.25rem;">
+                                        <div class="slds-form-element__control">
+                                            <lightning:input  type="checkbox-button" name="input2"
+                                                             checked="{!unit.isChecked}"
+                                                             onchange="{!c.checkboxSelect}"></lightning:input>
+                                        </div>
+                                    </td>
+                                </aura:if>
+                                <aura:if isTrue="{!unit.preBooked}">
+                                    <td scope="row">
+                                        
+                                    </td>
+                                </aura:if>
+                                <td scope="row">
+                                    <div class="slds-truncate" title="{!unit.locationCode}">{!unit.locationCode}</div>
+                                </td>
+                                <td scope="row">
+                                    <div class="slds-truncate" title="{!unit.building}">{!unit.building}</div>
+                                </td>
+                                <td scope="row">
+                                    <div class="slds-truncate" title="{!unit.unitType}">{!unit.unitType}</div>
+                                </td>
+                                <td scope="row">
+                                    <div class="slds-truncate" title="{!unit.unitStyle}">{!unit.unitStyle}</div>
+                                </td>
+                                <td scope="row">
+                                    <div class="slds-truncate" title="{!unit.unitTheme}">{!unit.unitTheme}</div>
+                                </td>
+                                <td scope="row">
+                                    <div class="slds-truncate" title="{!unit.usableArea}">{!unit.usableArea}</div>
+                                </td>
+                                <aura:if isTrue="{!!unit.preBooked}">
+                                    <td scope="row">
+                                        <div class="slds-truncate" title="{!unit.unitStatus}">{!unit.unitStatus}</div>
+                                    </td>
+                                </aura:if>
+                                <aura:if isTrue="{!unit.preBooked}">
+                                    <td scope="row">
+                                        <div class="slds-truncate" title="{!unit.preBookedBy}">Prebooked By - {!unit.preBookedBy}</div>
+                                    </td>
+                                </aura:if>
+                                <td scope="row">
+                                    <div class="slds-truncate" title="{!unit.bedroom}">{!unit.bedroom}</div>
+                                </td>
+                                <td scope="row">
+                                    <lightning:formattedNumber value="{!unit.sellingPrice}" style="currency"  minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                </td>
+                                <td scope="row" class="slds-text-align_center">
+                                    <div class="slds-truncate" title="{!unit.index}" >
+                                        <lightning:button name="{!unit.unitId}" label="View Details" 
+                                                          onclick="{!c.viewUnits}"></lightning:button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </aura:iteration>
+                    </tbody>
+                </table> 
+                <br></br>
+                <!--Pagination Buttons-->
+                <div class="slds-align_absolute-center">
+                    <lightning:button label="Previous" iconName="utility:back" iconPosition="left" name="previous"
+                                      onclick="{!c.navigation}" disabled="{! v.startPage == 0}"/>
+                    <span class="slds-badge slds-badge_lightest" style="margin-right: 10px;margin-left: 10px;">
+                        Page {!v.currentPage} out of {!v.totalPagesCount}
+                    </span>
+                    <lightning:button label="Next" iconName="utility:forward" iconPosition="right" name="next"
+                                      disabled="{!(v.endPage + 1) >= v.totalRecordsCount}"  onclick="{!c.navigation}"/> 
+                </div>
+            </div>
+        </div>
+    </aura:if>
+    
+    <!-- No search results sections -->
+    <aura:if isTrue="{!v.DisplayMsgFlg}">
+        <div style="margin-top:10px;">
+            <ui:message title="Information" severity="info" closable="false">
+                <p style="font-size:14px; margin-top:1%">No units found. Please try different search filters.</p>
+            </ui:message>
+        </div>
+    </aura:if>
+    <!--view unit componnet-->
+    <aura:if isTrue="{!v.modalContainer}">
+        <c:unitDetails modalCheck="{!v.modalContainer}" unitId="{!v.unitDetailId}" onclosepopup="{!c.closeViewDetails}"/>
+    </aura:if>
+    <aura:if isTrue="{!v.salesOfferContainer}">
+        <c:DrawloopDocGeneration documentPackageId="a1z3M000000MtkEQAS" sObjectType="Sales_Offer__c" deliveryOptionId="a1x3M0000009NrUQAU" recordIds="{!v.salesOfferId}" source="salesOffer" />
+    </aura:if>
+    <aura:if isTrue="{!v.bulkOfferContainer}">
+        <c:DrawloopDocGeneration documentPackageId="a1z3M000000MtkFQAS" sObjectType="Sales_Offer__c" deliveryOptionId="a1x3M0000009NrVQAU" recordIds="{!v.salesOfferId}" source="salesOffer" />
+    </aura:if>
+</aura:component>

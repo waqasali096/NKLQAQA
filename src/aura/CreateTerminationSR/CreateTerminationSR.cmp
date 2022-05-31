@@ -1,0 +1,238 @@
+<!--By Karishma Kotian for Termination SR creation-->
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickActionWithoutHeader" access="global" controller="TerminationServiceRequestController">
+    
+    <aura:attribute name="recordId" type="String"/>
+    <aura:attribute name="recordTypeId" type="String"/>
+    <aura:attribute name="originValue" type="String" default="Salesforce"/>
+    <aura:attribute name="statusValue" type="String" default="New"/>
+    <aura:attribute name="typeValue" type="String" default="Termination"/>
+    <aura:attribute name="accountValue" type="String"/>
+    <aura:attribute name="opportunitySobj" type="Object"/>
+    <aura:attribute name="subjectValue" type="String"/>
+    <aura:attribute name="populateDate" type="Boolean" default="false"/>
+    <aura:attribute name="showEndOfLeaseReason" type="Boolean" default="false"/>
+    <aura:attribute name="showPrematureReason" type="Boolean" default="false"/>
+    <aura:attribute name="showActualTerminationDate" type="Boolean" default="false"/>
+    <aura:attribute name="showExpectedTerminationDate" type="Boolean" default="false"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:attribute name="spinner" type="boolean" default="false"/>
+    <aura:attribute name="pageReference" type="Object"/>
+    <aura:attribute name="hasErrors" type="boolean" default="false"/>
+    <lightning:navigation aura:id="navService"/>
+
+    <!--Add case units screen-->
+    <aura:attribute name="listOfProperty" type="list"/> 
+    <aura:attribute name="PaginationList" type="list"/> 
+    <aura:attribute name="selectedCount" type="integer" default="0"
+                    description="selected Records Count"/>
+    <aura:attribute name="startPage" type="Integer" />
+    <aura:attribute name="endPage" type="Integer"/>
+    <aura:attribute name="totalRecordsCount" type="Integer"/>
+    <aura:attribute name="pageSize" type="Integer" default="5"
+                    description="number of records to be display on per page"/>
+    <aura:attribute name="currentPage" type="integer" default="1"/>
+    <aura:attribute name="totalPagesCount" type="integer"/>
+    <aura:attribute name="isAllSelected" type="boolean" default = "false"/>
+    <aura:attribute name="isShowtable" type= "boolean" default = "false"/>
+    <aura:attribute name="isShowMainScreen" type= "boolean" default = "true"/>
+    <aura:attribute name="caseId" type="String"/>
+
+    <lightning:card>
+        <aura:if isTrue="{!v.spinner}">
+            <lightning:spinner class="spins" size="medium" variant="brand" alternativeText="Loading" />
+        </aura:if>
+
+    <div class="slds-page-header" style="margin-bottom:10px;">
+        <h1><b>Service Request for Termination</b></h1>
+    </div> 
+
+    <aura:if isTrue="{!v.isShowMainScreen}">
+    <lightning:recordEditForm
+        aura:id="recordEditForm"
+        objectApiName="Case"
+        onsubmit="{!c.handleSubmit}"
+        onsuccess="{!c.handleSuccess}"
+        >
+        <lightning:messages />
+        <div class="slds-grid">
+            <div class="slds-col slds-size_1-of-2">
+                <lightning:inputField fieldName="Type" aura:id="typeId" value="{!v.typeValue}" required="true" disabled="true"/>
+            </div>
+            <div class="slds-col slds-size_1-of-2">
+                <lightning:inputField fieldName="Deal__c" aura:id="dealId" value="{!v.recordId}" required="true" disabled="true"/>
+            </div>
+        </div>
+        <div class="slds-grid">
+            <div class="slds-col slds-size_1-of-2">
+                <lightning:inputField fieldName="Origin" aura:id="originId" value="{!v.originValue}" required="true"/>
+            </div>
+            <div class="slds-col slds-size_1-of-2">
+                <lightning:inputField fieldName="Status" aura:id="statusId" value="{!v.statusValue}" required="true" disabled="true"/>
+            </div>
+        </div>
+        <div class="slds-grid">
+            <div class="slds-col slds-size_1-of-1">
+                <lightning:inputField fieldName="Termination_Type__c" aura:id="terminationTypeId" value="" required="true" onchange="{!c.onTypeChange}"/>
+            </div>
+            
+        </div>
+        <div class="slds-grid">
+            <div class="slds-col slds-size_1-of-1">
+                <lightning:inputField fieldName="Termination_Description__c" aura:id="terminationDescriptionId" value=""/>
+            </div>
+        </div>
+        <div class="slds-grid">
+            <aura:if isTrue="{!v.showPrematureReason}">
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning:inputField fieldName="Premature_Termination_Reason__c" aura:id="prematureReasonId" value="" required="true"/>
+                </div>
+            </aura:if>
+            <aura:if isTrue="{!v.showEndOfLeaseReason}">
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning:inputField fieldName="End_of_Lease_Termination_Reason__c" aura:id="endOfLeaseReasonId" value="" required="true" onchange="{!c.onEOLReasonChange}"/>
+                </div>
+            </aura:if>
+            <aura:if isTrue="{!v.showExpectedTerminationDate}">
+                <div class="slds-col slds-size_1-of-2">
+                    <aura:if isTrue="{!v.populateDate}"><lightning:inputField fieldName="Expected_Termination_Date__c" aura:id="expectedTerminationDateIdEOL" value="{!v.opportunitySobj.Lease_End_Date__c}" required="true" onchange="{!c.expectedDateValidation}"/></aura:if>
+                    <aura:if isTrue="{!!v.populateDate}"><lightning:inputField fieldName="Expected_Termination_Date__c" aura:id="expectedTerminationDateId" value="" required="true" onchange="{!c.expectedDateValidation}"/></aura:if>
+                </div>
+            </aura:if>
+            <aura:if isTrue="{!v.showActualTerminationDate}">
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning:inputField fieldName="Actual_Termination_Date__c" aura:id="actualTerminationDateId" value="" required="true" onchange="{!c.actualDateValidation}"/>
+                </div>
+            </aura:if>
+        </div>
+        
+        <div style="text-align:center;">
+            <lightning:button class="slds-m-top_small" variant="neutral" type="submit" name="update" label="Cancel" onclick="{!c.onclickCancel}"/>
+            <lightning:button class="slds-m-top_small" type="submit" label="Create Request" variant="brand" /> 
+        </div>
+    </lightning:recordEditForm>
+    </aura:if>
+    </lightning:card>
+    
+    
+    <aura:if isTrue="{!v.isShowtable}">
+        <lightning:card>
+    <!-- data table start-->  
+    <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-box">
+        <thead class="header">
+            
+            <tr class="slds-text-title_caps">
+                <!--header checkbox for select all-->
+                <th style="width:2.25rem;" class="slds-text-align_right">
+                    <div class="slds-form-element">
+                        <div class="slds-form-element__control">
+                            <!---ui:inputCheckbox disabled="{!v.totalRecordsCount == 0}"
+                                      aura:id="selectAllId"
+                                      change="{!c.selectAllCheckbox}"/-->
+                            <lightning:input aura:id="selectAllId" type="checkbox-button" label="Input One" name="input1"
+                                             checked="{!v.isAllSelected}"
+                                             onchange="{!c.selectAllCheckbox}" disabled="{!v.totalRecordsCount == 0}"></lightning:input>
+                            
+                        </div>
+                    </div>
+                </th>
+                <th scope="col">
+                    <div class="slds-truncate" title="Name">Unit</div>
+                </th>
+                <th scope="col">
+                    <div class="slds-truncate" title="Type">Lease Start Date</div>
+                </th>
+                <th scope="col">
+                    <div class="slds-truncate" title="Type">Lease End Date</div>
+                </th>
+                <th scope="col">
+                    <div class="slds-truncate" title="Type">Flag</div>
+                </th>
+            </tr>
+        </thead>
+        
+        <tbody>
+            <aura:iteration items="{!v.PaginationList}" var="obj">
+                <tr>
+                    <th scope="row" class="slds-text-align_right" style="width:3.25rem;">
+                        
+                        <div class="slds-form-element__control">
+                            
+                            <lightning:input  type="checkbox-button" name="input2"
+                                             checked="{!obj.isChecked}"
+                                             onchange="{!c.checkboxSelect}" disabled="{!obj.propFlag}"></lightning:input>
+                        </div>
+                        
+                    </th>
+                    <th scope="row">
+                        <div class="slds-truncate" title="{!obj.unitName}">
+                            <a data-caseid="{!obj.unitId}" onclick="{!c.navigateToRecord}">{!obj.unitName}</a>
+                        </div>
+                    </th> 
+                    <th scope="row">
+                        <div class="slds-truncate" title="{!obj.startDate}">
+                            {!obj.startDate}
+                        </div>
+                    </th>
+                    <th scope="row">
+                        <div class="slds-truncate" title="{!obj.endDate}">
+                            {!obj.endDate}
+                        </div>
+                    </th>
+                    <th scope="row">
+                        <div class="slds-truncate" title="Flag">
+                            {!obj.propFlag}
+                        </div>
+                    </th>
+                </tr>
+            </aura:iteration>
+        </tbody>
+    </table> 
+    <!-- DataTable End -->
+    <br/>
+    <!--  Pagination Buttons Start -->
+    <div class="slds-align_absolute-center">         
+        <lightning:button variant="brand"
+                          label="Previous"
+                          disabled="{!v.startPage == 0}" 
+                          class="{!v.startPage == 0 ? '' : 'buttonColor' }"
+                          onclick="{!c.navigation}"
+                          iconName="utility:back"
+                          name="previous"/>
+        
+        <span class="slds-badge slds-badge_lightest"
+              style="margin-right: 10px;margin-left: 10px;">
+            Page {!v.currentPage} out of {!v.totalPagesCount}
+        </span>
+        
+        <lightning:button variant="brand"
+                          label="Next"
+                          disabled="{!(v.endPage + 1) >= v.totalRecordsCount}" 
+                          class="{!(v.endPage + 1) >= v.totalRecordsCount  ? '' : 'buttonColor' }"
+                          onclick="{!c.navigation}"
+                          iconName="utility:forward"
+                          iconPosition="right"
+                          name="next"/>
+    </div>  
+    
+<!--  Pagination Buttons End -->
+
+<footer class="slds-modal__footer">
+    <lightning:button variant="brand"
+                      label="Cancel"
+                      title="Cancel"
+                      onclick="{! c.onclickCancel }"
+                      class="buttonColor"/>
+    <lightning:button variant="brand"
+                      aura:id="AddSelectRecords"
+                      label="Add Selected Records"
+                      title="Add Selected Records"
+                      onclick="{!c.addSelectedRecords}"
+                      class="{!v.selectedCount!=0  ? 'buttonColor' : '' }"
+                      disabled="{!v.selectedCount == 0}"
+                      />
+
+</footer></lightning:card>
+</aura:if>
+
+
+</aura:component>

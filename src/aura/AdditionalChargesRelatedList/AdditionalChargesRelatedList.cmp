@@ -1,0 +1,81 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" controller="SalesCreateReceiptController" >
+	<aura:handler name="init" value="{!this }" action="{!c.doInit }"/>
+    <aura:attribute name="parentId" type="Id" default="{!v.recordId}"/>
+    <aura:attribute name="recordId" type="String"/>
+    <aura:attribute name="showCharges" type="Boolean" default="false"/>
+    <aura:attribute name = "additionalCharges" type="SalesCreateReceiptController.AdditionalChargesWrapper[]" />
+    
+    <aura:if isTrue="{!v.showCharges}">
+    <div class="slds-box slds-theme_shade">
+            <lightning:card variant="Narrow" title="Additional Charges" class="slds-scrollable">
+                <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-scrollable">
+                    <thead>
+                        <tr class="slds-text-title_caps">
+							<th scope="col">
+                                <div class="slds-truncate" title="Name"></div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Name">Name</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Amount">Amount</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Percentage">VAT %</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Amount">VAT Amount</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Payable Amount">Payable Amount</div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <aura:iteration items="{!v.additionalCharges}" var="ac" indexVar="index">
+                            <tr>
+                                <td rowspan="1">                                    
+                                    <ui:outputText value="{!index+1}" />
+                                </td>
+                                <td rowspan="1">                                  
+                                    <ui:outputDate value="{!ac.Name}" />
+                                </td>
+                                <td rowspan="1">                                    
+                                    <!--<ui:outputText value="{!ac.amount}" />-->
+                                     <lightning:formattedNumber value="{!ac.amount}" style="currency" currencyCode="{!ac.currencyIsoCode}" />
+                                </td>
+                                <td rowspan="1">
+                                    <ui:outputText value="{!ac.vatPercentage}" />
+                                </td>
+                                <td rowspan="1">
+                                    <!--<ui:outputText value="{!ac.vatAmount}" />-->
+                                    <lightning:formattedNumber value="{!ac.vatAmount}" style="currency" currencyCode="{!ac.currencyIsoCode}" />
+                                </td>
+                                <td rowspan="1">
+                                    <!--<ui:outputText value="{!ac.payableAmount}" />-->
+                                    <lightning:formattedNumber value="{!ac.payableAmount}" style="currency" currencyCode="{!ac.currencyIsoCode}" />
+                                </td>
+                            </tr>
+                        </aura:iteration>
+                        <!--<tr>
+                            <td rowspan="1">
+                            </td>
+                            <td rowspan="1" style="text-align: right;">
+                                Total:
+                            </td>
+                            <td rowspan="1">
+                                <ui:outputText value="{!v.cal[1]}" />
+                            </td>
+                            <td rowspan="1">
+                                AED
+                                <ui:outputText value="{!v.cal[0]}" />
+                            </td>
+                            <td rowspan="1">
+                            </td>
+                        </tr>-->
+                    </tbody>
+                </table>
+            </lightning:card>
+        </div></aura:if>
+
+</aura:component>

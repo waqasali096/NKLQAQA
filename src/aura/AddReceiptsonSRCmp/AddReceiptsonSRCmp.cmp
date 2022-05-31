@@ -1,0 +1,301 @@
+<!-- Author- Mamta Gupta
+     Created Date 2 March 2021
+     Usage - "Add Receipts button on Sales cancellation SR"-->
+
+
+<aura:component controller="AddReceipts_onSRCtrl" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickActionWithoutHeader" access="global" >
+    
+    
+    <aura:attribute name="caseReceipts" type="AddReceipts_onSRCtrl.SRReceiptsWrpprCls[]"/>
+    <aura:attribute name="receiptActionMap" type="Map"/>
+    <aura:attribute name="forfeitValuesMap" type="Map"/>
+    <aura:attribute name="selectedCaseReceipts" type="Object[]"/>
+    <aura:attribute name="selectedSRReceipts" type="Service_Request_Receipt__c[]"/>
+    
+    <!-- Attributes for total-->
+    <aura:attribute name="Total_ReceptAmt" type="Decimal" default="0.000"/>
+    <aura:attribute name="Total_RefundAmt" type="Decimal" default="0.000"/>
+    <aura:attribute name="Total_ForfeitAmt" type="Decimal" default="0.000"/>
+    <aura:attribute name="Total_RecoverAmt" type="Decimal" default="0.000"/>
+    <aura:attribute name="Total_ReversalAmt" type="Decimal" default="0.000"/>
+    <aura:attribute name="recoverablesList" type="Recoverables__c[]"/>
+    <aura:attribute name="recoverablePicklistList" type="Recoverables__c[]"/>
+    <aura:attribute name="selectedRecoverableValue" type = "String"/>
+    <aura:attribute name="hrefRecoverableLink" type = "String"/>
+    <aura:attribute name="recoverID_AmtMap" type="Map"/>
+
+    <aura:handler event="aura:waiting" action="{!c.showSpinner}"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/>
+    <aura:attribute name="Spinner" type="boolean" default="false"/>
+    
+    <aura:html tag="style">
+        .slds-modal__container{
+        max-width: 100rem !important;
+        width:95% !important;
+        }
+        .cuf-content {
+        padding: 0 0rem !important;
+        }
+        .slds-p-around--medium {
+        padding: 0rem !important;
+        }       
+       
+    </aura:html>
+    
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container">
+            <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                <span class="slds-assistive-text">Loading</span>
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </aura:if>
+    <div class="slds-modal__header slds-size_1-of-1" >
+        <h4 class="slds-modal__header title slds-text-heading--medium" >Add Receipts</h4>
+    </div>
+    <div class="slds-modal__content slds-is-relative" >
+        
+        <div class="slds-p-around_x-small">
+            <form class="slds-form_stacked"   style="padding-left:30px;padding-right:30px"> 
+                <lightning:card class="slds-text-heading_small slds-card_boundary" variant="Narrow" title="Add Recoverables"  >
+                    
+                    
+                    <div class="slds-m-around_xx-small">
+                       <!-- <div class="slds-float_left">-->
+                            <h1 ><b>Add Row </b>
+                                <lightning:buttonIcon iconName="utility:add"  size="medium" variant="bare" alternativeText="Add" 
+                                                      onclick="{!c.addRow}"/>
+                            </h1>
+                        <!--</div>--><br/><br/>
+                        <table  class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped"  style=" width: 100%;"> 
+                                <tr class="slds-text-title_caps" >
+                                    <th scope="col">
+                                        <div  class="slds-truncate" title=" Name">Recoverable Number</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div  class="slds-truncate" title="Website">Name</div>
+                                    </th> 
+                                    <th scope="col">
+                                        <div  class="slds-truncate" title="Website">Amount</div>
+                                    </th>  
+                                    <th scope="col">
+                                        <div  class="slds-truncate" title="Action">Action</div>
+                                    </th>
+                                </tr>
+                               
+                                <aura:iteration items="{!v.recoverablesList}" var="recov" indexVar="index">
+                                    <tr class="slds-hint-parent">
+                                        <td scope="row">
+                                            <aura:if isTrue="{!recov.Name != ''}">
+                                                <a href="{!v.hrefRecoverableLink +recov.Id}">{!recov.Name}</a>
+                                            </aura:if>
+                                            
+                                        </td>
+                                        <td scope="row">
+                                            <lightning:input variant="label-hidden" name="Name" type="text" maxlength="50" value="{!recov.Name__c}" />
+                                        </td>
+                                        <td scope="row">
+                                            <lightning:input variant="label-hidden" name="Amount" type="currency" maxlength="10" value="{!recov.Amount__c}" />
+                                        </td>
+                                        <td scope="row">
+                                            <a onclick="{!c.removeRecord}" data-record="{!index}" data-id="{!recov.Id}">
+                                                <lightning:icon iconName="utility:delete" size="small" alternativeText="Delete"/>
+                                                <span class="slds-assistive-text">Delete</span>
+                                            </a>
+                                        </td> 
+                                    </tr>
+                                </aura:iteration>
+                          
+                        </table>
+                        <div class="slds-align_absolute-center">
+                            <lightning:button variant="brand" label="Save" title="Brand action" onclick="{!c.saveRecoverables}" />
+                        </div>
+                    </div>
+                </lightning:card>
+            </form>
+        </div>
+        
+        
+        <div class="slds-p-around_x-small">
+            <form class="slds-form--stacked " style="padding-left:30px;padding-right:30px"> 
+                <lightning:card class="slds-text-heading_small slds-card_boundary" variant="Narrow" title="Add Receipts" iconName="standard:collection" >
+                    <table   class="slds-table" style=" width: 100%;">
+                        <thead>
+                            <tr class="slds-text-title--caps">
+                                <th scope="col">
+                                    <div class="slds-truncate">#</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate">Receipt<br/> Number</div>      
+                                </th>
+                                
+                                <th scope="col">       
+                                    <div class="slds-truncate">Received<br/> For</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate">Due<br/> Date</div>      
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate">Payment<br/> Mode</div>      
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate">Payment <br/>Status</div>      
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate">Amount </div>      
+                                </th>
+                                
+                                <th scope="col">
+                                    <div class="slds-truncate">Action Type</div>
+                                </th>
+                                <!--th width="230px;">
+                                    <span class="slds-truncate">Forfeit Type</span>
+                                </th-->
+                                <th scope="col">
+                                    <div class="slds-truncate">Forfeit<br/> Amount</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate">Refund<br/> Amount</div>
+                                </th>
+                                <!--th width="220px;">
+                                <span class="slds-truncate">Recoverable Amount</span>
+                            </th-->
+                                <th scope="col">
+                                    <div class="slds-truncate">Reversal<br/> Amount</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate">Recoverable</div>
+                                </th>
+                            </tr>
+                        </thead>  
+                        <tbody style="font-size: small !important;">    
+                            <aura:iteration items="{!v.caseReceipts}" var="rc" indexVar="index">
+                                <tr>
+                                    <td> 
+                                        <span onchange="{!c.handleReceiptsSelection}" value="{!index}">
+                                            <ui:inputCheckbox class="slds-checkbox" value="{!rc.isChecked}" name="{!index}" change="{!c.handleReceiptsSelection}"/>
+                                        </span>   
+                                        <!--<lightning:input type="checkbox" value="{!rc.isChecked}" class="slds-checkbox"
+                                                         label="{!index}" variant="label-hidden" Checked="true" 
+                                                         onchange="{!c.handleReceiptsSelection}"/>-->
+                                        
+                                    </td>
+                                    <td scope="row"> 
+                                        <div class="slds-truncate" style="width: 200px;white-space: normal;">
+                                            <a href="{!'/' + rc.Receipt__c}">{!rc.SR_Receipt.Receipt_Name__c }</a> 
+                                        </div> 
+                                         <aura:if isTrue="{!rc.isAmtInvalid}">
+                                          <div style="color: red;">
+                                          Amount entered is more than the Total Receipt Amount     
+                                          </div>   
+                                        </aura:if>    
+                                        
+                                    </td>
+                                    
+                                    <td scope="row">
+                                        <div class="slds-text-align_left"> {!rc.SR_Receipt.Received_For__c}</div>
+                                    </td>
+                                    <td scope="row">
+                                        {!rc.SR_Receipt.Receipt_Date__c}
+                                    </td>   
+                                    <td scope="row">
+                                        {!rc.SR_Receipt.Payment_Mode__c}
+                                    </td>
+                                    <td scope="row">
+                                        {!rc.SR_Receipt.Receipt_Status__c}
+                                    </td>
+                                    <td scope="row">
+                                        
+                                        <lightning:formattedNumber value="{!rc.SR_Receipt.Receipt_Amount1__c}" variant="label-hidden" 
+                                                                   />
+                                    </td>   
+                                    
+                                    <td scope="row" >
+                                        
+                                        <lightning:select label="{!index}" value="{!rc.SR_Receipt.Receipt_Action_Type__c}" variant="label-hidden" 
+                                                          onchange="{!c.onActionTypeChange}" aura:id="field1" required="{!rc.isActionReq}">
+                                            <option text="" value=""  ></option>
+                                            <aura:iteration items="{!v.receiptActionMap}" var="item" indexVar="index">
+                                                <option text="{!item.value}" value="{!item.key}"  selected="{!item.key == rc.SR_Receipt.Receipt_Action_Type__c}"></option>
+                                            </aura:iteration>
+                                        </lightning:select>
+                                    </td>
+                                    
+                                    <!--td scope="row">
+                                     <div  width="200px">
+                                     <lightning:select label="" value="{!rc.SR_Receipt.Forfeit_Type__c}"  aura:id="field1" required="{!rc.isFrfeitTypeReq}" variant="label-hidden">
+                                                   <option text="" value=""  ></option>
+                                                 <aura:iteration items="{!v.forfeitValuesMap}" var="item" indexVar="index">
+                                                     <option text="{!item.value}" value="{!item.key}"   selected="{!item.key == rc.SR_Receipt.Forfeit_Type__c}"></option>
+                                                 </aura:iteration>
+                                             </lightning:select>
+                                         </div>    
+                                    </td-->
+                                    <td scope="row">
+                                        <div  >
+                                            <lightning:input label="{!index}" type="number"  variant="label-hidden"  aura:id="field1" 
+                                                             required="{!rc.isFrfeitAmtReq}" value="{!rc.SR_Receipt.Forfeit_Amount__c}" onchange="{!c.handleForfeitAmt_Change}" 
+                                                             />
+                                        </div> 
+                                    </td>
+                                    
+                                    <td scope="row">
+                                        <lightning:input value="{!rc.SR_Receipt.Refund_Amount__c}" variant="label-hidden" label="{!index}"
+                                                         required="{!rc.isRefundAmtReq}" type="number" onchange="{!c.handleRefundAmt_Change}" 
+                                                         aura:id="field1"/>
+                                    </td>
+                                    
+                                    <!--td scope="row">
+                                    <lightning:input value="{!rc.SR_Receipt.Recoverable_Amount__c}" variant="label-hidden"
+                                                     required="{!rc.isRecoverAmtReq}" type="number"  onchange="{!c.handleRecoverAmt_Change}"  
+                                                        aura:id="field1"/>
+                                </td-->
+                                    
+                                    <td scope="row">
+                                        <lightning:input value="{!rc.SR_Receipt.Reversal_Amount__c}" variant="label-hidden" label="{!index}"
+                                                         required="{!rc.isReversalAmtReq}" type="number" onchange="{!c.handleReversalAmt_Change}" 
+                                                         aura:id="field1"/>
+                                    </td>
+                                    
+                                    <td scope="row">
+                                        <div  >
+                                            <lightning:select label ="{!index}" aura:id="recoverId" value = "{!rc.SR_Receipt.Recoverables__c}"  
+                                                   variant="label-hidden" onchange="{!c.addRecoverableAmt}" >
+                                                <option text="" value="" ></option>
+                                                <aura:iteration items="{!v.recoverablePicklistList}" var="item" indexVar="index">
+                                                    <option text="{!item.Name +'-'+ item.Name__c}" value="{!item.Id}" selected="{!item.Id == rc.SR_Receipt.Recoverables__c}"></option>
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </div>    
+                                    </td>
+                                    
+                                </tr>
+                            </aura:iteration>
+                            <td></td> <td></td> <td></td><td></td><td></td><td></td>
+                            <td><lightning:formattedNumber value="{!v.Total_ReceptAmt}" variant="label-hidden"
+                                                           /></td>
+                            <td></td>
+                            <td><lightning:formattedNumber value="{!v.Total_ForfeitAmt}" variant="label-hidden"
+                                                           /></td>
+                            <td><lightning:formattedNumber value="{!v.Total_RefundAmt}" variant="label-hidden"
+                                                           /></td>
+                            <!--td><lightning:formattedNumber value="{!v.Total_RecoverAmt}" variant="label-hidden"
+                                                        /></td-->
+                            <td><lightning:formattedNumber value="{!v.Total_ReversalAmt}" variant="label-hidden"
+                                                           /></td><td></td>
+                        </tbody> 
+                    </table>
+                </lightning:card>
+                <br/><br/> 
+            </form>
+        </div>
+    </div>
+    <div class="modal-footer slds-modal__footer" >
+        <ui:button class="slds-button slds-button_neutral slds-m-left_x-small" label="Cancel" press="{! c.cancel}" /> 
+        <lightning:button variant="brand" label="Save" title="Brand action" onclick="{! c.saveReceiptsAction }" />      
+    </div>
+    
+</aura:component>

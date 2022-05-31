@@ -1,0 +1,47 @@
+<apex:component controller="UnitChangeVfCmptController" access="global">
+    <apex:attribute name="recordId" type="ID" description="Id of the Case" assignTo="{!caseId}"/>
+    <apex:attribute name="unitType" type="String" description="Unit Type" assignTo="{!strUnitType}"/>
+    <style>
+        table {
+        border-collapse: collapse;
+        width: 100%;
+        }
+        
+        td  {
+        border: 1px solid;
+        text-align: left;
+        padding: 8px;
+        }
+        
+        tr:nth-child(even) {
+        background-color: #dddddd;
+        }
+    </style>
+    
+    <table border="1" style="border-collapse: collapse;">
+        <tr>
+            <td width="15%"><b>Location Code</b></td>
+            <td width="15%"><b>Project</b></td>
+            <td width="10%"><b>Building - Floor</b></td> 
+            <td width="10%"><b>No. Of Bedrooms</b></td>
+            <td width="10%"><b>Property Type</b></td>
+            <td width="10%"><b>Unit Type</b></td>
+            <td width="10%"><b>Base Rent</b></td>
+            <td width="10%"><b>Security Deposit</b></td>
+            <td width="10%"><b>Leasable Area</b></td>
+        </tr>        
+        <apex:repeat value="{!CaseUnits}" var="objCaseUnit">
+            <tr>
+                <td>{!objCaseUnit.Unit__r.Unit_Code__c}</td>
+                <td>{!objCaseUnit.Unit__r.Project__r.Name}</td>
+                <td>{!objCaseUnit.Unit__r.Building__r.Name} - {!objCaseUnit.Unit__r.Floor__r.Name}</td>
+                <td>{!objCaseUnit.Unit__r.No_of_Bedrooms__c}</td>
+                <td>{!objCaseUnit.Unit__r.Leasing_Property_Type__c}</td>
+                <td>{!objCaseUnit.Unit__r.Unit_space_Type__c}</td>
+                <td>{!objCaseUnit.Unit__r.Base_Rent__c}</td>
+                <td>{!objCaseUnit.Unit__r.Security_Deposit__c}</td>
+                <td>{!objCaseUnit.Unit__r.Total_Leasable_Area__c}</td>
+            </tr>
+        </apex:repeat>           
+    </table>
+</apex:component>

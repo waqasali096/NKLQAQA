@@ -1,0 +1,67 @@
+<aura:component implements="flexipage:availableForRecordHome,force:lightningQuickActionWithoutHeader,lightning:isUrlAddressable,force:appHostable,lightning:hasPageReference,lightning:availableForFlowScreens,force:hasRecordId" controller="MasterAdditionalChargesClass" access="global" >
+    <aura:attribute name="recordId" type="String"/>
+    <aura:attribute name="searchText" type="String" default=""/>
+    <aura:attribute name="columns" type="List"/>
+    <aura:attribute name="columnsList" type="List"/>
+    <aura:attribute name="datalist" type="List"/>
+    <aura:attribute name="adddatalist" type="List"/>
+    <aura:attribute name="selectedCharges" type="List"/>
+    <aura:attribute name="ShowDatatable" type="boolean" default="false"/>
+    <aura:attribute name="loaded" type="boolean" default="true"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+
+    <aura:if isTrue="{!v.loaded}">
+        <div class="slds-box">
+            <lightning:card variant="Narrow" title="Add Additional Charges" iconName="standard:entity" > 
+                <div class="slds-form-element__control slds-m-around_small">
+                    <div class="slds-input-has-icon slds-input-has-icon--right">
+                        <lightning:buttonIcon iconName="utility:search" variant="bare" alternativeText="Search" class="slds-input__icon" />
+                        <span onkeypress="{!c.callKeyUp}">  
+                            <ui:inputText value="{!v.searchText}" class="slds-lookup__search-input slds-input" placeholder="Search" /></span>
+                    </div>
+                </div>
+                <aura:if isTrue="{!v.ShowDatatable}">
+                    <div class="slds-m-around_small slds-m-top_large">
+                        <lightning:datatable aura:id="dataTableID"
+                                             keyField="id"
+                                             data="{!v.datalist}"
+                                             columns="{!v.columns}"
+                                             enableInfiniteLoading="false"
+                                             showRowNumberColumn="false"
+                                             onrowselection="{!c.handleSelectUnit}"
+                                              onsave="{!c.onSave}"
+                                             /> </div>
+                    
+                    <lightning:button variant="brand"
+                                      label="Submit"
+                                      title="Submit"
+                                      class="btnSize"
+                                      onclick="{!c.save}"/>
+                </aura:if>
+                
+            </lightning:card>
+             </div>
+      <!--  <div class="slds-m-top_large">
+         <div class="slds-box">
+            
+             <lightning:card  variant="Narrow" title="Selected Additional Charges" iconName="standard:entity" > 
+                                     <div class="">
+                        <lightning:datatable aura:id="adddataTableID"
+                                             keyField="id"
+                                             data="{!v.adddatalist}"
+                                             columns="{!v.columnsList}"
+                                             resizeColumnDisabled="true"
+                                             onrowaction="{!c.handleRowAction}"
+                                              hideCheckboxColumn="true"
+                                             /> </div>
+            </lightning:card>
+                
+            </div>
+        </div>-->
+       
+        <aura:set attribute="else">
+            <lightning:spinner alternativeText="Loading" />
+        </aura:set>
+    </aura:if>
+    
+</aura:component>

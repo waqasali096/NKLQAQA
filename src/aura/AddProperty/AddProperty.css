@@ -1,0 +1,59 @@
+.THIS .custom-loading-text {
+    transform: rotate(-90deg);
+    position: absolute;
+    top: -1.5rem;
+    left: -1rem;
+    white-space: nowrap;
+}
+.THIS .customButton{ 
+    background-color: lightgrey; 
+  	color: black;  
+    font-size: 16px;
+    width: 150px;
+}
+.THIS .btn-css{
+    border:none;
+}
+.THIS .page-css{
+    display:inline-block;
+    vertical-align: middle;
+    margin: 0 10px;
+}
+
+.THIS .customButton:hover {
+  background-color: white;
+  color: black;
+}
+.THIS .cols {
+    background-color: #16325c;
+    color: white;
+}
+
+.THIS .table{
+     text-align: center;
+}
+.THIS .btn_next button {
+    min-width: 120px;
+}
+
+.THIS .input-group .lightningInput {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.THIS .selectedPaymentPlan {
+    width: 20% !important;
+    /*margin-left: 80% !important;*/
+    margin-bottom: 10px !important;
+}
+.THIS .slds-truncate {
+    
+    white-space: normal;
+    
+}
+
+/*.THIS.results-wrap td .slds-truncate {
+    white-space: normal!important;
+    overflow-wrap: break-word!important;
+    word-wrap: break-word!important;
+}*/

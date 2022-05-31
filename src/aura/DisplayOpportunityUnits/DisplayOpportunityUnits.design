@@ -1,0 +1,3 @@
+<design:component>
+	<design:attribute name="hideCheckbox" label="hideCheckbox" default="false"  />
+</design:component>

@@ -1,0 +1,105 @@
+<aura:component implements="force:lightningQuickActionWithoutHeader,force:hasRecordId" controller="AdditionalChargesController">
+    <aura:attribute name="recordId" type="String"/>
+	<aura:attribute name="ejari" type="String"/>
+    <aura:attribute name="selectedejari" type="String"/>
+    <aura:attribute name="deposit" type="String"/>
+    <aura:attribute name="selecteddeposit" type="String"/>
+    <aura:attribute name="poolCharges" type="String"/>
+    <aura:attribute name="selectedpoolCharges" type="String"/>
+    <aura:attribute name="utilityCharges" type="String"/>
+    <aura:attribute name="selectedutilityCharges" type="String"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:html tag="style">
+.cuf-content {
+padding: 0 0rem !important;
+}
+.slds-p-around–medium {
+padding: 0rem !important;
+}
+.slds-modal__content{
+overflow-y:hidden !important;
+height:unset !important;
+max-height:unset !important;
+}
+</aura:html>
+    <header class="slds-modal__header">
+          <h2 id="modal-heading-01" class="slds-text-heading--medium">Additional Charges</h2>
+        </header>
+    
+        <lightning:card variant="Narrow" >
+            <lightning:layout multipleRows="true" verticalAlign="end">
+        <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="1" largeDeviceSize="1" padding="around-small"/>
+        <lightning:layoutItem size="12" smallDeviceSize="10" mediumDeviceSize="8" largeDeviceSize="8" padding="around-small">
+            <div class="slds-form-element">
+                   <!-- <label class="slds-form-element__label">Enter Expense Value</label>-->
+                    <div class="slds-form-element__control">
+                       <lightning:input disabled="true" type="text" value="{!v.ejari}"  label="Ejari Fee"/>
+                    </div>
+                </div> 
+        </lightning:layoutItem>
+        <lightning:layoutItem size="12" smallDeviceSize="2" mediumDeviceSize="2" largeDeviceSize="2" padding="around-small">
+            <lightning:button class="slds-button slds-button--neutral slds-input__icon--right" label="Select" onclick="{!c.selectEjari}"/> 
+        </lightning:layoutItem>
+        <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="1" largeDeviceSize="1" padding="around-small"/>
+    </lightning:layout>
+            
+            
+             <lightning:layout multipleRows="true" verticalAlign="end">
+        <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="1" largeDeviceSize="1" padding="around-small"/>
+        <lightning:layoutItem size="12" smallDeviceSize="10" mediumDeviceSize="8" largeDeviceSize="8" padding="around-small">
+            <div class="slds-form-element">
+                   <!-- <label class="slds-form-element__label">Enter Expense Value</label>-->
+                    <div class="slds-form-element__control">
+                       <lightning:input disabled="true" type="text" value="{!v.deposit}" label="Security Deposit"/>
+                    </div>
+                </div> 
+        </lightning:layoutItem>
+        <lightning:layoutItem size="12" smallDeviceSize="2" mediumDeviceSize="2" largeDeviceSize="2" padding="around-small">
+            <lightning:button class="slds-button slds-button--neutral slds-input__icon--right" label="Select" onclick="{!c.selectDeposit}"/> 
+        </lightning:layoutItem>
+        <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="1" largeDeviceSize="1" padding="around-small"/>
+    </lightning:layout>
+            
+            <lightning:layout multipleRows="true" verticalAlign="end">
+        <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="1" largeDeviceSize="1" padding="around-small"/>
+        <lightning:layoutItem size="12" smallDeviceSize="10" mediumDeviceSize="8" largeDeviceSize="8" padding="around-small">
+            <div class="slds-form-element">
+                   <!-- <label class="slds-form-element__label">Enter Expense Value</label>-->
+                    <div class="slds-form-element__control">
+                       <lightning:input disabled="true" type="text" value="{!v.poolCharges}" label="Swimming Pool Charges"/>
+                    </div>
+                </div> 
+        </lightning:layoutItem>
+        <lightning:layoutItem size="12" smallDeviceSize="2" mediumDeviceSize="2" largeDeviceSize="2" padding="around-small">
+            <lightning:button class="slds-button slds-button--neutral slds-input__icon--right" label="Select" onclick="{!c.selectCharges}"/> 
+        </lightning:layoutItem>
+        <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="1" largeDeviceSize="1" padding="around-small"/>
+    </lightning:layout>
+            
+            
+            <lightning:layout multipleRows="true" verticalAlign="end">
+        <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="1" largeDeviceSize="1" padding="around-small"/>
+        <lightning:layoutItem size="12" smallDeviceSize="10" mediumDeviceSize="8" largeDeviceSize="8" padding="around-small">
+            <div class="slds-form-element">
+                   <!-- <label class="slds-form-element__label">Enter Expense Value</label>-->
+                    <div class="slds-form-element__control">
+                       <lightning:input disabled="true" type="text" value="{!v.utilityCharges}" label="Utility Charges"/>
+                    </div>
+                </div> 
+        </lightning:layoutItem>
+        <lightning:layoutItem size="12" smallDeviceSize="2" mediumDeviceSize="2" largeDeviceSize="2" padding="around-small">
+            <lightning:button class="slds-button slds-button--neutral slds-input__icon--right" label="Select" onclick="{!c.createExpense}"/> 
+        </lightning:layoutItem>
+        <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="1" largeDeviceSize="1" padding="around-small"/>
+    </lightning:layout>
+            <div class="modal-footer slds-modal__footer slds-size_1-of-1">
+            <div class="forceChangeRecordTypeFooter">
+                <ui:button class="slds-button slds-button_neutral" label="Cancel" press="{! c.cancel}" /> 
+                <ui:button class="slds-button slds-button--brand"
+                       label="Save" press="{!c.save}"/>
+            </div>
+        </div>
+    </lightning:card>
+    
+	
+</aura:component>

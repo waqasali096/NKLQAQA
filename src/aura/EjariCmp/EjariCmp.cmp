@@ -1,0 +1,60 @@
+<aura:component controller="Ejari_IntgCls" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickActionWithoutHeader" access="global">
+    
+    <aura:html tag="style">
+        .cuf-content {
+            padding: 0 0rem !important;
+        }
+        .slds-p-around--medium {
+            padding: 0rem !important;
+        }       
+        .slds-modal__content{
+            overflow-y:hidden !important;
+            height:unset !important;
+            max-height:unset !important;
+        }
+    </aura:html>
+    
+    <!--<aura:handler event="aura:waiting" action="{!c.showSpinner}"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/>-->
+    
+    <aura:attribute name="spinner" type="boolean" default="FALSE"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.getEjariList}" />
+    
+    <aura:attribute name="ejariRecords" type="Map" />
+    <aura:attribute name="selectedValue" type="String" />
+    
+    <!--loading spinner start-->
+    <aura:if isTrue="{!v.spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container ">
+            <div class="slds-spinner--brand  slds-spinner slds-spinner--small " role="alert">
+                <span class="slds-assistive-text">Loading...</span>
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </aura:if>
+    <!-- Loading spinner end-->
+    
+    <div class="modal-header slds-modal__header slds-size_1-of-1">
+        <h4 class="title slds-text-heading--medium" >Generate Ejari</h4>
+    </div>
+    <div class="slds-modal__content slds-p-around--x-small  slds-size_1-of-1 " aura:id="modalbody" id="modalbody">
+        
+        <form class="slds-form--stacked">
+            <lightning:select name="select" label="Please Select" required="true" aura:id="ejariId" value="{!v.selectedValue}" class="slds-m-bottom_large slds-m-top_large">
+                <option text="None" />
+                <aura:iteration items="{!v.ejariRecords}" var = "ejari" indexVar = "key">
+                        <option value="{!ejari.key}" text="{!ejari.value}"/>  
+                </aura:iteration>            
+    		</lightning:select>
+       </form> 
+  	</div>
+    <div class="modal-footer slds-modal__footer slds-size_1-of-1">
+        <div class="forceChangeRecordTypeFooter">
+            <lightning:button  class="slds-button slds-button_neutral" label="Close" onclick="{!c.handleExit}"/>
+            <lightning:button class="slds-button slds-button--brand" label="Submit" onclick="{!c.handleSubmit}"/>
+        </div>
+    </div>
+
+</aura:component>

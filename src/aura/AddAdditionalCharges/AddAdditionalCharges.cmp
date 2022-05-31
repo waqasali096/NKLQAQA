@@ -1,0 +1,113 @@
+<aura:component implements="force:lightningQuickActionWithoutHeader,force:appHostable,lightning:actionOverride,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes" controller="AddAdditionalChargesController" access="global" >
+    
+    <aura:html tag="style">
+        .slds-modal__container{
+        max-width: 100rem !important;
+        width:80% !important;
+        height : 100%;
+        }
+        .cuf-content {
+        padding: 0 0rem !important;
+        }
+        .slds-p-around--medium {
+        padding: 0rem !important;
+        }
+        .slds-modal__content {
+        overflow-y: hidden !important;
+        height: unset !important;
+        max-height: unset !important;
+        }        
+    </aura:html>
+    
+    
+    <aura:attribute name="data" type="Additional_Charges__c[]" />  
+    <aura:attribute name="selectedData" type="Additional_Charges__c[]"/>
+    <aura:attribute name="filter" type="String" /> 
+    <aura:attribute name="agencyName" type="String" /> 
+    <aura:attribute name="agencyTradeLicenseNumber" type="String" /> 
+    <aura:attribute name="agencyEmail" type="String" /> 
+    <aura:attribute name="agencyMobile" type="String" /> 
+    <aura:attribute name="searchKey" type="String" /> 
+    <aura:attribute name="accountId" type="String" /> 
+    <aura:attribute name="maxRowSelection" type="Integer" default="1"/>
+    <aura:attribute name='columns' type='List'/>
+    <aura:attribute name='selectedAccts' type='List'/>
+    <aura:attribute name='displayAccTable' type='Boolean' default="FALSE"/>
+    <aura:attribute name='isRecordSelected' type='Boolean' default="FALSE"/>
+    <aura:attribute name='hideSearchOption' type='Boolean' default = "TRUE" />
+    <aura:attribute name='accExist' type='Boolean' default="FALSE"/>
+    <aura:attribute name="spinner" type="boolean" default="FALSE"/>
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="showNoRecord" type="boolean" default="false"/>
+    <aura:attribute name="defaults" type="Object" />
+    <aura:attribute name="editSection" type="List" />
+    <aura:attribute name="readSection" type="List" />
+    <aura:attribute name="isEmpRef" type="boolean" default="FALSE"/>
+    <aura:attribute name="isBroker" type="boolean" default="FALSE"/>
+    <aura:attribute name="displaySalesSelection" type="boolean" default="TRUE"/>
+    <aura:attribute name="fields" type="String[]" default="['Name','Trade_License_Number__c','Primary_Country_Code__c','Trade_License_End_Date__c','Primary_Mobile__c','Primary_Email__c','Rera_ORN__c','Agency_Status__c']" />
+    <aura:attribute name="showCharges" type="Boolean" default="false"/>
+    <aura:attribute name='renewRecordtype' type='Boolean' default="false"/>
+    <aura:handler name="cmpEvent" event="c:RefreshParentComponent" action="{!c.handleRefresh}"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />   
+    
+    <header class="slds-modal__header" style="background: steelblue; ">
+        <h4 class="title slds-text-heading--medium slds-text-color_inverse"><span>Search Addtional Charges</span></h4>
+    </header>
+    
+    
+    
+    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+        
+        <aura:if isTrue="{!v.spinner}">
+            <lightning:spinner class="spins" size="large" variant="brand" alternativeText="Loading" />
+        </aura:if>
+        
+        
+        <aura:if isTrue="{!v.hideSearchOption}">
+            <lightning:input type="search" name="x" value="{!v.filter}" placeholder="Search" onchange="{!c.doFilter}" class="slds-p-left_medium slds-p-right_medium"/> 
+        </aura:if>
+        &nbsp;
+        
+        <aura:if isTrue="{!v.displayAccTable}">
+            <div class="slds-p-left_medium slds-p-right_medium">
+                <lightning:datatable
+                                     columns="{!v.columns}"
+                                     data="{!v.data}"
+                                     class=".slds-th__action"
+                                     keyField="Id"
+                                     hideCheckboxColumn="true"
+                                     resizeColumnDisabled="true"
+                                     onrowaction="{!c.addCustomer}"
+                                     maxRowSelection="{!v.maxRowSelection}"
+                                    
+                                     />
+            </div>
+        </aura:if>
+        &nbsp;
+        
+        <aura:if isTrue="{!v.showNoRecord}">
+            <ui:message severity="confirm" class="slds-text-align_center slds-p-left_medium slds-p-right_medium">No Additional Charges found. Please modify your search.</ui:message>
+        </aura:if>
+        &nbsp;
+        <br/>
+        <c:DisplayOpportunityCharges recordId="{!v.recordId}" 
+                                     showCharges="{!v.showCharges}"
+                                     totalRecordsCount="{!v.selectedData.length}"
+                                     data="{!v.selectedData}"/>
+        &nbsp;
+        
+        
+    </div>
+    <div class="modal-footer slds-modal__footer slds-size_1-of-1">
+        
+        <ui:button class="buttonColor" label="Cancel" press="{! c.cancel}" /> 
+        <aura:if isTrue="{!and(v.selectedData)}">
+            <aura:if isTrue ="{!v.showCharges}">
+                <ui:button class="buttonColor"
+                           label="Save" press="{!c.addCharges}"/>
+            </aura:if>
+        </aura:if>
+        
+    </div>
+</aura:component>

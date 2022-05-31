@@ -1,0 +1,112 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" controller="AssignAgencyController" access="global" >
+   <aura:attribute name="data" type="Account[]" />  
+    <aura:attribute name="filter" type="String" /> 
+    <aura:attribute name="agencyName" type="String" /> 
+    <aura:attribute name="agencyTradeLicenseNumber" type="String" /> 
+    <aura:attribute name="agencyEmail" type="String" /> 
+    <aura:attribute name="agencyMobile" type="String" /> 
+    <aura:attribute name="searchKey" type="String" /> 
+    <aura:attribute name="accountId" type="String" /> 
+    <aura:attribute name="maxRowSelection" type="Integer" default="1"/>
+    <aura:attribute name='columns' type='List'/>
+    <aura:attribute name='selectedAccts' type='List'/>
+    <aura:attribute name='displayAccTable' type='Boolean' default="FALSE"/>
+    <aura:attribute name='isRecordSelected' type='Boolean' default="FALSE"/>
+    <aura:attribute name='hideSearchOption' type='Boolean' default = "TRUE" />
+    <aura:attribute name='accExist' type='Boolean' default="FALSE"/>
+    <aura:attribute name="spinner" type="boolean" default="FALSE"/>
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="showNoRecord" type="boolean" default="false"/>
+    <aura:attribute name="defaults" type="Object" />
+    <aura:attribute name="editSection" type="List" />
+    <aura:attribute name="readSection" type="List" />
+    <aura:attribute name="isEmpRef" type="boolean" default="FALSE"/>
+    <aura:attribute name="isBroker" type="boolean" default="FALSE"/>
+    <aura:attribute name="displaySalesSelection" type="boolean" default="TRUE"/>
+    <aura:attribute name="fields" type="String[]" default="['Name','Trade_License_Number__c','Primary_Country_Code__c','Trade_License_End_Date__c','Primary_Mobile__c','Primary_Email__c','Rera_ORN__c','Agency_Status__c']" />
+    
+    <aura:if isTrue="{!v.spinner}">
+        <lightning:spinner class="spins" size="large" variant="brand" alternativeText="Loading" />
+    </aura:if>
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />   
+ 		<aura:if isTrue="{!v.hideSearchOption}">
+            <div class="slds-page-header">Search Broker Agency</div> <!-- Modify by Sajid -->
+            <lightning:layout verticalAlign="end" >
+                <lightning:layoutItem flexibility="grow" size="3">
+                    <lightning:input type="search" name="x" value="{!v.filter}" placeholder="Type Broker Name" onchange="{!c.doFilter}"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem flexibility="grow" size="3">
+                <!--    <lightning:button class="slds-m-left_x-small" variant="brand" label="Select Agency" onclick="{!c.addCustomer}"> </lightning:button>-->
+                </lightning:layoutItem>
+            </lightning:layout>
+         </aura:if>
+            &nbsp;
+            
+            <aura:if isTrue="{!v.displayAccTable}">
+                <lightning:datatable
+                                     columns="{!v.columns}"
+                                     data="{!v.data}"
+                                     keyField="Id"
+                                     hideCheckboxColumn="true"
+                                      resizeColumnDisabled="true"
+                                     onrowaction="{!c.addCustomer}"
+                                     maxRowSelection="{!v.maxRowSelection}"/>
+            </aura:if>
+            &nbsp;
+    		
+    		<aura:if isTrue="{!v.isRecordSelected}">
+                <lightning:card title="Broker Details" class="slds-text-heading_small slds-card_boundary">
+                    <!--
+                    <lightning:recordForm objectApiName="Account"
+                        recordId="{!v.accountId}"
+                        mode="readOnly"
+                        fields="{!v.fields}"
+                        columns="2"
+                        />
+                    -->
+                    
+                    <lightning:recordEditForm recordId="{!v.accountId}" 
+                                              objectApiName="Account">
+                       
+                        <div class="slds-grid slds-wrap">
+                            <aura:iteration items="{!v.fields}" var="item">
+                                <div class="slds-col slds-size_1-of-2" padding="around-small">
+                                    
+                                    <aura:if isTrue="{!item == 'Name'}">
+                                        
+                                        <div class="slds-form-element slds-form-element_horizontal">
+                                            <label class="slds-form-element__label" for="form-element-01">Company Name</label> 
+                                            <lightning:outputField variant="label-hidden" fieldName="{!item}" />
+                                        </div>
+                                        
+                                        <aura:set attribute="else">
+                                            <lightning:outputField fieldName="{!item}" />
+                                        </aura:set>
+                                    </aura:if>
+                                    
+                                </div>
+                            </aura:iteration>
+                        </div>
+                    </lightning:recordEditForm>
+
+                                            
+                    <br/><br/>
+                    
+                </lightning:card>
+                &nbsp;
+                <div>
+                    <lightning:button class="slds-align_absolute-center" label="Remove Broker Agency" variant="brand" onclick="{!c.removeOperation}" />
+                </div>
+    		</aura:if>
+            
+           <aura:if isTrue="{!v.showNoRecord}">
+                <lightning:layout verticalAlign="end" >
+                    <lightning:layoutItem flexibility="grow" size="3">
+                        <ui:message severity="confirm">No Broker found. Please modify your search.</ui:message>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </aura:if>
+        &nbsp;
+	
+</aura:component>

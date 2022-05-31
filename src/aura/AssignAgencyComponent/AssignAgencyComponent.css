@@ -1,0 +1,46 @@
+.THIS .textColor{
+     color: white !important;
+    background-color: #36628B !important;
+   border: 1px solid rgb(243 243 243) !important;
+}
+
+.THIS .slds-button_brand {
+     color: white !important;
+    background-color: #36628B !important;
+        border: 1px solid rgb(243 243 243) !important;
+}
+.THIS .slds-button.slds-button_neutral {
+     color: white !important;
+    background-color: #36628B !important;
+        border: 1px solid rgb(243 243 243) !important;
+}
+.THIS .slds-form-element__static {
+    border-bottom-color : rgb(299,299,299) !important;
+    border-bottom-style : solid !important;
+    border-bottom-width : 1px !important;
+}
+.THIS .slds-cell-fixed.slds-has-button-menu {
+    color: white !important;
+    background-color: #36628B !important;
+
+}
+.THIS .slds-cell-fixed.slds-has-button-menu :hover{
+    color: white !important;
+    background-color: #36628B !important;
+
+}
+
+.THIS .slds-button.slds-button_icon-bare {
+     Visibility :hidden;
+}
+.THIS .slds-th__action.slds-th__action_form.slds-cell-fixed {
+   color: white !important;
+    background-color: #36628B !important; 
+
+}
+
+.THIS .slds-th__action {
+     color: white !important;
+    background-color: #36628B !important; 
+
+}

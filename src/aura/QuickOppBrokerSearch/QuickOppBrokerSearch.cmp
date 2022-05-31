@@ -1,0 +1,185 @@
+<aura:component controller="QuickOppAccountSearchController" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >  
+    <aura:attribute name="data" type="Account[]" />  
+    <aura:attribute name="filterName" type="String" /> 
+    <aura:attribute name="filterTLNNumber" type="String" />  
+    <aura:attribute name="filterPrimaryEmail" type="String" />  
+    <aura:attribute name="searchKeyName" type="String" /> 
+     <aura:attribute name="searchKeyTLNNumber" type="String" /> 
+     <aura:attribute name="searchKeyPrimaryemail" type="String" /> 
+    <aura:attribute name="showSearchErr" type="boolean" default="FALSE"/>
+    <aura:attribute name="accountId" type="String" /> 
+    <aura:attribute name="maxRowSelection" type="Integer" default="1"/>
+    <aura:attribute name='columns' type='List'/>
+    <aura:attribute name='selectedAccts' type='List'/>
+    <aura:attribute name='displayAccTable' type='Boolean' default="FALSE"/>
+    <aura:attribute name='accExist' type='Boolean' default="FALSE"/>
+    <aura:attribute name="fields" type="String[]" default="['Name','Trade_License_Number__c','Primary_Country_Code__c','Trade_License_End_Date__c','Primary_Mobile__c','Primary_Email__c','Rera_ORN__c','Agency_Status__c']" />
+    <aura:attribute name="empfields" type="String[]" default="['Employee_Name__c','Employee_Number__c']" />
+    <aura:attribute name="custFields" type="String[]" default="['Referred_Customer__c']" />
+    <aura:attribute name="spinner" type="boolean" default="FALSE"/>
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="defaults" type="Object" />
+    <aura:attribute name="editSection" type="List" />
+    <aura:attribute name="readSection" type="List" />
+    <aura:attribute name="isEmpRef" type="boolean" default="FALSE"/>
+    <aura:attribute name="isBroker" type="boolean" default="FALSE"/>
+    <aura:attribute name="isCustomeRef" type="boolean" default="FALSE"/>
+    <aura:attribute name="empExist" type="boolean" default="FALSE"/>
+    <aura:attribute name="displaySalesSelection" type="boolean" default="TRUE"/>
+    <aura:attribute name="options"   
+                    type="List"   
+                    default="[{'label': 'Employee Referral', 'value': 'EmployeeReferral'},  
+                             {'label': 'Broker', 'value': 'Broker'},
+                             {'label': 'Customer Referral', 'value': 'customerReferral'}]"/>
+    <aura:attribute name="hasCustomerAndUnit" type = "Boolean" default = "TRUE"/>
+    <aura:attribute name="hasCustomerReferral" type = "Boolean" />
+    
+    
+    <aura:if isTrue="{!v.spinner}">
+        <lightning:spinner class="spins" size="medium" variant="brand" alternativeText="Loading" />
+    </aura:if>
+    <aura:html tag="style">
+        .slds-modal__container{
+        max-width: 95rem !important;
+        width:95% !important;
+        }
+    </aura:html>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <!--Referral Section-->
+    
+    <aura:if isTrue="{!v.displaySalesSelection}">
+        <div class="slds-theme_default slds-m-left_x-small slds-text-align_center">  
+            <lightning:radioGroup options="{!v.options}"  
+                                  value="{!v.selectedVal1}"  
+                                  type="button" 
+                                  onchange="{!c.handleTypeChange}"
+                                  />
+        </div>  
+    </aura:if>
+    <aura:if isTrue="{!v.hasCustomerAndUnit}">
+        <!--Employee referral-->
+        <aura:if isTrue="{!v.isEmpRef}">
+            <div class="slds-box">
+            <lightning:card variant="Narrow" title="Employee Referral Details" iconName="custom:custom93">
+                <br></br>
+                <aura:if isTrue="{!v.empExist}">
+                    <div class="slds-text-align_center">
+                        <lightning:buttonGroup>
+                            <lightning:button class="slds-m-left_x-small" label="Remove Referrals" onclick="{!c.removeReferral}"> </lightning:button>
+                        </lightning:buttonGroup>
+                    </div>
+                    <br></br>
+                </aura:if>
+                <lightning:recordForm objectApiName="Opportunity"
+                                      aura:id="myRecordForm"
+                                      recordId="{!v.recordId}"
+                                      mode="view"
+                                      fields="{!v.empfields}" 
+                                      columns="2"
+                                      onsubmit="{!c.handleSubmit}"
+                                      onsuccess="{!c.handlesuccess}"
+                                      />
+                <br></br>
+            </lightning:card>
+            </div>
+        </aura:if>
+        <!--Broker Section-->
+        <aura:if isTrue="{!v.isBroker}">
+            <!--Existing Broker Details-->
+            <div class="slds-box">
+                <lightning:card variant="Narrow" title="Broker Details" iconName="custom:custom93">
+                    <aura:if isTrue="{!v.accExist}">
+                        <div class="slds-text-align_center">
+                            <lightning:buttonGroup>
+                                <lightning:button class="slds-m-left_x-small" label="Remove Broker" onclick="{!c.removeReferral}"> </lightning:button>
+                            </lightning:buttonGroup>
+                        </div>
+                        <lightning:recordForm objectApiName="Account"
+                                              recordId="{!v.accountId}"
+                                              mode="readOnly"
+                                              fields="{!v.fields}" 
+                                              columns="2"
+                                              />
+                    </aura:if>
+                    <!--Broker Search-->
+                    <aura:if isTrue="{!!v.accExist}">
+                        <lightning:layout verticalAlign="end" >
+                            <lightning:layoutItem flexibility="auto" padding="around-small">
+                                <lightning:input type="search" name="x" aura:id="name" value="{!v.filterName}" placeholder="Enter Name"/>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem flexibility="auto" padding="around-small">
+                                <lightning:input type="search" name="y" aura:id="TLNNumb" value="{!v.filterTLNNumber}" placeholder="Enter TLN Number"/>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem flexibility="auto"  padding="around-small">
+                                <lightning:input type="search" name="z" aura:id="priEmail" value="{!v.filterPrimaryEmail}" placeholder="Enter Primary Email"/>
+                            </lightning:layoutItem>
+                            
+                        </lightning:layout>
+                        <div class="slds-m-left_x-small slds-text-align_center">
+                            <lightning:button class="slds-m-left_x-small" variant="brand" label="Search Broker" onclick="{!c.doFilter}"> </lightning:button>
+                            <lightning:button class="slds-m-left_x-small" variant="brand" label="Reset" onclick="{!c.reset}">  </lightning:button>
+                        </div>
+                        &nbsp;
+                        <!--Search result Table-->
+                        <aura:if isTrue="{!v.displayAccTable}">
+                            <lightning:datatable
+                                                 columns="{!v.columns}"
+                                                 data="{!v.data}"
+                                                 keyField="Id"
+                                                 onrowaction ="{!c.addCustomer}"
+                                                 maxRowSelection="{!v.maxRowSelection}"
+                                                 hideCheckboxColumn="true"
+                                                 />
+                        </aura:if>
+                        &nbsp;
+                        <!--Search Result Error-->
+                        <aura:if isTrue="{!v.showSearchErr}">
+                            <div class="slds-text-align_center slds-text-heading_medium slds-text-color_error">No Brokers found. Please modify your search.</div>
+                        </aura:if>
+                    </aura:if>
+                    &nbsp;
+                </lightning:card>
+            </div>
+        </aura:if>
+        <!--Customer Referal-->
+        <aura:if isTrue="{!v.isCustomeRef}">
+            <div class="slds-box">
+                <lightning:card variant="Narrow" title="Customer Referral Details" iconName="custom:custom93">
+                    <br></br>
+                   
+                   <aura:if isTrue= "{!v.hasCustomerReferral}">
+                        <div class="slds-text-align_center">
+                            <lightning:buttonGroup>
+                                <lightning:button class="slds-m-left_x-small" label="Remove Customer Referral" onclick="{!c.removeReferral}"> </lightning:button>
+                            </lightning:buttonGroup>
+                        </div>
+                   </aura:if>
+                    
+                    <lightning:recordForm objectApiName="Opportunity"
+                                          aura:id="myRecordForm"
+                                          recordId="{!v.recordId}"
+                                          mode="view"
+                                          fields="{!v.custFields}" 
+                                          columns="2"
+                                          onsubmit="{!c.handleSubmit}"
+                                          onsuccess="{!c.handlesuccess}"
+                                          />
+                    <br></br>
+                </lightning:card>
+            </div>
+        </aura:if>
+        <aura:set attribute="else">
+            <lightning:layout verticalAlign="end" >
+                <lightning:layoutItem flexibility="auto" padding="around-small">
+                    <div class="custom-box"></div>
+                </lightning:layoutItem>
+                <lightning:layoutItem flexibility="auto" padding="around-small">
+                    <div class="slds-text-align_center slds-m-top_medium"><b>Please add Customer Details.</b></div>
+                </lightning:layoutItem>
+                <lightning:layoutItem flexibility="auto" padding="around-small">
+                    <div class="custom-box"></div>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </aura:set>
+    </aura:if>
+</aura:component>

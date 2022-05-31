@@ -1,0 +1,355 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" 
+                controller="AvailablePayPlanController" access="global" >
+    <aura:attribute name="paymentOptions" type="List" default="[
+                                                               {'label': '--None--', 'value': ''},
+                                                               {'label': 'Online Payment', 'value': 'Online Payment'},
+                                                               {'label': 'Cash', 'value': 'Cash'},
+                                                               {'label': 'Cheque', 'value': 'Cheque'},
+                                                               {'label': 'Bank Transfer', 'value': 'Bank Transfer'},
+                                                               ]"/>
+    <aura:attribute name="installments" type="List" default="[
+                                                             {'label': '1', 'value': '1'},
+                                                             {'label': '2', 'value': '2'},
+                                                             {'label': '4', 'value': '4'},
+                                                             {'label': '6', 'value': '6'},
+                                                             {'label': '12', 'value': '12'},                                                        
+                                                             ]"/>
+    <aura:attribute name="selectcheque" type="String" />
+    <aura:attribute name="parentWrapper" type="AvailablePayPlanController.ParentWrapper" />
+    <aura:attribute name="empDiscount" type="Boolean"/>
+    <aura:attribute name="pricePerSqft" type="Integer"/>
+    <aura:attribute name="installMentList" type="AvailablePayPlanController.InstallmentWrapper[]" />
+    <aura:attribute name="isUnitFields" type="Boolean"/>
+    <aura:attribute name="isShopFields" type="Boolean"/>
+    <aura:attribute name="showCheques" type="Boolean"/>
+    <aura:attribute name="paymentMode" type="string" />
+    <aura:attribute name="unittype" type="string" />
+    <aura:attribute name="employeeDiscount" type = "Integer"/>
+    <aura:attribute name="totalBaseAmount" type="string" />
+    <aura:attribute name="totalDiscountAmount" type="string" />
+    <aura:attribute name="totalLeaseAmount" type="string" />
+    <aura:attribute name="isSpinner" type="Boolean"/>
+    <aura:handler event="aura:waiting" action="{!c.showSpinner}"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/>
+    <aura:attribute name="showWarning" type="Boolean" default="false"/>
+    <aura:attribute name="rateChangeReason" type="string" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <!--new code-->
+    
+    <div class="slds-box">
+         <aura:if isTrue="{!v.isSpinner}">
+                <div aura:id="spinnerId" class="slds-spinner_container">
+                    <div class="slds-spinner--brand  slds-spinner slds-spinner--large " role="alert">
+                        <span class="slds-assistive-text">Loading</span>
+                        <div class="slds-spinner__dot-a"></div>
+                        <div class="slds-spinner__dot-b"></div>
+                    </div>
+                </div>
+            </aura:if>
+        <div class="slds-page-header slds-page-header_record-home slds-box">
+            <div class="slds-page-header__row">
+                <div class="slds-page-header__col-title">
+                    <div class="slds-media">
+                        <div class="slds-media__figure">
+                            <span class="slds-icon_container slds-icon-standard-opportunity">
+                                <lightning:icon iconName="custom:custom46" alternativeText="Unit Info" title="Unit Info" />
+                            </span>
+                        </div>
+                        <div class="slds-media__body">
+                            <div class="slds-page-header__name">
+                                <div class="slds-page-header__name-title">
+                                    <h1>
+                                        <span class="slds-page-header__title slds-truncate" title="Acme - 1,200 Widgets">Rent Structure</span>
+                                        <span>{!v.unittype}</span>
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <aura:if isTrue="{!!v.parentWrapper.isInsCreated}">
+                    <div class="slds-page-header__col-actions">
+                        <div class="slds-page-header__controls">
+                            <div class="slds-page-header__control">
+                                <ul class="slds-button-group-list slds-gutters">
+                                    <!--li>
+                                        <lightning:select  class="slds-col" aura:id="paymentMode" value="{!v.paymentMode}" name="Payment Mode" 
+                                                          label="Payment Mode" onchange="{!c.onpaymentModeChange}">
+                                            <aura:iteration items="{!v.paymentOptions}" var="typ" indexVar="key">
+                                                <option text="{!typ.label}" value="{!typ.value}" />
+                                            </aura:iteration>
+                                        </lightning:select>
+                                    </li-->
+                                    <li>
+                                            <lightning:select  class="slds-col" aura:id="installments" value="{!v.selectcheque}" name="Number Of Installments" 
+                                                              label="Number Of Installments" onchange="{!c.handleCalculate}">
+                                                <aura:iteration items="{!v.installments}" var="typ" indexVar="key">
+                                                    <option text="{!typ.label}" value="{!typ.value}" />
+                                                </aura:iteration>
+                                            </lightning:select>
+                                    </li>
+                                    <li>
+                                        <aura:if isTrue="{!v.isUnitFields}">
+                                            <aura:if isTrue="{!v.empDiscount}">  
+                                                <td data-label="employeeDiscount">
+                                                    <div class="slds-truncate" title=""><lightning:input class="slds-col" label="Employee Discount" type="number" 
+                                                                                                         placeholder ="%"
+                                                                                                         formatter="percent-fixed" step="0.01" value="{!v.employeeDiscount}" 
+                                                                                                         onchange="{!c.handleEmployeeDiscount}"
+                                                                                                         message-when-step-mismatch	="Value cannot exceed 2 decimals"
+                                                                                                         message-when-range-overflow="Value cannot exceed 100%"	
+                                                                                                         min="0"
+                                                                                                         max="100"
+                                                                                                         ></lightning:input></div>
+                                                </td></aura:if>            
+                                        </aura:if>
+                                        <aura:if isTrue="{!v.isShopFields}">
+                                            <td data-label="PricePerSqft">
+                                                <div class="slds-truncate" title="">
+                                                    <lightning:input class="slds-col" label="Change in Price/sqft" type="number" 
+                                                                     placeholder ="AED/Sqft"
+                                                                     formatter="Currency" step="0.01" value="{!v.pricePerSqft}" 
+                                                                     onchange="{!c.handleShopPrice}"
+                                                                     message-when-step-mismatch	="Value cannot exceed 2 decimals"
+                                                                     ></lightning:input></div>
+                                            </td>
+                                            
+                                        </aura:if>
+                                    </li>
+                                    <li style="padding-top: 19px;">
+                                       
+                                            <lightning:button variant="brand" label="Submit" onclick="{!c.handleSubmit}" class="slds-col" disabled = "{!or((lessthan(v.employeeDiscount,0)),v.employeeDiscount > 100)}"/>
+                                            
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <aura:set attribute="else">
+                        <span style="padding-top: 19px;">
+                            <lightning:button variant="brand" label="Revise Installments" onclick="{!c.handleRevise}" class="slds-col"/>
+                        </span>
+                    </aura:set>
+                </aura:if>
+            </div>
+            <div class="slds-page-header__row slds-page-header__row_gutters ">
+                <div class="slds-page-header__col-details">
+                    <aura:if isTrue="{!!v.parentWrapper.isInsCreated}">
+                        <ul class="slds-page-header__detail-row " >
+                            <li class="" style="margin-left: 12px;">
+                                <div class="slds-text-title slds-truncate" title="Amounts">
+                                    <lightning:icon iconName="custom:custom17" alternativeText="Unit Info" title="Unit Info" />
+                                </div>
+                            </li>
+                            <li class="slds-page-header__detail-block" style="margin-left: -18px;">
+                                <div class="slds-text-title slds-truncate" title="Field 2 (3)">
+                                    <b>Total Base Amount</b>
+                                </div>
+                                <div class="slds-truncate" title="Total Base Amount">
+                                    <lightning:formattedNumber value="{!v.parentWrapper.totalBaseAmount}" style="currency" minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                </div>
+                            </li>
+                            
+                            <li class="slds-page-header__detail-block">
+                                <div class="slds-text-title slds-truncate" title="Field 4"><b>Total Discount Amount</b></div>
+                                <div class="slds-truncate" title="Total Discount Amount">
+                                    <lightning:formattedNumber value="{!v.parentWrapper.totalDiscountAmount}" style="currency" minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                    
+                                </div>
+                            </li>
+                            <li class="slds-page-header__detail-block">
+                                <div class="slds-text-title slds-truncate" title="Field 4"><b>Total Lease Amount</b></div>
+                                <div class="slds-truncate" title="Total Discount Amount">
+                                    <lightning:formattedNumber value="{!v.parentWrapper.totalLeaseAmount}" style="currency" minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                    
+                                </div>
+                            </li>
+                            <li class="slds-page-header__detail-block">
+                                <div class="slds-text-title slds-truncate" title="Field 4"><b>Total Security Deposit</b></div>
+                                <div class="slds-truncate" title="Total Discount Amount">
+                                    <lightning:formattedNumber value="{!v.parentWrapper.totalDepositAmount}" style="currency" minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                    
+                                </div>
+                            </li>
+                        </ul>
+                    </aura:if>
+                </div>
+            </div>
+        </div>
+        <!-- end new code-->
+        <!--div class="slds-grid slds-grid_align-end slds-var-m-around_small slds-gutters">
+        
+        <lightning:select  class="slds-col" aura:id="paymentMode" value="{!v.paymentMode}" name="Payment Mode" 
+                          label="Payment Mode" onchange="{!c.onpaymentModeChange}">
+            <aura:iteration items="{!v.paymentOptions}" var="typ" indexVar="key">
+                <option text="{!typ.label}" value="{!typ.value}" />
+            </aura:iteration>
+        </lightning:select>
+        <aura:if isTrue="{!v.showCheques}">
+            <lightning:select  class="slds-col" aura:id="installments" value="{!v.selectcheque}" name="Number Of Cheque" 
+                              label="Number Of Cheque" onchange="{!c.handleCalculate}">
+                <aura:iteration items="{!v.installments}" var="typ" indexVar="key">
+                    <option text="{!typ.label}" value="{!typ.value}" />
+                </aura:iteration>
+            </lightning:select>
+        </aura:if>
+        
+    </div--> 
+        
+        <!-- table info-->
+        <!--table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered slds-no-row-hover slds-table_striped"
+           style="background: aliceblue;"-->
+        <!--table class="slds-table slds-table_bordered slds-table_cell-buffer"-->
+        <aura:if isTrue="{!!v.parentWrapper.isInsCreated}">
+            <table class="slds-table slds-table_bordered slds-table_col-bordered slds-box" style="background: aliceblue;">
+                <thead class="header">
+                    <tr class="slds-text-title_caps">
+                        <th scope="col" >
+                            <div class="slds-truncate" title="Unit Number">Location Code</div>
+                        </th>
+                        <th scope="col" >
+                            <div class="slds-truncate " title="SpaceType">Space Type</div>
+                        </th>
+                        
+                        <th scope="col" >
+                            <div class="slds-truncate" title="Base Lease Amount">Base Lease Amount</div>
+                        </th>
+                        <aura:if isTrue="{!v.isUnitFields}">
+                            <!--aura:if isTrue="{!v.empDiscount}">  
+                            <th scope="col" >
+                                <div class="slds-truncate" title="Number Of Cheque">Employee Discount Amount</div>
+                            </th>
+                        </aura:if-->   
+                            <th scope="col" >
+                                <div class="slds-truncate" title="Discount">Discount</div>
+                            </th>
+                            <th scope="col" >
+                                <div class="slds-truncate" title="Discount">Discount Amount</div>
+                            </th>
+                            
+                        </aura:if>
+                        <aura:if isTrue="{!v.isShopFields}">
+                            <th scope="col">
+                                <div class="slds-truncate" title="Base Lease Amount">Price/Sqft</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Base Lease Amount">Total Sqft</div>
+                            </th>
+                        </aura:if>
+                        <th scope="col">
+                            <div class="slds-truncate" title="Final Lease Amount">Final Lease Amount</div>
+                        </th>
+                        <th scope="col">
+                            <div class="slds-truncate" title="Final Lease Amount">Security Deposit</div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <aura:iteration items="{!v.installMentList}" var="a">
+                        <tr>
+                            <td scope="row">
+                                <div class="slds-truncate" title="{!a.unitCode}">
+                                    <a data-caseid="{!a.unitId}" onclick="{!c.navigateToRecord}">{!a.unitCode}</a>
+                                </div>
+                            </td>
+                            <td scope="row">
+                                
+                                <div class="slds-truncate" title="{!a.spaceType}">{!a.spaceType}</div>
+                            </td>
+                            
+                            <td scope="row">
+                                <div class="slds-truncate" title="">
+                                    <lightning:formattedNumber value="{!a.baseLeaseAmount}" style="currency" minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                    
+                                    
+                                </div>
+                            </td>
+                            <aura:if isTrue="{!v.isUnitFields}">
+                                
+                                <!--aura:if isTrue="{!v.empDiscount}">  
+                                <th scope="row">
+                                    <div class="slds-truncate" title=""><ui:outputCurrency value="{!a.employeeDiscountAmount}" currencyCode="AED"/></div>
+                                </th></aura:if--> 
+                                <td scope="row">
+                                    <div class="slds-truncate" title="">{!a.discount}%</div>
+                                </td>
+                                <td scope="row">
+                                    <div class="slds-truncate" title="">
+                                        <lightning:formattedNumber value="{!a.discountAmount}" style="currency" minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                        
+                                        
+                                    </div>
+                                </td>
+                            </aura:if>
+                            <aura:if isTrue="{!v.isShopFields}">
+                                <td scope="row">
+                                    <div class="slds-truncate" title="">{!a.pricePerSqft}</div>
+                                </td>
+                                <td scope="row">
+                                    <div class="slds-truncate" title="">{!a.totalLeasableArea}</div>
+                                    
+                                </td>
+                            </aura:if>
+                            <td scope="row">
+                                <div class="slds-truncate" title="">
+                                    <lightning:formattedNumber value="{!a.finalLeaseAmount}" style="currency" minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                    
+                                    
+                                </div>
+                            </td>
+                            <td scope="row">
+                                <div class="slds-truncate" title="">
+                                    <lightning:formattedNumber value="{!a.deposit}" style="currency" minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                    
+                                    
+                                </div>
+                            </td>
+                        </tr>
+                    </aura:iteration>
+                </tbody>
+            </table>
+        </aura:if>
+        <aura:if isTrue="{!v.showWarning}">
+            
+            <!-- Modal/Popup Box starts here-->
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <!-- Modal/Popup Box Header Starts here-->
+                    <header class="slds-modal__header">
+                        <lightning:buttonIcon iconName="utility:close"
+                                              onclick="{!c.closeModel}"
+                                              alternativeText="close"
+                                              variant="bare-inverse"
+                                              class="slds-modal__close"/>
+                        <h2 id="modal-heading-01" class="slds-hyphenate">Approval Process For Price Adjustment</h2>
+                    </header>
+                    <!--Modal/Popup Box Body Starts here-->
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                        <p><b>{!$Label.c.SqftApprovalProcessWarning}</b>
+                        </p>
+                        <div class="slds-m-top_medium slds-m-bottom_small">
+                            <strong>Changed Per sqft Price :</strong> {!v.pricePerSqft}
+                        </div>
+                        <lightning:textarea name="Reason" label="Reason" value="{!v.rateChangeReason}"/>
+                        <!-- Lightning Input with file type and on file change call the 'handleFilesChange' controller -->
+                        <!--<lightning:input aura:id="fuploader" onchange="{!c.handleFilesChange}" type="file" name="file" label="Upload File" multiple="false"/>
+                        <div class="slds-text-body_small slds-text-color_error">{!v.fileName} </div>-->
+                        <br/>
+                    </div>
+                    <!--Modal/Popup Box Footer Starts here-->
+                    <footer class="slds-modal__footer">
+                        <lightning:button variant="neutral"
+                                          label="Cancel"
+                                          title="Cancel"
+                                          onclick="{!c.closeModel}"/>
+                        <lightning:button variant="brand"
+                                          label="Submit"
+                                          title="Submit"
+                                          onclick="{!c.SubmitForApproval}"/>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </aura:if>
+    </div>
+</aura:component>

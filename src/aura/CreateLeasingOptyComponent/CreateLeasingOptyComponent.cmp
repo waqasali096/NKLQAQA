@@ -1,0 +1,67 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" controller="CreateLeasingOptyClass" access="global" >
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="defaults" type="Object" />
+    <aura:attribute name="leasingType" type="String"/>
+    <aura:attribute name="ProjectsMap" type="List"/>
+    <aura:attribute name="OptyName" type="String" default="Leasing Booking"/>
+    <aura:attribute name="selectedProject" type="string" />
+    <aura:attribute name="startdate" type="Date"/> 
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <!--<aura:handler name="init" value="{!this}" action="{!c.getLeasingType}" />-->
+    <aura:attribute name="leasingTypeList" type="List"/>
+    <aura:attribute name="showSpinner" type="Boolean" default="false"/>
+    <lightning:notificationsLibrary aura:id="notificationsLibrary" />
+    <lightning:spinner aura:id="quote_spinner" variant="brand" size="medium" />
+    
+    <lightning:card iconName="standard:opportunity" title="Create New Lease" class="slds-form_horizontal"> 
+        
+        <aura:if isTrue="{!v.showSpinner}">
+            <div class="exampleHolder">
+                <lightning:spinner aura:id="mySpinner" />
+            </div>
+        </aura:if>
+        
+        <lightning:recordEditForm
+                                  aura:id="opportunityRecordForm"
+                                  onsubmit="{!c.handleOnSubmit}" 
+                                  onsuccess="{!c.handleOnSuccess}"
+                                  onerror="{!c.handleOnError}"
+                                  objectApiName="Opportunity"
+                                  class="slds-card__body_inner">
+            
+            <lightning:messages aura:id="messages" />
+            
+            <div class="slds-section slds-is-open slds-m-around_medium">
+                <h3 class="slds-section__title slds-theme_shade slds-m-top_small">
+                    <span class="slds-truncate slds-p-horizontal_small">Leasing Information</span>
+                </h3>
+                <!--slds-form_horizontal-->
+                <div class="slds-section__content" style="width:100%;">
+                    <lightning:select required="true" aura:id="Projects" value="{!v.selectedProject}" label="Project" onchange="{!c.handleProjectOnChange}">
+                        <option value="">--None--</option>
+                        <aura:iteration items="{!v.ProjectsMap}" var="typ" indexVar="key">
+                            <option text="{!typ.value}" value="{!typ.key}" />
+                        </aura:iteration>
+                    </lightning:select> 
+                </div>
+                <div class="slds-section__content " style="width:100%;">
+                   
+                    <lightning:inputField aura:id="myInputField" fieldName="Leasing_Type__c" required="true" value="{!v.leasingType}"/>
+                    
+                </div>
+                <div class="slds-section__content " style="width:100%;">
+                    <lightning:inputField aura:id="myInputField" fieldName="Lease_Start_Date__c" required="true" value="{!v.startdate}"/>
+                    
+                </div>
+            </div>
+            
+            
+            
+            <div class=" slds-m-around_medium">
+                <lightning:button variant="brand" label="Book" type="submit" />
+            </div>
+        </lightning:recordEditForm>
+    </lightning:card>
+    
+    
+</aura:component>

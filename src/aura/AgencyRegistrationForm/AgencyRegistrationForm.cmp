@@ -1,0 +1,1333 @@
+<aura:component implements="flexipage:availableForAllPageTypes,force:appHostable,force:hasRecordId,forceCommunity:availableForAllPageTypes,lightning:actionOverride" 
+                controller="AgencyRegistrationFormController" access="global" >
+    
+    <aura:handler name="init" value="{!this }" action="{!c.doInit }"/>
+    
+    <aura:attribute name="lstOfRecordType" type="String[]" />
+    
+    <!--Attributes-->
+    <aura:attribute name="reloadForm" type="boolean" default="true" />
+    <aura:attribute name="agentsDetailSection" type="boolean" default="true" />
+    <aura:attribute name="agencyDocumentUploadSection" type="boolean" default="false" />
+    <aura:attribute name="bankDetailSection" type="boolean" default="false" />
+    <aura:attribute name="additionalDetailSection" type="boolean" default="false" />
+    <aura:attribute name="greetingPage" type="boolean" default="false" />
+    <aura:attribute name="existingRegistraionRecord" type="boolean" default="false" />
+    <aura:attribute name="isBrokerProprietorRecordsCreated" type="boolean" default="false" />
+    <aura:attribute name="isBrokerAuthAgentRecordsCreated" type="boolean" default="false" />
+    <aura:attribute name="isBrokerRepresentativeRecordsCreated" type="boolean" default="false" />
+    <aura:attribute name="showModelBrokerPartners" type="boolean" default="false"/>
+    <aura:attribute name="showModelAuthAgent" type="boolean" default="false"/>
+    <aura:attribute name="showModelRepresentativeAgent" type="boolean" default="false"/>
+    <aura:attribute name="showModelAdditionalContacts" type="boolean" default="false"/>
+    <aura:attribute name="disabledEmirateField" type="boolean" default="true"/>
+    <aura:attribute name="disableFields" type="boolean" default="false"/>
+    <aura:attribute name="ornRequired" type="boolean" default="false"/>
+    <aura:attribute name="tradeNumberWithSpace" type="boolean" default="false"/>
+    
+    
+    <aura:attribute name="agencyRecordId" type="String" />
+    <aura:attribute name="RecTypeID" type="String"/>
+    <aura:attribute name="parentId" type="String" />
+    <aura:attribute name="agencyName" type="String" />
+    <aura:attribute name="brokerAgentName" type="String" />
+    <aura:attribute name="agencyApprovalStatus" type="String" />
+    <aura:attribute name="refNumber" type="String" />
+    <aura:attribute name="newBrokerProp" type="Broker_Proprietor__c[]" />
+    
+    <aura:attribute name="agencyRegistration" type="Broker__c" access="global" default="{ 'sobjectType': 'Broker__c'}" />
+    <aura:attribute name="brokerProprietorsList" type="List" />
+    <aura:attribute name="brokerAgentAuthList" type="List" />
+    <aura:attribute name="brokerAgentRepresentativeList" type="List" />
+    <aura:attribute name="brokerAgentContactsList" type="List" />
+    <aura:attribute name="agencyTypeMap" type="Map"/>
+    <aura:attribute name="agencyLocationMap" type="Map"/>
+    <aura:attribute name="bankNameMap" type="Map"/>
+    <aura:attribute name="agencyCountryCodeMap" type="Map"/>
+    <aura:attribute name="countryMap" type="Map"/>
+    <aura:attribute name="agencyBankAccountCurrencyMap" type="Map"/>
+    <aura:attribute name="countryCodeMap" type="Map"/>
+    <aura:attribute name="nationalityMap" type="Map"/>
+    <aura:attribute name="brokerAccessMap" type="Map"/>
+    <aura:attribute name="placeOfIncorporationMap" type="Map"/>
+    <aura:attribute name="emirateMap" type="Map"/>
+    <aura:attribute name="agreementStatusMap" type="Map"/>
+    <aura:attribute name = 'emirateRequired' type= "boolean" default="false"/>
+    <aura:attribute name = 'cityRequired' type= "boolean" default="false"/>
+    
+    <aura:attribute name="agencyAccount" type="Account"  />
+    
+    
+    <!--File upload validation--><!--Added by Mamta-->
+    <aura:attribute name="IsallrequiredFilesUploaded" type="boolean" default="true"/>
+    <aura:attribute name="authorizeSignatoryFileUpload" type="List" />
+    <aura:attribute name="representativesFileUpload" type="List" />
+    <aura:attribute name="additionalContactsFileUpload" type="List" />
+    <!--File upload validation-->
+    
+    
+    
+    <aura:attribute name="issueIBANValidationError" type="boolean" default="false"/><!--IBAN validation 24 length,Mamta-->
+    <aura:attribute name="tradeLicenseValidationError" type="boolean" default="false"/>
+    <aura:attribute name="emailValidationError" type="boolean" default="false"/>
+    <aura:attribute name="phoneValidationError" type="boolean" default="false"/>
+    
+    
+    <!-- Attributes for save as Draft-->
+    <aura:attribute name="saveFirstPgasDraft" type="boolean" default="false"/>
+    <aura:attribute name="saveSecondPgasDraft" type="boolean" default="false"/>
+    <aura:attribute name="saveThirdPgasDraft" type="boolean" default="false"/>
+    <aura:attribute name="savePageAsDraft" type="boolean" default="false"/>
+    
+    <aura:attribute name="idDOCMap" type="Map"  default="{}"/>
+    
+    <aura:attribute name="UploadType" type="String"/>
+    <aura:attribute name="disableBtn" type="boolean" default="false"/>
+    
+    
+    <!--aura handler with waiting and donewaiting events--><!--Added By Mamta 30 sep-->
+    <!-- <aura:handler event="aura:waiting" action="{!c.showSpinner}"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/>-->
+    <aura:attribute name="spinner" type="boolean" default="FALSE"/>
+       
+  
+    
+    <!-- Document Upload -->
+    <aura:attribute name="BrokerAgents" type="List" />
+    
+    
+    <!--Component-->
+    <div class=""> 
+        <!--loading spinner start-->
+        <aura:if isTrue="{!v.spinner}">
+            <div aura:id="spinnerId" class="slds-spinner_container">
+                <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                    <span class="slds-assistive-text">Loading...</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+            </div>
+        </aura:if>
+        
+        <!-- Loading spinner end-->   
+        <lightning:card title="Broker" iconName="standard:form" class="">
+            <div class="wrapper">
+                <ul class="steps">
+                    <li aura:id="myDiv" class="{! v.agentsDetailSection ? 'active' : '' }">
+                        <a href="#">
+                            <h3>Fill in your agency details</h3>
+                        </a>
+                    </li>
+                    <li aura:id="myDiv" class="{! v.agencyDocumentUploadSection ? 'active' : '' }">
+                        <a href="#">
+                            <h3>Upload all the necessary documents</h3>
+                        </a>
+                    </li>
+                    <li aura:id="myDiv" class="{! v.additionalDetailSection ? 'active' : '' }">
+                        <a href="#">
+                            <h3>Add agents/contacts</h3>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <br/>
+            <aura:if isTrue="{!v.agentsDetailSection}">
+                <div class="agentsDetailSection">
+                    <aura:if isTrue="{! or(v.existingRegistraionRecord, v.agencyApprovalStatus == 'Approved')}">
+                        <div class="slds-modal__content" style="padding-top: 0px;">
+                            <div class="slds-form_horizontal slds-form slds-grid slds-wrap">
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12 slds-p-around_small ">
+                                    <aura:if isTrue="{!v.existingRegistraionRecord}">
+                                        <lightning:input name="" label="Application Status" type="text" maxlength="50" value="{!v.agencyApprovalStatus}" aura:id="brokerPropName" disabled="true"/>
+                                    </aura:if>
+                                    <aura:if isTrue="{!v.agencyApprovalStatus == 'Approved'}">
+                                        <div class="slds-text-color_error slds-p-center_x-small">
+                                            Please note application is already approved, you can't perform any updates on this form.
+                                        </div>
+                                    </aura:if>
+                                    
+                                </div>
+                                
+                                
+                                <!--  <div class="slds-col slds-size_1-of-2 slds-p-around_medium">
+                                    <aura:if isTrue="{!v.agencyAccount.Agreement_Status__c!=null}">
+                                        <lightning:select label="Agreement Status" value="{!v.agencyAccount.Agreement_Status__c}" aura:id="" required="" disabled="true">
+                                            <aura:iteration items="{!v.agreementStatusMap}" var="item" indexVar="index">
+                                                <option text="{!item.value}" value="{!item.key}"  ></option>
+                                            </aura:iteration>
+                                        </lightning:select>                                
+                                    </aura:if>
+                                    
+                                </div>-->
+                                
+                                
+                                
+                            </div>  
+                        </div>  
+                    </aura:if>
+                    
+                    
+                    <!-- Agency Details -->
+                    
+                    <div class="slds-modal__content" >
+                        
+                        
+                        <div class="slds-form_horizontal slds-form slds-grid slds-wrap">
+                            <div class="slds-col  slds-size_1-of-1  slds-col-section">
+                                
+                                <div class="slds-section slds-is-open">
+                                    <h3 class="slds-section__title slds-theme_shade">
+                                        <span class="slds-truncate slds-p-horizontal_small" title="Section Title">Agency Details</span>
+                                    </h3>
+                                </div>
+                                <div class="agencyDetails ">
+                                    <div class="slds-grid slds-wrap">
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                            <lightning:input  name="" label="Company Name" type="text" maxlength="50" value="{!v.agencyRegistration.Company_Name__c}" aura:id="agencyInfo" required="true" disabled="{!v.disableFields}"/>  
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                            <lightning:input name="" label="Trade Licence Number" pattern="[a-zA-z0-9]+" type="text" maxlength="50" value="{!v.agencyRegistration.Trade_Licence_Number__c}" aura:id="agencyInfo" required="true" onchange="{!c.tradeLicenseNumberFieldChange}" disabled="{!v.disableFields}"/>
+                                            <aura:if isTrue="{!v.tradeLicenseValidationError}">
+                                                <div class="slds-text-color_error slds-p-left_x-small">
+                                                    Trade License number should be unique
+                                                </div>
+                                            </aura:if>
+                                        </div>
+                                        
+                                        
+                                        
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12 ">
+                                            <lightning:select label="Country" value="{!v.agencyRegistration.Place_of_Incorporation__c}" aura:id="agencyInfo" required="true" onchange="{!c.emirateFieldChange}" disabled="{!v.disableFields}">
+                                                <option value="">--None--</option>
+                                                <aura:iteration items="{!v.placeOfIncorporationMap}" var="item" indexVar="index">
+                                                    <option text="{!item.value}" value="{!item.key}" selected="{!item.key==v.agencyRegistration.Place_of_Incorporation__c}" ></option>
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </div>
+                                        <aura:if isTrue="{!!v.disabledEmirateField}">
+                                            <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                                <lightning:select label="Emirate" value="{!v.agencyRegistration.Emirate__c}" aura:id="agencyInfo" disabled="{!v.disableFields}" onchange="{!c.ornNumberRequired}" required="{!v.emirateRequired}">
+                                                    <option value="">--None--</option>
+                                                    <aura:iteration items="{!v.emirateMap}" var="item" indexVar="index">
+                                                        <option text="{!item.value}" value="{!item.key}" selected="{!item.key==v.agencyRegistration.Emirate__c}" ></option>
+                                                    </aura:iteration>
+                                                </lightning:select> 
+                                            </div>
+                                        </aura:if>
+                                        <aura:if isTrue="{!v.disabledEmirateField}">
+                                            <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                                <lightning:input name="" label="City" type="text" maxlength="50" value="{!v.agencyRegistration.City__c}" aura:id="agencyInfo" required="{!v.cityRequired}" disabled="{!v.disableFields}"/>                        
+                                            </div>
+                                        </aura:if>
+                                        
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                            <lightning:input name="" label="Address Line" type="text" maxlength="50" value="{!v.agencyRegistration.Address_Line__c}" aura:id="agencyInfo" required="true" disabled="{!v.disableFields}"/>                        
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                            <lightning:input name="" label="State" type="text" maxlength="50" value="{!v.agencyRegistration.State__c}" aura:id="agencyInfo" disabled="{!v.disableFields}"/>                        
+                                        </div>
+                                        
+                                        
+                                        
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                            <lightning:input name="" label="PO Box Number" type="text" maxlength="15" value="{!v.agencyRegistration.Postal_Code__c}" aura:id="agencyInfo" required="true" disabled="{!v.disableFields}"/>                        
+                                        </div>
+                                        <!-- <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                           <lightning:select label="Agency Location" value="{!v.agencyRegistration.Agency_Location__c}" aura:id="agencyInfo" required="true" disabled="true">
+                                                <option value="">- -None- -</option>
+                                                <aura:iteration items="{!v.agencyLocationMap}" var="item" indexVar="index">
+                                                    <option text="{!item.value}" value="{!item.key}" selected="{!item.key==v.agencyRegistration.Agency_Location__c}" ></option>
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </div> -->
+                                        
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                            <!--<aura:if isTrue="{!v.ornRequired}">--> <!-- commented by waqas, as per hitarth it is not required --> 
+                                            <aura:if isTrue="{!and( v.agencyRegistration.Emirate__c =='Dubai')}">
+                                                <lightning:input name="" title="Required for Dubai" label="Rera ORN" type="text" maxlength="50" value="{!v.agencyRegistration.Rera_Registration_No__c}" aura:id="agencyInfo" required="true" disabled="{!v.disableFields}"/>
+                                                <aura:set attribute="else">
+                                                    <lightning:input name="" title="Required for Dubai" label="Rera ORN" type="text" maxlength="50" value="{!v.agencyRegistration.Rera_Registration_No__c}" aura:id="agencyInfo" required="false" disabled="{!v.disableFields}"/>
+                                                </aura:set>
+                                            </aura:if>
+                                        </div>
+                                        
+                                        
+                                        <!-- <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                            <lightning:select label="Agency Type" value="{!v.agencyRegistration.Agency_Type__c}" aura:id="agencyInfo" required="true" disabled="{!v.disableFields}">
+                                                <aura:iteration items="{!v.agencyTypeMap}" var="item" indexVar="index">
+                                                    <option text="{!item.value}" value="{!item.key}" selected="{!item.key==v.agencyRegistration.Agency_Type__c}" ></option>
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </div> -->
+                                        
+                                        <!--<div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                            <lightning:input name="" label="Email" type="text" maxlength="50" value="{!v.agencyRegistration.Email_Address__c}" aura:id="agencyInfo" required="true"/>
+                                        </div>-->
+                                        
+                                        <!--<div class="slds-col slds-size_1-of-2">
+                                                <lightning:input name="" label="TRN Number" type="text" maxlength="50" value="{!v.agencyRegistration.TRN_No__c}" aura:id="agencyInfo" required="true"/>                                            
+                                        </div>-->
+                                        
+                                        
+                                        
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                            <lightning:select label="Country Code" value="{!v.agencyRegistration.Mobile_Country_Code__c}" aura:id="agencyInfo"  required="true" disabled="{!v.disableFields}">
+                                                <option value="">--None--</option>
+                                                <aura:iteration items="{!v.agencyCountryCodeMap}" var="item" indexVar="index">
+                                                    <option text="{!item.value}" value="{!item.key}" selected="{!item.key==v.agencyRegistration.Mobile_Country_Code__c}" ></option>
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                            <lightning:input label="Mobile No." name="" type="text" maxlength="50" value="{!v.agencyRegistration.Mobile__c}" aura:id="agencyInfo"  
+                                                             required="true" disabled="{!v.disableFields}"
+                                                             onchange="{!c.mobileFieldChange}"
+                                                             />
+                                            <aura:if isTrue="{!v.phoneValidationError}">
+                                                <div class="slds-text-color_error slds-p-left_x-small">
+                                                    Mobile number should be numeric
+                                                </div>
+                                            </aura:if>
+                                            
+                                            
+                                        </div>
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                            <lightning:input name="" title="Official Email for Agency" label="Agency Email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" type="text" maxlength="50" value="{!v.agencyRegistration.Email_Address__c}" aura:id="agencyInfo" required="true" onchange="{!c.emailFieldChange}" disabled="{!v.disableFields}"/>
+                                            <aura:if isTrue="{!v.emailValidationError}">
+                                                <div class="slds-text-color_error slds-p-left_x-small">
+                                                    Email should be unique
+                                                </div>
+                                            </aura:if>
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+                                
+                                
+                                <div class="slds-col  slds-size_1-of-1 slds-col-section">
+                                    
+                                    <div class="slds-section slds-is-open">
+                                        <h3 class="slds-section__title slds-theme_shade">
+                                            <span class="slds-truncate slds-p-horizontal_small" title="Section Title">Bank Account Details (for payment transfers)</span>
+                                        </h3>
+                                    </div>
+                                    
+                                    <div class="bankDetails">
+                                        <div class="slds-grid slds-wrap">
+                                            <div class="slds-col  slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                                <lightning:input name="" label="Account Name" type="text" maxlength="50" value="{!v.agencyRegistration.Bank_Account_Name__c}" aura:id="agencyInfo"  required="true" disabled="{!v.disableFields}"/>                        
+                                            </div>
+                                            <div class="slds-col  slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                                <lightning:select label="Bank Name" value="{!v.agencyRegistration.Bank_Name__c}" aura:id="agencyInfo" required="true" disabled="{!v.disableFields}">
+                                                    <option value="">--None--</option>
+                                                    <aura:iteration items="{!v.bankNameMap}" var="item" indexVar="index">
+                                                        <option text="{!item.value}" value="{!item.key}" selected="{!item.key==v.agencyRegistration.Bank_Name__c}" ></option>
+                                                    </aura:iteration>
+                                                </lightning:select>
+                                            </div>
+                                            
+                                            
+                                            
+                                            <!-- <div class="slds-col  slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                            <aura:if isTrue="{!v.agencyRegistration.Bank_Name__c=='OTHERS'}">
+                                            <lightning:input name="" label="Other Bank Name" type="text" maxlength="50" value="{!v.agencyRegistration.Other_Bank_Name__c}" aura:id="agencyInfo"  required="true" disabled="{!v.disableFields}"/>
+                                            </aura:if>
+                                            
+                                            <aura:if isTrue="{!v.agencyRegistration.Bank_Name__c!='OTHERS'}">
+                                            <lightning:input name="" label="Other Bank Name" type="text" maxlength="50" value="{!v.agencyRegistration.Other_Bank_Name__c}" aura:id="agencyInfo"  required="" disabled="{!v.disableFields}"/>
+                                            </aura:if>
+                                        </div> -->
+                                            <div class="slds-col  slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                                <lightning:input name="" label="SWIFT Code" type="text" maxlength="50" value="{!v.agencyRegistration.Bank_SWIFT_Code__c}" aura:id="agencyInfo"  required="" disabled="{!v.disableFields}"/>
+                                            </div>
+                                            
+                                            
+                                            
+                                            
+                                            <div class="slds-col  slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                                <lightning:input name="" label="Account Number" type="text" maxlength="50" value="{!v.agencyRegistration.Account_Number__c}" aura:id="agencyInfo"  required="true" disabled="{!v.disableFields}"/>     <!--Bank_Account__c-->                   
+                                            </div>
+                                            
+                                            
+                                            <!--<div class="slds-col slds-size_1-of-2">
+                                            <lightning:input name="" label="Bank Address" type="text" maxlength="50" value="{!v.agencyRegistration.Bank_Address__c}" aura:id="agencyInfo"  required="true"/>
+                                        </div>-->
+                                            
+                                            
+                                            
+                                            <div class="slds-col  slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                                <lightning:input name="" label="Branch Name" type="text" maxlength="50" value="{!v.agencyRegistration.Bank_Branch__c}" aura:id="agencyInfo"  required="true" disabled="{!v.disableFields}"/>                        
+                                            </div>
+                                            <div class="slds-col  slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                                <lightning:input name="" label="Address" type="text" maxlength="350" value="{!v.agencyRegistration.Bank_Address__c}" aura:id="agencyInfo"  required="true" disabled="{!v.disableFields}"/>
+                                            </div>
+                                            <div class="slds-col  slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                                
+                                                <lightning:input name="" label="IBAN Number" type="text" minlength="16" maxlength="32" value="{!v.agencyRegistration.Bank_IBAN_Number__c}" aura:id="agencyInfo" required="true" onchange="{!c.IBANNumberFieldChange}" disabled="{!v.disableFields}"/>                        
+                                                
+                                                
+                                                <aura:if isTrue="{!v.issueIBANValidationError}">
+                                                    <div class="slds-text-color_error slds-p-left_x-small">
+                                                        IBAN should be in between 16 to 32 characters.
+                                                    </div>
+                                                </aura:if>
+                                                
+                                            </div><lightning:helptext content="IBAN should be in between 16 to 32 characters" class="popover"/>
+                                            
+                                        </div>
+                                        
+                                        
+                                        <div class="slds-grid">
+                                            <!-- Save as Draft- Added by Mamta-->                
+                                            
+                                            <!-- Save as Draft- Added by Mamta-->                
+                                            
+                                            <div class="slds-col slds-size_2-of-2 ">
+                                                <!--<div  style="margin-left:10px;">
+                            <lightning:button variant="neutral" type="" name="Next" label="Save as Draft" onclick="{!c.saveFirstPageAsDraft}" class="slds-float_right next btn btn-pill "/>
+                           </div>-->
+                                                <div>
+                                                    <lightning:button variant="brand"   disabled= "{!v.disableBtn}" type="" name="Next" label="Save &amp; Next" onclick="{!c.goToDocumentUpload}" class="slds-float_right next btn btn-pill"/>
+                                                    <span class ="slds-button slds-button_brand slds-float_right next"   disabled= "{!v.disableBtn}" style= "right: 10px;"><lightning:button variant="brand" type="" name="Save Draft" label="Save Draft" onclick="{!c.saveFirstPageAsDraft}" class="slds-float_right next"/></span>
+                                                    
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+                                
+                                
+                            </div>
+                            
+                            
+                            
+                        </div>
+                        
+                        <!-- Agency Details -->
+                        
+                        
+                    </div>
+                </div>
+            </aura:if>
+            
+            <aura:if isTrue="{! and(v.agencyDocumentUploadSection, v.agencyRecordId != null,v.savePageAsDraft==false)}">
+                <br/>
+                
+                <div class="docUpload">
+                    <aura:if isTrue="{! or(v.existingRegistraionRecord, v.agencyApprovalStatus == 'Approved')}">
+                        <div class="slds-modal__content" style="padding-top: 0px;">
+                            <div class="slds-form_horizontal slds-form slds-grid slds-wrap">
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12 slds-p-around_small ">
+                                    <aura:if isTrue="{!v.existingRegistraionRecord}">
+                                        <lightning:input name="" label="Application Status" type="text" maxlength="50" value="{!v.agencyApprovalStatus}" aura:id="brokerPropName" disabled="true"/>
+                                    </aura:if>
+                                    <aura:if isTrue="{!v.agencyApprovalStatus == 'Approved'}">
+                                        <div class="slds-text-color_error slds-p-center_x-small">
+                                            Please note application is already approved, you can't perform any updates on this form.
+                                        </div>
+                                    </aura:if>
+                                    
+                                </div>
+                            </div>  
+                        </div>  
+                    </aura:if>
+                    <c:CW_BrokerPortalFileUpload recordId="{!v.agencyRecordId}" IsallrequiredFilesUploaded="{!v.IsallrequiredFilesUploaded}"></c:CW_BrokerPortalFileUpload>
+                </div>
+                
+                <div class="slds-grid">
+                    <div class="slds-col slds-size_3-of-3 slds-p-around_medium">
+                        
+                        
+                        <span class ="slds-button slds-button_brand slds-float_right next"  disabled= "{!v.disableBtn}" style= "right: 8px;"><lightning:button variant="brand" type="" name="Next" label="Next" onclick="{!c.goToadditionalDetails}" class="slds-float_right next"/>
+                        </span>
+                        
+                        
+                        <span class ="slds-button slds-button_brand slds-float_right next" style= "right: 14px;"><lightning:button variant="brand" type="" name="Back" label="Back" onclick="{!c.goToBack}" class="slds-float_right next"/></span>
+                        <!--Added By mamta- Save as draft -->                   
+                        <span class ="slds-button slds-button_brand slds-float_right next"  disabled= "{!v.disableBtn}" style= "right: 16px;"><lightning:button variant="brand" type="" name="Save Draft" label="Save Draft" onclick="{!c.saveSecondPageAsDraft}" class="slds-float_right next"/></span>
+                        
+                    </div>
+                </div>
+                
+            </aura:if>
+            
+            <aura:if isTrue="{!v.additionalDetailSection}">
+                
+                <!--loading spinner start-->
+                
+                <br/>
+                <div class="slds-form_horizontal slds-form slds-grid slds-wrap">
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12 slds-p-around_small ">
+                        <aura:if isTrue="{!v.existingRegistraionRecord}">
+                            <lightning:input name="" label="Application Status" type="text" maxlength="50" value="{!v.agencyApprovalStatus}" aura:id="brokerPropName" disabled="true"/>
+                        </aura:if>
+                        <aura:if isTrue="{!v.agencyApprovalStatus == 'Approved'}">
+                            <div class="slds-text-color_error slds-p-center_x-small">
+                                Please note application is already approved, you can't perform any updates on this form.
+                            </div>
+                        </aura:if>
+                        
+                    </div>                    
+                </div>  
+                
+                <!-- Broker Proprietor -->
+                <div class="docList" style="border:none;">
+                    <p >*Please Add Company Shareholders/Partner</p>
+                </div>
+                
+                <div class="slds-tabs_card" style="margin-bottom:3%;">
+                    <h3 class="slds-section-title--divider" style="width:100%;">
+                        <lightning:icon iconName="standard:user" alternativeText="Event" title="Event" size="small" class="icon"/>&nbsp;&nbsp; Company Shareholders/Partners <!--Broker Proprietor/Partners-->
+                        <span>
+                            <div class="slds-float_right slds-p-bottom_small slds-p-top_small" style="padding:0;margin-top: -5px;">
+                                <lightning:button variant="brand" label="Add +" onclick="{!c.addBrokerProprietorDetailsRow}" class="addRowButton"/>
+                                <!--Added by Mamta--> <lightning:button variant="brand" label="Save" onclick="{!c.saveBrokerPartners}"  disabled= "{!v.disableBtn}" class="addRowButton"/>
+                                
+                            </div>
+                        </span>
+                    </h3>
+                    <div class="section-content">
+                        <div class="slds-form-element">
+                            
+                            
+                            
+                            
+                            <table class="slds-table slds-table_bordered slds-table_cell-buffer"> 
+                                <thead>
+                                    <tr class="slds-text-title_caps">
+                                        <th scope="col" style="width:3%;">
+                                            <div class="slds-truncate">#</div>
+                                        </th>
+                                        <th scope="col" style="width:19%;">
+                                            <div class="slds-truncate" title="Name">Name of Shareholder(s) / Partner(s) / Shareholder(s)</div>
+                                        </th>
+                                        
+                                        <th scope="col" style="width:14%;">
+                                            <div class="slds-truncate" title="Nationality">Nationality</div>
+                                        </th>
+
+                                        <th scope="col" style="width:14%;">
+                                            <div class="slds-truncate" title="Gender">Passport No.</div>
+                                        </th>
+                                        <aura:if isTrue="{!v.agencyRegistration.Place_of_Incorporation__c =='AE'}">
+                                            <th scope="col" style="width:14%;">
+                                                <div class="slds-truncate" title="Please enter 15 digit Emiraes Id">Emirates ID</div>
+                                            </th>
+                                        </aura:if>     
+                                        <th scope="col" style="width:20%;">
+                                            <div class="slds-truncate" title="Date of Birth">Shareholding Percentage</div>
+                                        </th>
+                                        <th scope="col" style="width:10%;">
+                                            <div class="slds-truncate" style="white-space: normal;" title="Action">Document Upload Status</div>
+                                        </th>
+                                        <th scope="col" style="width:8%;">
+                                            <div class="slds-truncate" title="Action">Action</div>
+                                        </th>
+                                    </tr>
+                                </thead>   
+                                <tbody>      
+                                    <aura:iteration items="{!v.brokerProprietorsList}" var="brokerProp" indexVar="index">
+                                        <tr>
+                                            <td> 
+                                                {!index + 1}
+                                            </td>
+                                            <td>
+                                                <lightning:input name="" type="text" maxlength="30" value="{!brokerProp.Name}"  aura:id="myinput" variant="label-hidden" required="true"/>
+                                            </td>
+                                            <td>
+                                                <lightning:select value="{!brokerProp.Nationality__c}" aura:id="myinput"  variant="label-hidden" class="label-hidden">
+                                                    <option value="">--None--</option>
+                                                    <aura:iteration items="{!v.nationalityMap}" var="item" indexVar="index">
+                                                        <option text="{!item.value}" value="{!item.key}" selected="{!item.key==brokerProp.Nationality__c}" ></option>
+                                                    </aura:iteration>
+                                                </lightning:select>
+                                            </td>
+                                            <td>
+                                                <lightning:input name="Age" type="text" maxlength="50" value="{!brokerProp.Shareholder_Passport_No__c}"   aura:id="myinput" variant="label-hidden" required="true"/>
+                                            </td>
+                                            <aura:if isTrue="{!v.agencyRegistration.Place_of_Incorporation__c =='AE'}">
+                                                
+                                                <td style="white-space: break-spaces;" data-id="{!index}">
+                                                    <lightning:input name="" 
+                                                                     type="text" 
+                                                                     minlength="18" 
+                                                                     maxlength="18" 
+                                                                     placeholder="###-####-#######-#" 
+                                                                     pattern="[0-9]{3}-[0-9]{4}-[0-9]{7}-[0-9]{1}" 
+                                                                     messageWhenPatternMismatch="Enter valid Emirates Id." 
+                                                                     value="{!brokerProp.Emirates_Id__c}"  
+                                                                     aura:id="myinput" 
+                                                                     variant="label-hidden" 
+                                                                     required="true" 
+                                                                     onchange="{!c.handleEmiratesIdChange}" />
+                                                </td>
+                                            </aura:if>
+                                            
+                                            <td>
+                                                <lightning:input name="childSchoolUniversity" type="text" maxlength="50" value="{!brokerProp.Shareholder_Percentage__c }"  aura:id="myinput" variant="label-hidden" required="true"/>
+                                            </td>
+                                            <td class="{!(brokerProp.DocUploadStatus == 'Pending') ? 'red-text-css' : 'green-text-css'}">
+                                                {!brokerProp.DocUploadStatus}
+                                            </td>
+                                            <td>
+                                                <aura:if isTrue="{!!v.disableFields}">
+                                                    <a onclick="{!c.removeBrokerProprietorDetailsRow}" title="Click to delete Shareholder" data-record="{!index}">
+                                                        <lightning:icon iconName="utility:delete" size="small" alternativeText="Delete"/>
+                                                        <span class="slds-assistive-text">Delete</span>
+                                                    </a>
+                                                </aura:if>
+                                                <aura:if isTrue="{!brokerProp.Id != null}">
+                                                    <a onclick="{!c.showModelBrokerPartners}" title="Click to Upload Documents" data-record="{!index}">
+                                                        <lightning:icon iconName="utility:attach" size="small" alternativeText="Upload Document"/>
+                                                        <span class="slds-assistive-text">Upload Document</span>
+                                                    </a>
+                                                </aura:if>
+                                            </td>
+                                            
+                                        </tr>
+                                    </aura:iteration>
+                                </tbody>
+                            </table>
+                            
+                            
+                            
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Broker Proprietor -->
+                
+                <!-- Broker Agent Authorised Signatories -->
+                <div class="docList" style="border:none;">
+                    <p >*Please Add Authorised Signatory</p>
+                </div>
+                
+                <div class="slds-tabs_card" style="margin-bottom:3%;">
+                    <h3 class="slds-section-title--divider" style="width:100%;">
+                        <lightning:icon iconName="standard:user" alternativeText="Event" title="Event" size="small" class="icon"/>&nbsp;&nbsp; Company Authorised Signatories
+                        <span>
+                            <div class="slds-float_right slds-p-bottom_small slds-p-top_small" style="padding:0;margin-top: -5px;">
+                                <lightning:button variant="brand" label="Add +" onclick="{!c.addBrokerAgentAuthDetailsRow}" class="addRowButton"/>
+                                <lightning:button variant="brand" label="Save" onclick="{!c.saveAuthAgent}" disabled= "{!v.disableBtn}" class="addRowButton"/>
+                            </div>
+                        </span>
+                    </h3>
+                    <div class="section-content">
+                        <div class="slds-form-element">
+                            
+                            
+                            
+                            <table class="slds-table slds-table_bordered slds-table_cell-buffer"> 
+                                <thead>
+                                    <tr class="slds-text-title_caps">
+                                        <th scope="col" style="width:3%;">
+                                            <div class="slds-truncate">#</div>
+                                        </th>
+                                        <th scope="col" style="width:15%;">
+                                            <div class="slds-truncate" title="Name">First Name</div>
+                                        </th>
+                                        <th scope="col" style="width:15%;">
+                                            <div class="slds-truncate" title="Gender">Last Name</div>
+                                        </th>
+                                        <th scope="col" style="width:13%;">
+                                            <div class="slds-truncate" title="Date of Birth">Designation</div>
+                                        </th>
+                                        <th scope="col" style="width:12%;">
+                                            <div class="slds-truncate" title="Nationality">Nationality</div>
+                                        </th>
+                                        <th scope="col" style="width:13%;">
+                                            <div class="slds-truncate" title="Date of Birth">Country Code</div>
+                                        </th>
+                                        <th scope="col" style="width:13%;">
+                                            <div class="slds-truncate" title="Date of Birth">Mobile</div>
+                                        </th>
+                                        <th scope="col" style="width:20%;">
+                                            <div class="slds-truncate" title="Date of Birth">Email</div>
+                                        </th>
+                                        <th scope="col" style="width:10%;">
+                                            <div class="slds-truncate" style="white-space: normal;" title="Action">Document Upload Status</div>
+                                        </th>
+                                        <th scope="col" style="width:8%;">
+                                            <div class="slds-truncate" title="Action">Action</div>
+                                        </th>
+                                        
+                                    </tr>
+                                </thead>   
+                                <tbody>      
+                                    <aura:iteration items="{!v.brokerAgentAuthList}" var="brokerAgentAuth" indexVar="index">
+                                        <tr>
+                                            <td> 
+                                                {!index + 1}
+                                            </td>
+                                            <td>
+                                                <lightning:input name="" type="text" maxlength="15" value="{!brokerAgentAuth.First_Name__c}"  aura:id="myinput" required="true" variant="label-hidden"/>
+                                            </td>
+                                            <td>
+                                                <lightning:input name="" type="text" maxlength="15" value="{!brokerAgentAuth.Last_Name__c}"  aura:id="myinput" required="true" variant="label-hidden"/>
+                                            </td>
+                                            <td>
+                                                <lightning:input name="" type="text" maxlength="50" value="{!brokerAgentAuth.Designation__c}"  aura:id="myinput" required="true" variant="label-hidden"/>
+                                            </td>
+                                            <td>
+                                                <lightning:select value="{!brokerAgentAuth.Nationality__c}" aura:id="myinput"  variant="label-hidden" class="label-hidden">
+                                                    <option value="">--None--</option>
+                                                    <aura:iteration items="{!v.nationalityMap}" var="item" indexVar="index">
+                                                        <option text="{!item.value}" value="{!item.key}" selected="{!item.key==brokerAgentAuth.Nationality__c}" ></option>
+                                                    </aura:iteration>
+                                                </lightning:select>
+                                            </td>
+                                            <td>
+                                                <lightning:select value="{!brokerAgentAuth.Country_Code__c}" aura:id="myinput" required="true" variant="label-hidden" class="label-hidden">
+                                                    <option value="">--None--</option>
+                                                    <aura:iteration items="{!v.countryCodeMap}" var="item" indexVar="index">
+                                                        <option text="{!item.value}" value="{!item.key}" selected="{!item.key==brokerAgentAuth.Country_Code__c}" ></option>
+                                                    </aura:iteration>
+                                                </lightning:select>
+                                            </td>
+                                            
+                                            <td>
+                                                
+                                                <lightning:input name="" type="text" maxlength="50" value="{!brokerAgentAuth.Mobile__c}"  aura:id="myinput" 
+                                                                 required="true" variant="label-hidden" pattern="[0-9]*"
+                                                                 messageWhenPatternMismatch="Enter valid Phone no." />
+                                                <!--onchange="{!c.mobileFieldChange}"/>
+                                                        <aura:if isTrue="{!and(v.phoneValidationError==true,brokerAgentAuth.Mobile__c!='')}">
+                                                            <div class="slds-text-color_error slds-p-left_x-small">
+                                                                Input should be numeric
+                                                            </div>
+                                                        </aura:if>-->
+                                                
+                                                
+                                            </td>
+                                            
+                                            <td>
+                                                <lightning:input name="" type="text" maxlength="50" value="{!brokerAgentAuth.Email__c}"  
+                                                                 aura:id="myinput" required="true" variant="label-hidden"
+                                                                 pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                                                                 messageWhenPatternMismatch="Enter valid Email ID"
+                                                                 />
+                                            </td>
+                                            
+                                            <td class="{!(brokerAgentAuth.DocUploadStatus == 'Pending') ? 'red-text-css' : 'green-text-css'}">
+                                                {!brokerAgentAuth.DocUploadStatus}
+                                            </td>
+                                            <td>
+                                                <aura:if isTrue="{!!v.disableFields}">
+                                                    <a onclick="{!c.removeBrokerAgentAuthDetailsRow}" title="Click to delete Signatory" data-record="{!index}">
+                                                        <lightning:icon iconName="utility:delete" size="small" alternativeText="Delete"/>
+                                                        <span class="slds-assistive-text">Delete</span>
+                                                    </a>
+                                                </aura:if>     
+                                                <aura:if isTrue="{!brokerAgentAuth.Id != null}">
+                                                    <a onclick="{!c.showModelAuthAgent}" title="Click to Upload Documents" data-record="{!index}">
+                                                        <lightning:icon iconName="utility:attach" size="small" alternativeText="Upload Document"/>
+                                                        <span class="slds-assistive-text">Upload Document</span>
+                                                    </a>
+                                                </aura:if>
+                                            </td>
+                                            
+                                        </tr>
+                                    </aura:iteration>
+                                </tbody>
+                            </table>
+                            
+                            
+                            
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Broker Agent Authorised Signatories -->
+                
+                <!-- Broker Agent Representative -->
+                
+                <div class="docList" style="border:none;">
+                    <p >*Please Add Broker Agents for Admin Access and Regular Access</p>
+                </div>
+                
+                <div class="docList">
+                    <p>*Admin will have full access of broker portal including financials.</p>
+                    <p>*Sales Manager have limited access of broker portal.</p>
+                </div>
+                
+                <br />
+                
+                <div class="slds-tabs_card" style="margin-bottom:3%;">
+                    <h3 class="slds-section-title--divider" style="width:100%;">
+                        <lightning:icon iconName="standard:user" alternativeText="Event" title="Event" size="small" class="icon"/>&nbsp;&nbsp; Broker Agent Representative
+                        <span>
+                            <div class="slds-float_right slds-p-bottom_small slds-p-top_small" style="padding:0;margin-top: -5px;">
+                                <!--<lightning:button variant="brand" label="Add +" onclick="{!c.addBrokerAgentRepresentativeDetailsRow}" class="addRowButton"/>-->
+                                <lightning:button variant="brand" label="Save" onclick="{!c.saveRepresentativeAgent}" disabled= "{!v.disableBtn}" class="addRowButton"/>
+                            </div>
+                        </span>
+                    </h3>
+                    <div class="section-content">
+                        <div class="slds-form-element">
+                            
+                            <div class="">
+                                
+                                <div class="container-fluid">        
+                                    <table class="slds-table slds-table_bordered slds-table_cell-buffer"> 
+                                        <thead>
+                                            <tr class="slds-text-title_caps">
+                                                <th scope="col" style="width:3%;">
+                                                    <div class="slds-truncate">#</div>
+                                                </th>
+                                                <th scope="col" style="width:14%;">
+                                                    <div class="slds-truncate" title="Name">First Name</div>
+                                                </th>
+                                                <th scope="col" style="width:14%;">
+                                                    <div class="slds-truncate" title="Gender">Last Name</div>
+                                                </th>
+                                                <!--<th scope="col" style="width:15%;">
+                                                    <div class="slds-truncate" title="Date of Birth">Designation</div>
+                                                </th>-->
+                                                <th scope="col" style="width:15%;">
+                                                    <div class="slds-truncate" title="Date of Birth">Country Code</div>
+                                                </th>
+                                                <th scope="col" style="width:15%;">
+                                                    <div class="slds-truncate" title="Date of Birth">Mobile</div>
+                                                </th>
+                                                <th scope="col" style="width:20%;">
+                                                    <div class="slds-truncate" title="Date of Birth">Email</div>
+                                                </th>
+                                                <th scope="col" style="width:15%;">
+                                                    <div class="slds-truncate" title="Date of Birth">Broker Access</div>
+                                                </th>
+                                                <th scope="col" style="width:10%;">
+                                                    <div class="slds-truncate" style="white-space: normal;" title="Action">Document Upload Status</div>
+                                                </th>
+                                                <th scope="col" style="width:10%;">
+                                                    <div class="slds-truncate" title="Action">Action</div>
+                                                </th>
+                                                
+                                            </tr>
+                                        </thead>   
+                                        <tbody>      
+                                            <aura:iteration items="{!v.brokerAgentRepresentativeList}" var="brokerAgentRepresent" indexVar="index">
+                                                <tr>
+                                                    <td> 
+                                                        {!index + 1}
+                                                    </td>
+                                                    <td>
+                                                        <lightning:input name="" type="text" maxlength="15" value="{!brokerAgentRepresent.First_Name__c}"  aura:id="myinput" required="true" variant="label-hidden"/>
+                                                    </td>
+                                                    <td>
+                                                        <lightning:input name="" type="text" maxlength="15" value="{!brokerAgentRepresent.Last_Name__c}"  aura:id="myinput" required="true" variant="label-hidden"/>
+                                                    </td>
+                                                    <!-- <td>
+                                                        <lightning:input name="" type="text" maxlength="50" value="{!brokerAgentRepresent.Designation__c}"  aura:id="myinput" required="true" variant="label-hidden"/>
+                                                    </td>-->
+                                                    <td>
+                                                        <lightning:select value="{!brokerAgentRepresent.Country_Code__c}"  aura:id="myinput" required="true" variant="label-hidden" class="label-hidden">
+                                                            <option value="">--None--</option>
+                                                            <aura:iteration items="{!v.countryCodeMap}" var="item" indexVar="index">
+                                                                <option text="{!item.value}" value="{!item.key}" selected="{!item.key==brokerAgentRepresent.Country_Code__c}" ></option>
+                                                            </aura:iteration>
+                                                        </lightning:select>
+                                                    </td>
+                                                    <td>
+                                                        <lightning:input name="" type="text" maxlength="50" value="{!brokerAgentRepresent.Mobile__c}" 
+                                                                         aura:id="myinput" required="true" variant="label-hidden" pattern="[0-9]*"
+                                                                         messageWhenPatternMismatch="Enter valid Phone no."
+                                                                         />
+                                                        <!--onchange="{!c.mobileFieldChange}"/>
+                                                             
+                                                        <aura:if isTrue="{!v.phoneValidationError}">
+                                                            <div class="slds-text-color_error slds-p-left_x-small">
+                                                                Mobile number should be numeric
+                                                            </div>
+                                                        </aura:if>-->
+                                                        <!--<lightning-formatted-phone maxlength="50" value="{!brokerAgentRepresent.Mobile__c}"  aura:id="myinput" required="true" variant="label-hidden"/>
+                                                    -->
+                                                    </td>
+                                                    <td>
+                                                        <lightning:input name="" type="text"  maxlength="50" value="{!brokerAgentRepresent.Email__c}" 
+                                                                         aura:id="myinput" required="true" variant="label-hidden"
+                                                                         pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                                                                         messageWhenPatternMismatch="Enter valid Email ID"
+                                                                         />
+                                                    </td>
+                                                    <td>
+                                                        <lightning:select value="{!brokerAgentRepresent.Broker_Access_Type__c}"  aura:id="myinput" required="true" variant="label-hidden" disabled="true" class="label-hidden">
+                                                            <aura:iteration items="{!v.brokerAccessMap}" var="item" indexVar="index">
+                                                                <option text="{!item.value}" value="{!item.key}" selected="{!item.key==brokerAgentRepresent.Broker_Access_Type__c}"></option>
+                                                                <!--<aura:if isTrue="{!index==0}">
+                                                                <option text="Admin" value="Admin" selected="Admin" ></option>
+                                                               </aura:if>
+                                                                
+                                                                 <aura:if isTrue="{!index==1}">
+                                                                <option text="Agents" value="Agents" selected="Agents" ></option>
+                                                               </aura:if>-->
+                                                                
+                                                            </aura:iteration>
+                                                        </lightning:select>
+                                                    </td>
+                                                    <td class="{!(brokerAgentRepresent.DocUploadStatus == 'Pending') ? 'red-text-css' : 'green-text-css'}">
+                                                        {!brokerAgentRepresent.DocUploadStatus}
+                                                    </td>
+                                                    <td>
+                                                        <!--<a onclick="{!c.removeBrokerAgentRepresentativeDetailsRow}" data-record="{!index}">
+                                                            <lightning:icon iconName="utility:delete" size="small" alternativeText="Delete"/>
+                                                            <span class="slds-assistive-text">Delete</span>
+                                                        </a>-->
+                                                        <aura:if isTrue="{!brokerAgentRepresent.Id != null}">
+                                                            <a onclick="{!c.showModelRepresentativeAgent}" title="Click to Upload Documents" data-record="{!index}">
+                                                                <lightning:icon iconName="utility:attach" size="small" alternativeText="Upload Document"/>
+                                                                <span class="slds-assistive-text">Upload Document</span>
+                                                            </a>
+                                                        </aura:if>
+                                                    </td>
+                                                    
+                                                </tr>
+                                            </aura:iteration>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Broker Agent Representative -->
+                
+                <!-- Broker Agent Contacts -->
+                
+                <div class="docList" style="border:none;">
+                    <p>*Please Add Contacts</p>
+                </div>
+                
+                <div class="slds-tabs_card" style="margin-bottom:3%;">
+                    <h3 class="slds-section-title--divider" style="width:100%;">
+                        <lightning:icon iconName="standard:user" alternativeText="Event" title="Event" size="small" class="icon"/>&nbsp;&nbsp; Sales executives
+                        <span>
+                            <div class="slds-float_right slds-p-bottom_small slds-p-top_small" style="padding:0;margin-top: -5px;">
+                                <lightning:button variant="brand" label="Add +" onclick="{!c.addBrokerAgentContactsDetailsRow}" class="addRowButton"/>
+                                <lightning:button variant="brand" label="Save" onclick="{!c.saveAdditionalContacts}" disabled= "{!v.disableBtn}" class="addRowButton"/>
+                            </div>
+                        </span>
+                    </h3>
+                    <div class="section-content">
+                        <div class="slds-form-element">
+                            
+                            <div class="">
+                                
+                                <div class="container-fluid">        
+                                    <table class="slds-table slds-table_bordered slds-table_cell-buffer"> 
+                                        <thead>
+                                            <tr class="slds-text-title_caps">
+                                                <th scope="col" style="width:3%;">
+                                                    <div class="slds-truncate">#</div>
+                                                </th>
+                                                <th scope="col" style="width:15%;">
+                                                    <div class="slds-truncate" title="Name">First Name</div>
+                                                </th>
+                                                <th scope="col" style="width:15%;">
+                                                    <div class="slds-truncate" title="Gender">Last Name</div>
+                                                </th>
+                                                <th scope="col" style="width:15%;">
+                                                    <div class="slds-truncate" title="Date of Birth">Designation</div>
+                                                </th>
+                                                <th scope="col" style="width:15%;">
+                                                    <div class="slds-truncate" title="Date of Birth">Country Code</div>
+                                                </th>
+                                                <th scope="col" style="width:15%;">
+                                                    <div class="slds-truncate" title="Date of Birth">Mobile</div>
+                                                </th>
+                                                <th scope="col" style="width:20%;">
+                                                    <div class="slds-truncate" title="Date of Birth">Email</div>
+                                                </th>
+                                                <th scope="col" style="width:10%;">
+                                                    <div class="slds-truncate" style="white-space: normal;" title="Action">Document Upload Status</div>
+                                                </th>
+                                                <th scope="col" style="width:8%;">
+                                                    <div class="slds-truncate" title="Action">Action</div>
+                                                </th>
+                                                
+                                                
+                                            </tr>
+                                        </thead>   
+                                        <tbody>      
+                                            <aura:iteration items="{!v.brokerAgentContactsList}" var="brokerAgentContacts" indexVar="index">
+                                                <tr>
+                                                    <td> 
+                                                        {!index + 1}
+                                                    </td>
+                                                    <td>
+                                                        <lightning:input name="" type="text" maxlength="15" value="{!brokerAgentContacts.First_Name__c}"   required="true" variant="label-hidden"/>
+                                                    </td>
+                                                    <td>
+                                                        <lightning:input name="" type="text" maxlength="15" value="{!brokerAgentContacts.Last_Name__c}"  required="true" variant="label-hidden"/>
+                                                    </td>
+                                                    <td>
+                                                        <lightning:input name="" type="text" maxlength="50" value="{!brokerAgentContacts.Designation__c}"   required="true" variant="label-hidden"/>
+                                                    </td>
+                                                    <td>
+                                                        <lightning:select value="{!brokerAgentContacts.Country_Code__c}"  required="true" variant="label-hidden" class="label-hidden">
+                                                            <option value="">--None--</option>
+                                                            <aura:iteration items="{!v.countryCodeMap}" var="item" indexVar="index">
+                                                                <option text="{!item.value}" value="{!item.key}" selected="{!item.key==brokerAgentContacts.Country_Code__c}" ></option>
+                                                            </aura:iteration>
+                                                        </lightning:select>
+                                                    </td>
+                                                    <td>
+                                                        <lightning:input name="" type="text" maxlength="50" value="{!brokerAgentContacts.Mobile__c}"   
+                                                                         required="true" variant="label-hidden" pattern="[0-9]*"
+                                                                         messageWhenPatternMismatch="Enter valid Phone no."/>
+                                                        <!--  onchange="{!c.mobileFieldChange}"/>
+                                                             
+                                                        <aura:if isTrue="{!v.phoneValidationError}">
+                                                            <div class="slds-text-color_error slds-p-left_x-small">
+                                                                Mobile number should be numeric
+                                                            </div>
+                                                        </aura:if>-->
+                                                        
+                                                        
+                                                    </td>
+                                                    <td>
+                                                        <lightning:input name="" type="text" maxlength="50" value="{!brokerAgentContacts.Email__c}"   
+                                                                         required="true" variant="label-hidden"
+                                                                         pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                                                                         messageWhenPatternMismatch="Enter valid Email ID"
+                                                                         />
+                                                    </td>
+                                                    <td class="{!(brokerAgentContacts.DocUploadStatus == 'Pending') ? 'red-text-css' : 'green-text-css'}">
+                                                        {!brokerAgentContacts.DocUploadStatus}
+                                                    </td>
+                                                    <td>
+                                                        <aura:if isTrue="{!!v.disableFields}">
+                                                            <a onclick="{!c.removeBrokerAgentContactsDetailsRow}"  title="Click to delete Sales Executive" data-record="{!index}">
+                                                                <lightning:icon iconName="utility:delete" size="small" alternativeText="Delete"/>
+                                                                <span class="slds-assistive-text">Delete</span>
+                                                            </a>
+                                                        </aura:if>    
+                                                        <aura:if isTrue="{!brokerAgentContacts.Id != null}">
+                                                            <a onclick="{!c.showModelAdditionalContacts}" title="Click to Upload Documents" data-record="{!index}">
+                                                                <lightning:icon iconName="utility:attach" size="small" alternativeText="Upload Document"/>
+                                                                <span class="slds-assistive-text">Upload Document</span>
+                                                            </a>
+                                                        </aura:if>
+                                                    </td>
+                                                    <td>
+                                                        <!--<lightning:select value="Pending"  variant="label-hidden" class="label-hidden">
+                                                            <option value=""></option>
+                                                            <aura:iteration items="{!v.countryCodeMap}" var="item" indexVar="index">
+                                                                <option text="{!item.value}" value="{!item.key}" selected="{!item.key==brokerAgentContacts.Country_Code__c}" ></option>
+                                                            </aura:iteration>
+                                                        </lightning:select>-->
+                                                    </td>
+                                                </tr>
+                                            </aura:iteration>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+                
+                <aura:if isTrue="{!v.showModelBrokerPartners}">
+                    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" 
+                             aria-modal="true" aria-describedby="modal-content-id-1" 
+                             class="slds-modal slds-fade-in-open">
+                        <div class="slds-modal__container">
+                            <header class="slds-modal__header">
+                                <lightning:buttonIcon iconName="utility:close"
+                                                      onclick="{! c.hideModelAuthAgent }"
+                                                      alternativeText="close"
+                                                      variant="bare-inverse"
+                                                      class="slds-modal__close"/>
+                                <!--<h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">
+                                    Upload Documents</h2>-->
+                                <h3 class="docUploadFor">Upload Documents For : <span style="agentName">{!v.brokerAgentName}</span></h3>
+                            </header>
+                            <!--Modal/Popup Box Body Starts here-->
+                            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                                <div class="docUpload">
+                                    
+                                    <c:Broker_Portal_FileUpload recordId="{!v.parentId}" agencyID="{!v.agencyRecordId}"></c:Broker_Portal_FileUpload>
+                                </div>
+                            </div>
+                            <!--Modal/Popup Box Footer Starts here-->
+                            <footer class="slds-modal__footer">
+                                <lightning:button variant="neutral"
+                                                  label="Cancel"
+                                                  title="Cancel"
+                                                  class="popupBtnCss"
+                                                  onclick="{! c.hideModelBrokerPartners }"/>
+                                <lightning:button variant="brand"
+                                                  label="OK"
+                                                  title="OK"
+                                                  class="popupBtnCss brandBtn"
+                                                  onclick="{!c.saveDetailsBrokerPartners}"/>
+                            </footer>
+                        </div>
+                    </section>
+                    <!--<div class="slds-backdrop slds-backdrop_open"></div>-->
+                </aura:if>
+                
+                <!-- Broker Agent Contacts -->
+                
+                <!-- Popup Modal To Upload Documents For Broker Auth Agent -->
+                
+                <aura:if isTrue="{!v.showModelAuthAgent}">
+                    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" 
+                             aria-modal="true" aria-describedby="modal-content-id-1" 
+                             class="slds-modal slds-fade-in-open">
+                        <div class="slds-modal__container">
+                            <header class="slds-modal__header">
+                                <lightning:buttonIcon iconName="utility:close"
+                                                      onclick="{! c.hideModelAuthAgent }"
+                                                      alternativeText="close"
+                                                      variant="bare-inverse"
+                                                      class="slds-modal__close"/>
+                                <!--<h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">
+                                    Upload Documents</h2>-->
+                                <h3 class="docUploadFor">Upload Documents For : <span style="agentName">{!v.brokerAgentName}</span></h3>
+                            </header>
+                            <!--Modal/Popup Box Body Starts here-->
+                            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                                <div class="docUpload">
+                                    
+                                    <c:Broker_Portal_FileUpload recordId="{!v.parentId}" agencyID="{!v.agencyRecordId}"></c:Broker_Portal_FileUpload>
+                                </div>
+                            </div>
+                            <!--Modal/Popup Box Footer Starts here-->
+                            <footer class="slds-modal__footer">
+                                <lightning:button variant="neutral"
+                                                  label="Cancel"
+                                                  title="Cancel"
+                                                  class="popupBtnCss"
+                                                  onclick="{! c.hideModelAuthAgent }"/>
+                                <lightning:button variant="brand"
+                                                  label="OK"
+                                                  title="OK"
+                                                  class="popupBtnCss brandBtn"
+                                                  onclick="{!c.saveDetailsAuthAgent}"/>
+                            </footer>
+                        </div>
+                    </section>
+                    <!--<div class="slds-backdrop slds-backdrop_open"></div>-->
+                </aura:if>
+                
+                <!-- Popup Modal To Upload Documents For Auth Broker Agent -->
+                
+                <!-- Popup Modal To Upload Documents For Broker Representative Agent -->
+                
+                <aura:if isTrue="{!v.showModelRepresentativeAgent}">
+                    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" 
+                             aria-modal="true" aria-describedby="modal-content-id-1" 
+                             class="slds-modal slds-fade-in-open">
+                        <div class="slds-modal__container">
+                            <header class="slds-modal__header">
+                                <lightning:buttonIcon iconName="utility:close"
+                                                      onclick="{! c.hideModelRepresentativeAgent }"
+                                                      alternativeText="close"
+                                                      variant="bare-inverse"
+                                                      class="slds-modal__close"/>
+                                <h3 class="docUploadFor">Upload Documents For : <span style="agentName">{!v.brokerAgentName}</span></h3>
+                            </header>
+                            <!--Modal/Popup Box Body Starts here-->
+                            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                                <div class="docUpload">
+                                    
+                                    <c:Broker_Portal_FileUpload recordId="{!v.parentId}" agencyID="{!v.agencyRecordId}"></c:Broker_Portal_FileUpload>
+                                </div>
+                            </div>
+                            <!--Modal/Popup Box Footer Starts here-->
+                            <footer class="slds-modal__footer">
+                                <lightning:button variant="neutral"
+                                                  label="Cancel"
+                                                  title="Cancel"
+                                                  class="popupBtnCss"
+                                                  onclick="{! c.hideModelRepresentativeAgent }"/>
+                                <lightning:button variant="brand"
+                                                  label="OK"
+                                                  title="OK"
+                                                  class="popupBtnCss brandBtn"
+                                                  onclick="{!c.saveDetailsRepresentativeAgent}"/>
+                            </footer>
+                        </div>
+                    </section>
+                    <!--<div class="slds-backdrop slds-backdrop_open"></div>-->
+                </aura:if>
+                
+                <!-- Popup Modal To Upload Documents For Representative Broker Agent -->
+                
+                <!-- Popup Modal To Upload Documents For Additional Contacts -->
+                
+                <aura:if isTrue="{!v.showModelAdditionalContacts}">
+                    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" 
+                             aria-modal="true" aria-describedby="modal-content-id-1" 
+                             class="slds-modal slds-fade-in-open">
+                        <div class="slds-modal__container">
+                            <header class="slds-modal__header">
+                                <lightning:buttonIcon iconName="utility:close"
+                                                      onclick="{! c.hideModelAdditionalContacts }"
+                                                      alternativeText="close"
+                                                      variant="bare-inverse"
+                                                      class="slds-modal__close"/>
+                                <h3 class="docUploadFor">Upload Documents For : <span style="agentName">{!v.brokerAgentName}</span></h3>
+                            </header>
+                            <!--Modal/Popup Box Body Starts here-->
+                            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                                <div class="docUpload">
+                                    
+                                    <c:Broker_Portal_FileUpload recordId="{!v.parentId}" agencyID="{!v.agencyRecordId}"></c:Broker_Portal_FileUpload>
+                                </div>
+                            </div>
+                            <!--Modal/Popup Box Footer Starts here-->
+                            <footer class="slds-modal__footer">
+                                <lightning:button variant="neutral"
+                                                  label="Cancel"
+                                                  title="Cancel"
+                                                  class="popupBtnCss"
+                                                  onclick="{! c.hideModelAdditionalContacts }"/>
+                                <lightning:button variant="brand"
+                                                  label="OK"
+                                                  title="OK"
+                                                  class="popupBtnCss brandBtn"
+                                                  onclick="{!c.saveDetailsAdditionalContacts}"/>
+                            </footer>
+                        </div>
+                    </section>
+                    <!--<div class="slds-backdrop slds-backdrop_open"></div>-->
+                </aura:if>
+                
+                <!-- Popup Modal To Upload Documents For Additional Contacts -->
+                
+                <div class="slds-grid">
+                    <div class="slds-col slds-size_2-of-2 slds-p-around_medium">
+                        <span class ="slds-button slds-button_brand slds-float_right next" style= "right: 8px;">  <lightning:button variant="brand"  disabled= "{!v.disableBtn}" label="Submit" onclick="{!c.saveRecord}" class="slds-float_right next"/></span>
+                        <span class ="slds-button slds-button_brand slds-float_right next" style= "right: 14px;"> <lightning:button variant="brand" label="Back" onclick="{!c.backToDoc}" class="slds-float_right next"/></span>
+                        <!-- SAVE AS DRAFT BUTTON--><span class ="slds-button slds-button_brand slds-float_right next"  disabled= "{!v.disableBtn}" style= "right: 16px;"><lightning:button variant="brand" type="" name="Save Draft" label="Save Draft" onclick="{!c.saveThirdPageAsDraft}" class="slds-float_right next"/></span>
+                        
+                        
+                    </div>
+                    
+                    
+                </div>
+                
+                <!-- Broker Agent Representative -->
+                
+            </aura:if>
+            
+        </lightning:card>
+        
+        
+        <aura:if isTrue="{!v.greetingPage}">
+            <div class="slds-grid slds-wrap whoWeAre">
+                
+                <div class="slds-col slds-size_2-of-6 slds-p-around_medium whoWeAreContent" style="width:40%">
+                    <div class="content-with-heading" style="width:100%;padding-right:6%">
+                        <div class="component-heading">
+                            
+                            <div class="section-heading">
+                                <h2 style="font-size: 3em !important;">Thank You! <br /> For Registering With Us.</h2>
+                            </div>
+                            <div class="bullet-points-section">
+                                <span>Your registration reference number is <b>{!v.refNumber}</b>.</span>
+                            </div>
+                        </div>
+                        <div class="bullet-points-section">
+                            Our team will get in touch with you within 3 working days.
+                        </div>
+                        <br />
+                        
+                    </div>
+                </div>
+                <div class="slds-col slds-size_4-of-6 slds-p-around_medium whoWeAreContent" style="width:60%">
+                    <div>
+                        <a href="#" class="">
+                            <img src="{!$Resource.NKHLContactUs}"/>
+                        </a>
+                    </div>
+                </div>
+                
+            </div>
+            <!--<div class="slds-grid slds-wrap greetingImage">
+                <div class="slds-col slds-size_6-of-6 slds-p-around_medium imageBanner">
+                    <div class="container">
+                        <div class="image">
+                            <img src="{!$Resource.NKHLContactUs}"/>
+                        </div>
+                        <div class="centered">
+                            <div class="content-with-heading">
+                                <div class="component-heading">
+                                    <div class="section-heading sectionHeading">
+                                        <h2 style="font-size: 4em;">Thank You! <br/>For Registering With Us.</h2>
+                                    </div>
+                                    <div class="section-name sectionName" style="text-transform: none;">
+                                        <span>Your registration reference number is {!v.refNumber}.</span>
+                                    </div>
+                                </div>
+                                <div class="bullet-points-section sectionMessage">
+                                    Our team will get in touch with you within 5 working days.
+                                </div>
+                                <br />
+                              <div class="redirectSection">
+                                    <p>To view or update your submitted form please <a href="https://nakheeldev-nakheelcommunityportal.cs87.force.com/SelfRegistration/s/view-existing-registration-form">Click Here!</a></p>
+                                </div>
+                                <br />
+                                <div class="goToHome">
+                                    <p> <a href="https://nakheeldev-nakheelcommunityportal.cs87.force.com/SelfRegistration/s/">GO HOME <i class="fa fa-home"></i></a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>-->
+            
+        </aura:if>
+        
+        <aura:if isTrue="{!v.savePageAsDraft}">
+            <div class="slds-grid slds-wrap whoWeAre">
+                
+                <div class="slds-col slds-size_2-of-6 slds-p-around_medium whoWeAreContent" style="width:40%">
+                    <div class="content-with-heading" style="width:100%;padding-right:6%">
+                        <div class="component-heading">
+                            
+                            <div class="section-heading">
+                                <h2 style="font-size: 3em !important;">Thank You! <br /> For showing interest in registering With Us.</h2>
+                            </div>
+                            <div class="bullet-points-section">
+                                <span>Your registration reference number is <b>{!v.refNumber}</b>.</span>
+                            </div>
+                        </div>
+                        <div class="bullet-points-section">
+                            Your form has been saved as draft.
+                        </div>
+                        <div class="bullet-points-section">
+                            To continue finishing your application <a href="{!$Label.c.Existing_Form }">click here</a>
+                        </div>
+                        <br />
+                        
+                    </div>
+                </div>
+                <div class="slds-col slds-size_4-of-6 slds-p-around_medium whoWeAreContent" style="width:60%">
+                    <div>
+                        <a href="#" class="">
+                            <img src="{!$Resource.NKHLContactUs}"/>
+                        </a>
+                    </div>
+                </div>
+                
+            </div>
+            
+        </aura:if>
+        
+        
+    </div>
+    
+    
+    
+</aura:component>

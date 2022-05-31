@@ -1,0 +1,21 @@
+/* c-img {
+  max-height: 380px;
+  max-width: 1000px;
+  object-fit: contain;
+} */
+
+/* slds-carousel__autoplay {
+  display: none;
+} */
+
+.slds-carousel__panel-action {
+  display: none;
+} 
+
+.slds-carousel__content {
+  display: none;
+}
+
+/* content-container {
+  display: none;
+} */

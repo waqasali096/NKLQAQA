@@ -1,0 +1,60 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" 
+                access="global" >
+    
+    <aura:attribute name="installment" type="AvailablePayPlanController.InstallmentWrapper"/>
+    <aura:attribute name="paymentMode" type="String"/>
+    <br/>
+    <div class="slds-page-header" style="cursor: pointer;background: aliceblue;" onclick="{!c.sectionOne}">
+        <section class="slds-clearfix">
+            <div class="slds-float--left " style="margin-top: 8px;">
+                <lightning:icon class="slds-show" aura:id="articleOne" iconName="utility:add" size="x-small" alternativeText="Indicates add"/>
+                <lightning:icon class="slds-hide" aura:id="articleOne" iconName="utility:dash" size="x-small" alternativeText="Indicates dash"/>
+            </div>
+            <div class="slds-m-left--large"><!--lightning:card variant="Narrow" title="Select Opportunity" iconName="custom:custom63" > </lightning:card-->
+                            <lightning:icon iconName="custom:custom46" alternativeText="Unit Info" title="Unit Info" />
+                            &nbsp;&nbsp;
+                            <b>{!v.installment.unitCode} - {!v.installment.spaceType}</b>
+                        </div>
+        </section>
+    </div>
+    
+    <div class="slds-hide slds-p-around--medium" aura:id="articleOne">
+        <lightning:card>
+            <p>Space Type: {!v.installment.spaceType}</p>
+            <p>Unit Code : {!v.installment.unitCode}</p>
+            <p>Payment Mode : {!v.paymentMode}</p>
+            <p>Price Per Sqft : {!v.installment.pricePerSqft}</p>
+            <p>Total Sqft : {!v.installment.totalLeasableArea}</p>
+            <p>Discount : {!v.installment.discount}</p>
+        </lightning:card>
+        <table class="slds-table slds-table--bordered slds-table--cell-buffer slds-table--striped slds-max-medium-table--stacked-horizontal"
+               role="grid">
+            <thead title="Additional Charges">
+                <tr>
+                    <th class="slds-is-sortable slds-cell-wrap" scope="col">
+                       Additional Charges Name
+                    </th>
+                    <th class="slds-is-sortable slds-cell-wrap" scope="col">
+                        Amount
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <aura:iteration items="{!v.installment.chargesList}" var="charges">
+                    
+                    <tr class="slds-hint-parent">
+                        <td role="gridcell" class="slds-cell-wrap" data-label="Name">
+                            {!charges.Name}
+                        </td>
+                        <td role="gridcell" class="slds-cell-wrap" data-label="accName">
+                            {!charges.Utility_Charges__c}
+                        </td>
+                    </tr>
+                    
+                </aura:iteration>
+            </tbody>
+        </table>
+    </div>
+    
+    
+</aura:component>

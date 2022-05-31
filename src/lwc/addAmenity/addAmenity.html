@@ -1,0 +1,57 @@
+<template>
+    <p  class="slds-m-top_x-small slds-text-align_center slds-m-bottom_small slds-text-heading_medium">
+        Add Amenity
+    </p>
+    <div>
+        
+        <template if:true={showAmenityError}>
+            <div class="slds-text-align_center">
+                <h1><p style="color:red">Please select Amenity </p></h1>
+            </div>    
+        </template>
+        <template if:true={showAmenitySuccessMessage}>
+            <div class="slds-text-align_center">
+                <h1><p style="color:green">Amenity added successfully</p></h1>
+            </div>    
+        </template>
+    </div>
+    <div style="height:100%; width:80%;" class="slds-align_absolute-center">
+        <lightning-card>
+            <div class="slds-m-top_medium slds-align_absolute-center">
+                
+                
+                <template if:true={listViewIds}>
+                        <template if:true={amenities}>      
+                            <lightning-datatable
+                                key-field="id"
+                                data={amenities}
+                                columns={columns}
+                                show-row-number-column
+                                onrowselection={hanldeRowAction}>
+                            </lightning-datatable> 
+                        </template>      
+                        <template if:true={error}>  
+                            {error}>                  
+                        </template>
+                    </template>
+                
+                <template if:false={listViewIds}>
+                    <div class="slds-text-align_center">
+                        <p style="color:red">Please select unit/s </p>
+                    </div>    
+                </template>
+            </div>    
+            <p slot="footer" class="slds-text-align_center">
+                
+                
+                <lightning-button label="Back" disabled={showAmenitySuccessMessage} onclick={close} variant="nuetral"></lightning-button>
+                <template if:true={listViewIds}>
+                    <lightning-button label="Add Amenity" disabled={showAmenitySuccessMessage} variant="brand" class="slds-m-left_small" onclick={processSelectedRecords}></lightning-button>
+                </template>
+                        
+                
+            </p>  
+            
+        </lightning-card> 
+    </div>         
+</template>

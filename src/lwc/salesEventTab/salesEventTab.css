@@ -1,0 +1,20 @@
+.slds-modal__content {
+    overflow: visible;
+    overflow-y: visible;
+}
+.slds-modal__container{
+    width: 50% !important;
+    max-width: 50% !important;    
+}
+.modalBody {
+    position: relative;
+}
+.slds-blocked-hide{
+    visibility:'None';
+}
+.buttonSize{
+    width:80% !important;
+}
+.spinner-padding {
+    padding-top: 10%;
+  }

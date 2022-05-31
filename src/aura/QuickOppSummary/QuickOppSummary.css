@@ -1,0 +1,27 @@
+.THIS #msg{
+    background-color:white;
+    padding:1%;
+}
+.THIS .header th {
+    background-color:steelblue;
+    color:white;
+    height:40px;
+}
+.THIS .slds-page-header {
+    border-radius:0px;
+}
+.THIS .table-test thead th span { 
+    background-color: #16325c; 
+    font-family:Verdana, Geneva, sans-serif;
+    font:bold;
+    color: white;
+}
+.THIS .table-test tbody tr span { 
+    font-family:Verdana, Geneva, sans-serif;
+    font:bold;
+    color: black;
+}
+.THIS.slds-box {
+    border: 2px solid #C1C1BC;
+    background-color: aliceblue;
+}

@@ -1,0 +1,432 @@
+<aura:component controller="UnitLeasingSelectionClass" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction,lightning:isUrlAddressable,force:hasSObjectName" access="global" >
+    
+    
+    
+    <aura:html tag="style">
+        .slds-modal__container{
+        max-width: 100rem !important;
+        width:95% !important;
+        }
+        .cuf-content {
+        padding: 0 0rem !important;
+        }
+        .slds-p-around--medium {
+        padding: 0rem !important;
+        }
+        .slds-modal__content {
+        overflow-y: hidden !important;
+        height: unset !important;
+        max-height: unset !important;
+        }        
+    </aura:html>
+     <aura:attribute name="isAllSelected" type="boolean" default = "false"/>
+    <aura:attribute name="unitList" type="List"/>
+    <aura:attribute name="unittypelst" type="List"/>
+    <aura:attribute name="selectedCount" type="integer" default="0"
+                    description="selected Records Count"/>
+    <aura:attribute name="PaginationList" type="List"/>
+    <aura:attribute name="showFilters" type="boolean" default="true"/>
+    <aura:attribute name="commercialColumns" type="List"/>
+    <aura:attribute name="residentialColumns" type="List"/>
+    <aura:attribute name="selection" type="List" />
+    <aura:attribute name="selectedUnits" type="List"/>
+    <aura:attribute name="paginatorMap" type="Map"/>
+    <aura:attribute name="isSpinner" type="Boolean" default="false" />
+    <aura:attribute name="unittype" type="String"/>
+    <aura:attribute name="DisplaySearchResultFlg" type="Boolean" default="true" />
+    <aura:attribute name="DisplaySearchResultFlg1" type="Boolean" default="false" />
+    <aura:attribute name="Emirate" type="String"/>
+    <aura:attribute name="DisplayMsgFlg" type="Boolean" default="false" />
+    <aura:attribute name="toggleComponent" type="Boolean" default="false" />
+    <aura:attribute name="unitSearchScreenDisable" type="Boolean" default="false"/>
+    <aura:attribute name="addFlag" type="Boolean" default="false" />
+    <aura:attribute name="maxRowSelection" type="Integer" default="5"/>
+    <aura:attribute name="currentUnitList" type="List"/>  
+    <aura:attribute name="currentUnitExistFlg" type="Boolean" default="false"/>
+    <aura:attribute name="currentUnitExistFlg2" type="Boolean" default="True"/>
+    <aura:attribute name="TypeMap" type="Map"/>
+    <aura:attribute name="ProjectsMap" type="Map"/>
+    <aura:attribute name="currentPage" type="integer" default="1"/>
+    <aura:attribute name="totalPagesCount" type="integer"/>
+    <aura:attribute name="clusterMap" type="Map"/>
+    <aura:attribute name="totalRecordsCount" type="Integer"/>
+    <aura:attribute name="buildingMap" type="Map"/>
+    <aura:attribute name="propertyTypeMap" type="Map"/>
+    <aura:attribute name="unitTypeMap" type="Map"/>
+    <aura:attribute name="architecturalMap" type="Map"/>
+    <aura:attribute name="BedroomsMap" type="Map"/>
+    <aura:attribute name="ViewsMap" type="Map"/>
+    <aura:attribute name="propertyViewMap" type="Map"/>
+    <aura:attribute name="noOfBedroomMap" type="Map"/>
+    <aura:attribute name="VillaTypeMap" type="Map"/>
+    <aura:attribute name="selectSpaceType" type="string" />
+    <aura:attribute name="selectedUnitType" type="string" />
+    <aura:attribute name="spaceTypeMap" type="Map"/>
+    <aura:attribute name="unitId" type="List"/>
+    <aura:attribute name="selectedType" type="string" />
+    <aura:attribute name="selectedProject" type="string" />
+    <aura:attribute name="selectedPropertyType" type="string" />
+    <aura:attribute name="selectedPropertyView" type="string" />
+    <aura:attribute name="selectedBedroom" type="string" />
+    <aura:attribute name="selectedArchitectural" type="string" />
+    <aura:attribute name="selectedCluster" type="string" />
+    <aura:attribute name="selectedBuilding" type="string" />
+    <aura:attribute name="selectedView" type="string" />
+    <aura:attribute name="selectedVillaType" type="string" />
+    <aura:attribute name="employeeDiscount" type="boolean"/>
+    <aura:attribute name="totalBedRooms" type="String"/>
+    <aura:attribute name="minPrice" type="Integer" default="null"/>
+    <aura:attribute name="maxPrice" type="Integer" default="null"/>
+    <aura:attribute name="sortedBy" type="String" default="Name"/>
+    <aura:attribute name="sortedDirection" type="string" default="asc" />
+    <aura:attribute name="minSaleableArea" type="Integer" default="null"/>
+    <aura:attribute name="maxSaleableArea" type="Integer" default="null"/>
+    <aura:attribute name="minPlotArea" type="Integer" default="null"/>
+    <aura:attribute name="maxPlotArea" type="Integer" default="null"/>
+    <aura:attribute name="allSelected" type="boolean" /> 
+    <aura:attribute name="key" type="String" /> 
+    <aura:attribute name="AddUnit" type="String"/>
+    <aura:attribute name="pageNumber" type="Integer" default="1"/>
+    <aura:attribute name="pageSize" type="Integer" default="10"/>
+    <aura:attribute name="isLastPage" type="Boolean" default="false"/>
+    <aura:attribute name="recordId" type="String" description="ID of the record."/>
+    <aura:attribute name="startPage" type="Integer" />
+    <aura:attribute name="endPage" type="Integer"/>
+    <aura:attribute name="totalRecords" type="Integer"/>
+    <aura:handler name="change" value="{!v.selectedProject}" action="{!c.handleProjectOnChange}"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <!--<aura:handler name="change" value="{!v.AddUnit}" action="{!c.doInit}"/>-->
+    <aura:attribute name="isPerson" type="Boolean" default="false" />
+    <aura:attribute name="messageFromEvent" type="String"/>
+    <aura:attribute name="disableButton" type="boolean" default="false"/>
+    <aura:attribute name="selectUnitExistFlg" type="Boolean" default="false"/>
+    <aura:attribute name="propertyCheck" type="Boolean" default="false"/>
+    <aura:attribute name="blockUnitSelection" type="Boolean" default="false"/>
+    <aura:attribute name="opptyObj" type="Object"/>
+    <aura:attribute name="Iscompany" type="boolean" />
+    <aura:attribute name="SearchLocationCode" type="String" />
+    <aura:attribute name="commercialUnitsCheck" type="Boolean" default="false"/>
+    <aura:attribute name="residentialUnitsCheck" type="Boolean" default="false"/> 
+    <aura:handler event="aura:waiting" action="{!c.showSpinner}"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/>
+
+    <aura:handler name="cmpEvent" event="c:RefreshParentComponent" action="{!c.handleRefresh}"/>
+    
+    <aura:attribute name="record" type="Opportunity" />
+    
+    <force:recordData aura:id="recordEditor"
+                      layoutType="FULL"
+                      recordId="{!v.recordId}"
+                      targetFields="{!v.record}"
+                      recordUpdated="{!c.doInit}"
+                      fields="Name"
+                      mode="EDIT"
+                      />
+  
+    
+    <div class="slds-m-around_medium">
+        <!-- Code to display spinner -->     
+          
+        <!-- Section to display the unit which is tied to the opportunity -->
+        <aura:if isTrue="{!!v.unitSearchScreenDisable}">
+            <aura:if isTrue="{!!v.toggleComponent}">
+                <ui:message severity="info" closable="false" class="slds-box">
+					<p class="slds-align_absolute-center"> <b>Please wait while units are loading</b> </p> 
+				</ui:message>
+                <!--div class="slds-box slds-align_absolute-center slds-text-color_inverse" style="background:#16325c;"></div-->  
+            </aura:if>
+        <aura:if isTrue="{!v.toggleComponent}">
+            <aura:if isTrue="{!v.isSpinner}">
+                <div aura:id="spinnerId" class="slds-spinner_container">
+                    <div class="slds-spinner--brand  slds-spinner slds-spinner--large " role="alert">
+                        <span class="slds-assistive-text">Loading</span>
+                        <div class="slds-spinner__dot-a"></div>
+                        <div class="slds-spinner__dot-b"></div>
+                    </div>
+                </div>
+            </aura:if>
+
+            
+            <lightning:card variant="Narrow" title="Filters" iconName="standard:search">
+                <aura:set attribute="actions">
+                    <!--<lightning:button variant="brand" label="Search" onclick="{!c.search}" class="slds-button">
+            </lightning:button>-->
+                </aura:set>
+                <aura:set attribute="footer">
+                    <lightning:button variant="brand" label="{!v.isSpinner == true ? 'Searching...' : 'Search'}" onclick="{!c.search}" class="customButton"></lightning:button>
+                    <lightning:button variant="neutral" label="Reset" onclick="{!c.clear}" class=""></lightning:button>
+                </aura:set>
+                <lightning:layout horizontalAlign="space" verticalAlign="center" multipleRows="true" class="slds-theme_shade">
+                    <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                        <lightning:select aura:id="Projects" value="{!v.selectedProject}" label="Project" onchange="{!c.handleProjectOnChange}">
+                            <!-- <option value="">None</option> -->
+                            <aura:iteration items="{!v.ProjectsMap}" var="typ" indexVar="key">
+                                <option text="{!typ.value}" value="{!typ.key}" selected="{!v.selectedProject == typ.key}" />
+                            </aura:iteration>
+                        </lightning:select>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                        <lightning:select aura:id="Cluster" value="{!v.selectedCluster}" label="Cluster" onchange="{!c.handleClusterOnChange}">
+                            <option value="">--All--</option>
+                            <aura:iteration items="{!v.clusterMap}" var="typ" indexVar="key">
+                                <option text="{!typ.value}" value="{!typ.key}" />
+                            </aura:iteration>
+                        </lightning:select>
+                        
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="5" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                        <lightning:select aura:id="Building" value="{!v.selectedBuilding}" label="Building">
+                            <option value="">--All--</option>
+                            <aura:iteration items="{!v.buildingMap}" var="typ" indexVar="key">
+                                <option text="{!typ.value}" value="{!typ.key}" />
+                            </aura:iteration>
+                        </lightning:select>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="3" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+                        <lightning:select aura:id="Property Type" value="{!v.selectedPropertyType}" label="Property Type">
+                            <option value="">--All--</option>
+                            <aura:iteration items="{!v.propertyTypeMap}" var="typ" indexVar="key">
+                                <option text="{!typ.value}" value="{!typ.key}" />
+                            </aura:iteration>
+                        </lightning:select>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem class="slds-p-around_small slds-size_1-of-4 slds-medium-size_1-of-4 slds-large-size_1-of-4" padding="around-small">
+                        <lightning:input type="search" name="LocationCodeSearch" value="{!v.SearchLocationCode}" placeholder="Search Location Code!" onchange="{!c.search}" /> 
+                    </lightning:layoutItem>
+                    <aura:if isTrue="{!v.Iscompany == false}">
+                        <lightning:layoutItem class="slds-p-around_small slds-size_1-of-4 slds-medium-size_1-of-4 slds-large-size_1-of-4" padding="around-small">
+                            <lightning:select aura:id="Property Unit View" value="{!v.selectedBedroom}" label="No Of Bedrooms">
+                                <option value="">--All--</option>
+                                <aura:iteration items="{!v.noOfBedroomMap}" var="typ" indexVar="key">
+                                    <option text="{!typ.value}" value="{!typ.key}" />
+                                </aura:iteration>
+                            </lightning:select>
+                        </lightning:layoutItem>
+                    </aura:if>
+                   
+                    <lightning:layoutItem class="slds-p-around_small slds-size_1-of-4 slds-medium-size_1-of-4 slds-large-size_1-of-4" padding="around-small">
+                        <lightning:select aura:id="Property Unit View" value="{!v.selectedUnitType}" label="Unit Type">
+                            <option value="">--All--</option>
+                            <aura:iteration items="{!v.unitTypeMap}" var="typ" indexVar="key">
+                                <option text="{!typ.value}" value="{!typ.key}" />
+                            </aura:iteration>
+                        </lightning:select>
+                    </lightning:layoutItem>
+                     <lightning:layoutItem size="3" smallDeviceSize="6" mediumDeviceSize="4" largeDeviceSize="3" padding="around-small">
+            </lightning:layoutItem>
+                    
+                    
+                </lightning:layout>
+                
+            </lightning:card> 
+            
+            
+            <aura:if isTrue="{!v.DisplaySearchResultFlg}"> 
+                
+                <lightning:card variant="Narrow" title="Units" iconName="custom:custom63" >
+                    <div class="slds-clearfix">
+                        <div class="slds-float_left">
+                            <p class="slds-m-around_small slds-float--left">
+                                
+                                <span class="slds-badge slds-badge_lightest" style="display:inline-block;background: aliceblue;">
+                                    
+                                    
+                                    Total Records : {!v.selectedCount > 0 ? v.selectedCount + '/' : ''} {!v.totalRecordsCount} 
+                                    
+                                </span>
+                            </p>
+                        </div>
+                        
+                        <div class="slds-float_right">
+                            <lightning:button variant="brand" label="{!v.isSpinner == true ? 'Adding Units...' : 'Add Unit/s'}" onclick="{!c.addUnit}" class="{!v.disableButton ? '' : customButton}" disabled="{!v.disableButton}"></lightning:button>
+                        </div></div>
+                    
+                    <br></br>
+                    <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-box" style="background: aliceblue;">
+                        <thead class="header">
+                            <tr class="slds-text-title_caps">
+                                <!--header checkbox for select all-->
+                                <th style="width:2.25rem;" class="slds-text-align_right">
+                                    <div class="slds-form-element">
+                                        <div class="slds-form-element__control">
+                                            <lightning:input aura:id="selectAllId" type="checkbox-button" label="Input One" name="input1"
+                                                             checked="{!v.isAllSelected}"
+                                                             onchange="{!c.selectAllCheckbox}" disabled="{!v.allSelected}"></lightning:input>
+                                            
+                                        </div>
+                                    </div>
+                                </th>
+                                <aura:if isTrue="{!v.commercialUnitsCheck}">
+                                    <aura:iteration items="{!v.commercialColumns}" var="item">
+                                        <th scope="col">
+                                            <div class="slds-truncate" title="Name">{!item.label}</div>
+                                        </th>
+                                    </aura:iteration>
+                                </aura:if>
+                                <aura:if isTrue="{!v.residentialUnitsCheck}">
+                                    <aura:iteration items="{!v.residentialColumns}" var="item">
+                                        <th scope="col">
+                                            <div class="slds-truncate" title="Name">{!item.label}</div>
+                                        </th>
+                                    </aura:iteration>
+                                </aura:if>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <aura:if isTrue="{!v.commercialUnitsCheck}">
+                            <aura:iteration items="{!v.PaginationList}" var="obj">
+                                <tr>
+                                    <th scope="row" class="slds-text-align_right" style="width:3.25rem;">
+                                        
+                                        <div data-caseid="{!obj.unit.Id}" class="slds-form-element__control">
+                                            
+                                            <lightning:input  type="checkbox-button" name="{!obj.activeFlag}"
+                                                             checked="{!obj.unit.isChecked}"
+                                                             onchange="{!c.checkboxSelect}" disabled="{!obj.propFlag}"></lightning:input>
+                                        </div>
+                                        
+                                    </th>  
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.unit.Unit_Code__c}">
+                                            <a data-caseid="{!obj.unit.Id}" onclick="{!c.navigateToRecord}">{!obj.unit.Unit_Code__c}</a>
+                                        </div>
+                                    </th> 
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.unit.ProjectName}">
+                                            {!obj.unit.ProjectName}
+                                        </div>
+                                    </th> 
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.unit.BuildingName}">
+                                            {!obj.unit.BuildingName}
+                                        </div>
+                                    </th> 
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.unit.Leasing_Property_Type__c}">
+                                            {!obj.unit.Leasing_Property_Type__c}
+                                        </div>
+                                    </th> 
+                                    
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.unit.Unit_space_Type__c}">
+                                            {!obj.unit.Unit_space_Type__c}
+                                        </div>
+                                    </th>
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.Unit.Price_Per_SQ_FT__c}">
+                                           {!obj.unit.Price_Per_SQ_FT__c} 
+                                        </div>
+                                    </th>
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.unit.Total_Leasable_Area__c}">
+                                            {!obj.unit.Total_Leasable_Area__c}
+                                        </div>
+                                    </th>
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.unit.Base_Rent__c}">
+                                           {!obj.unit.Base_Rent__c}
+                                        </div>
+                                    </th>
+                                </tr>
+                            </aura:iteration>
+                            </aura:if>
+                            <aura:if isTrue="{!v.residentialUnitsCheck}">
+                            <aura:iteration items="{!v.PaginationList}" var="obj">
+                                <tr>
+                                    <th scope="row" class="slds-text-align_right" style="width:3.25rem;">
+                                        
+                                        <div data-caseid="{!obj.unit.Id}" class="slds-form-element__control">
+                                            
+                                            <lightning:input  type="checkbox-button" name="{!obj.activeFlag}"
+                                                             checked="{!obj.unit.isChecked}"
+                                                             onchange="{!c.checkboxSelect}" disabled="{!obj.propFlag}"></lightning:input>
+                                        </div>
+                                        
+                                    </th>  
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.unit.Unit_Code__c}">
+                                            <a data-caseid="{!obj.unit.Id}" onclick="{!c.navigateToRecord}">{!obj.unit.Unit_Code__c}</a>
+                                        </div>
+                                    </th> 
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.unit.ProjectName}">
+                                            {!obj.unit.ProjectName}
+                                        </div>
+                                    </th> 
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.unit.BuildingName}">
+                                            {!obj.unit.BuildingName}
+                                        </div>
+                                    </th> 
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.unit.No_of_Bedrooms__c}">
+                                            {!obj.unit.No_of_Bedrooms__c}
+                                        </div>
+                                    </th> 
+                                    
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.unit.Leasing_Property_Type__c}">
+                                            {!obj.unit.Leasing_Property_Type__c}
+                                        </div>
+                                    </th> 
+                                    
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.unit.Unit_space_Type__c}">
+                                            {!obj.unit.Unit_space_Type__c}
+                                        </div>
+                                    </th> 
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.unit.Total_Leasable_Area__c}">
+                                            {!obj.unit.Total_Leasable_Area__c}
+                                        </div>
+                                    </th>
+                                    <th scope="row">
+                                        <div class="slds-truncate" title="{!obj.unit.Base_Rent__c}">
+                                           {!obj.unit.Base_Rent__c}
+                                        </div>
+                                    </th> 
+                                     
+                                </tr>
+                            </aura:iteration>
+                            </aura:if>
+                        </tbody>
+                    </table>
+                </lightning:card>
+                
+                
+                <div class="slds-align_absolute-center">         
+                    <lightning:button variant="brand"
+                                      label="Previous"
+                                      disabled="{!v.startPage == 0}" 
+                                      class="{!v.startPage == 0 ? '' : 'buttonColor' }"
+                                      onclick="{!c.navigation}"
+                                      iconName="utility:back"
+                                      name="previous"/>
+                    
+                    <span class="slds-badge slds-badge_lightest"
+                          style="margin-right: 10px;margin-left: 10px;">
+                        Page {!v.currentPage} out of {!v.totalPagesCount}
+                    </span>
+                    
+                    <lightning:button variant="brand"
+                                      label="Next"
+                                      disabled="{!(v.endPage + 1) >= v.totalRecordsCount}" 
+                                      class="{!(v.endPage + 1) >= v.totalRecordsCount  ? '' : 'buttonColor' }"
+                                      onclick="{!c.navigation}"
+                                      iconName="utility:forward"
+                                      iconPosition="right"
+                                      name="next"/>
+                </div> 
+                 <aura:set attribute="else"> 
+          <div class="slds-box slds-align_absolute-center slds-text-color_inverse" style="background:#16325c;"><p> No records found ! </p> </div>      
+      </aura:set>  
+            </aura:if>
+        </aura:if>
+        </aura:if>
+
+        <br/>
+            <c:DisplayOpportunityUnits recordId="{!v.recordId}" unitSearchScreenDisable="{!v.unitSearchScreenDisable}"></c:DisplayOpportunityUnits>
+        
+    </div>
+    
+</aura:component>

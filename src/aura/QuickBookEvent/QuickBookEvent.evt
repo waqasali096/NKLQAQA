@@ -1,0 +1,13 @@
+<!--Quick Book event-->
+<aura:event type="APPLICATION">
+    <aura:attribute name="selectedUnits" type="QuickBookTimerController.ResultWrapper[]"/>
+    <aura:attribute name="closePopUp" type="Boolean"/>
+    <aura:attribute name="customerAdded" type="Boolean"/>
+    <aura:attribute name="accountId" type="String"/>
+    <aura:attribute name="refreshSearch" type="Boolean"/>
+    <aura:attribute name="addedAccount" type="Account"/>
+    
+</aura:event>
+<!--<aura:event type="COMPONENT">
+    <aura:attribute name="selectedUnits" type="QuickBookAddUnitController.ResultWrapper[]"/>
+</aura:event>-->

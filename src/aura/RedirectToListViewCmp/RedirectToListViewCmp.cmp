@@ -1,0 +1,8 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId,force:hasSObjectName" controller="RedirectToListViewCtrl" access="global" >
+	  <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:attribute name="sobjecttype" type="String" default="{!v.sObjectName}"/>
+      <force:recordData aura:id="forceRecord"
+                      recordId="{!v.recordId}" 
+                      fields="Name,Status"
+                      recordUpdated="{!c.doInit}" />
+</aura:component>

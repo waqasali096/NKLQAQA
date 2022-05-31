@@ -1,0 +1,462 @@
+<aura:component controller="LeaseRentRenewalController" implements="flexipage:availableForRecordHome,force:lightningQuickActionWithoutHeader,flexipage:availableForAllPageTypes">
+    
+    <!-- Attribute Declaration - Start --> 
+    <aura:attribute name="spinner" type="Boolean" default="false"/> 
+    <aura:attribute name="totalRecordsCount" type="Integer" default="0"/>
+    <aura:attribute name="selectedProject" type="String" default=""/> 
+    <aura:attribute name="selectedNoOfBedroom" type="String" default=""/> 
+    <aura:attribute name="selectedLeasingType" type="String" default=""/> 
+    <aura:attribute name="selectedPropertyType" type="String" default=""/> 
+    <aura:attribute name="selectedUnitType" type="String" default=""/> 
+    <aura:attribute name="selectedFromDate" type="Date" default=""/> 
+    <aura:attribute name="selectedToDate" type="Date" default=""/> 
+    <aura:attribute name="selectedDateFilter" type="String" default="90"/> 
+    <aura:attribute name="selectedSpaceType" type="String" default=""/> 
+    <aura:attribute name="selectedBuilding" type="String" default=""/> 
+    <aura:attribute name="selectedFloor" type="String" default=""/> 
+    <aura:attribute name="selectedRentUpdateReason" type="String" default=""/> 
+    <aura:attribute name="selectedAddUpliftType" type="String" default="Percentage"/> 
+    <aura:attribute name="selectedAddUpliftValue" type="Decimal" default=""/> 
+    <aura:attribute name="listProjectOptions" type="List" default="[]"/> 
+    <aura:attribute name="listNoOfBedroomOptions" type="List" default="[]"/>
+    <aura:attribute name="listUnitTypeOptions" type="List" default="[]"/>
+    <aura:attribute name="listBuildingOptions" type="List" default="[]"/>
+    <aura:attribute name="listFloorOptions" type="List" default="[]"/>
+    <aura:attribute name="listSpaceTypesOptions" type="List" default="[]"/>
+    <aura:attribute name="defaultRenewalRentPrice" type="Decimal" default=""/> 
+    <aura:attribute name="resetPrices" type="Boolean" default="false"/>
+    <aura:attribute name="notifyFlagAll" type="Boolean" default="true"/>
+    <aura:attribute name="sameReason" type="Boolean" default="false"/>
+    <aura:attribute name="disableSearchButton" type="Boolean" default="false"/>
+    <aura:attribute name="disableApplyButton" type="Boolean" default="true"/>
+    <aura:attribute name="todayDate" type="Date"/>
+    <aura:attribute name="listUnitPlansWrapper" type="LeaseRentRenewalController.UnitPlansWrapper[]" />
+    <aura:attribute name="objResponseWrapper" type="LeaseRentRenewalController.ResponseWrapper[]" />
+    <aura:attribute name="rentUpdateReasonMap" type="Map"/>
+    <aura:attribute name="pageSize" type="Integer" default="0"
+                    description="number of records to be display on per page"/>
+    <aura:attribute name="startPage" type="Integer" />
+    <aura:attribute name="endPage" type="Integer"/>
+    <aura:attribute name="startIndex" type="Integer" default="0"/>
+    <aura:attribute name="endIndex" type="Integer" default="0"/>
+    <aura:attribute name="currentPage" type="Integer" default="1"/>
+    <aura:attribute name="totalPagesCount" type="Integer" default="1"/>
+    <aura:attribute name="disableNext" type="Boolean" default="false"/>
+    <aura:attribute name="leasingRecordTypeId" type="String" default="0123M0000005CkqQAE"/>
+    <!-- Attribute Declaration - End -->
+    
+    <!-- Handler Declaration - Start -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <!-- Handler Declaration - End -->
+    
+    <!-- Spinner - Start -->
+    <aura:if isTrue="{!v.spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container">
+            <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                <span class="slds-assistive-text">Loading...</span>
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </aura:if>
+    <!-- Spinner - End -->
+    
+    <div class="slds-m-around_medium">     
+        
+        <!-- Filter Section - Start -->
+        <lightning:card variant="Narrow" title="Filters" iconName="standard:search">
+            <lightning:recordEditForm aura:id="filterUnitForm1" objectApiName="Unit__c" recordTypeId="{!v.leasingRecordTypeId}">
+                <lightning:layout multipleRows="true" class="slds-form-element">  
+                    <lightning:layoutItem size="2" flexibility="auto" class="slds-p-top_small slds-p-horizontal_small">
+                        <label class="slds-form-element__label">                                       
+                            Leasing Type
+                        </label>
+                        <div class="slds-form-element__control">
+                            <lightning:inputField fieldName="Leasing_Type__c" value="{!v.selectedLeasingType}" aura:id="leasingTypeId" variant="label-hidden"/>  
+                        </div>
+                    </lightning:layoutItem>
+                    
+                    <lightning:layoutItem size="2" flexibility="auto" class="slds-p-top_small slds-p-horizontal_small">
+                        <label class="slds-form-element__label">                                       
+                            Property Type
+                        </label>
+                        <div class="slds-form-element__control">
+                            <lightning:inputField fieldName="Leasing_Property_Type__c" value="{!v.selectedPropertyType}" aura:id="leasingPropertyTypeId" variant="label-hidden"/>  
+                        </div>
+                    </lightning:layoutItem>
+                    
+                    <lightning:layoutItem size="2" flexibility="auto" class="slds-p-top_small slds-p-horizontal_small">
+                        <label class="slds-form-element__label">                                       
+                            Unit Type
+                        </label>
+                        <div class="slds-form-element__control">
+                            <lightning:inputField fieldName="Unit_space_Type__c" value="{!v.selectedUnitType}" aura:id="unitSpaceTypeId" variant="label-hidden"/>  
+                        </div>
+                    </lightning:layoutItem>
+                    
+                    <lightning:layoutItem size="2" flexibility="auto" class="slds-p-top_small slds-p-horizontal_small">
+                        <label class="slds-form-element__label">                                       
+                            Project
+                            <!-- <abbr class="slds-required" title="required">*</abbr> -->
+                        </label>
+                        <div class="slds-form-element__control">
+                            <lightning:select label="Project" value="{!v.selectedProject}" class="label-hidden" variant="label-hidden" onchange="{!c.handleProjectChange}">
+                                <aura:iteration items="{!v.listProjectOptions}" var="i" indexVar="key">
+                                    <option text="{!i.value}" value="{!i.key}" selected="{!i.key==v.selectedProject}" />
+                                </aura:iteration>
+                            </lightning:select>         
+                        </div>
+                    </lightning:layoutItem> 
+                    
+                    <lightning:layoutItem size="2" flexibility="auto" class="slds-p-top_small slds-p-horizontal_small">
+                        <label class="slds-form-element__label">                                       
+                            Building
+                        </label>
+                        <div class="slds-form-element__control">
+                            <lightning:select label="Building" value="{!v.selectedBuilding}" onchange="{!c.handleBuildingChange}" disabled="{!v.selectedProject == ''}" class="label-hidden" variant="label-hidden">
+                                <aura:iteration items="{!v.listBuildingOptions}" var="i" indexVar="key">
+                                    <option text="{!i.value}" value="{!i.key}" selected="{!i.key==v.selectedBuilding}" />
+                                </aura:iteration>
+                            </lightning:select>         
+                        </div>  
+                    </lightning:layoutItem>
+                    
+                    <lightning:layoutItem size="2" flexibility="auto" class="slds-p-top_small slds-p-horizontal_small">
+                        <label class="slds-form-element__label">                                       
+                            Floor
+                        </label>
+                        <div class="slds-form-element__control">
+                            <lightning:select label="Floor" value="{!v.selectedFloor}" disabled="{!or(v.selectedProject == '', v.selectedBuilding == '')}" class="label-hidden" variant="label-hidden">
+                                <aura:iteration items="{!v.listFloorOptions}" var="i" indexVar="key">
+                                    <option text="{!i.value}" value="{!i.key}" selected="{!i.key==v.selectedFloor}" />
+                                </aura:iteration>
+                            </lightning:select>         
+                        </div>  
+                    </lightning:layoutItem>                    
+                    
+                    <aura:if isTrue="{!v.selectedLeasingType == 'Residential Unit'}">
+                        <lightning:layoutItem size="2" flexibility="auto" class="slds-p-top_small slds-p-horizontal_small">
+                            <label class="slds-form-element__label">                                       
+                                No. of Bedrooms
+                            </label>
+                            <div class="slds-form-element__control">
+                                <lightning:select label="No. of Bedroom" value="{!v.selectedNoOfBedroom}" class="label-hidden" variant="label-hidden">
+                                    <aura:iteration items="{!v.listNoOfBedroomOptions}" var="i" indexVar="key">
+                                        <option text="{!i.value}" value="{!i.key}" selected="{!i.key==v.selectedNoOfBedroom}" />
+                                    </aura:iteration>
+                                </lightning:select>         
+                            </div>  
+                        </lightning:layoutItem>
+                    </aura:if>
+                    
+                    <lightning:layoutItem size="2" flexibility="auto" class="slds-p-top_small slds-p-horizontal_small">
+                        <lightning:select name="Date" label="Date Filter" value="{!v.selectedDateFilter}" onchange="{!c.handleDateFilterChange}">
+                            <option text="None" value="0"/>
+                            <option text="3 Month (Expiry between 0 to 90 days)" value="90"/>
+                        </lightning:select>  
+                    </lightning:layoutItem>               
+                    
+                    <lightning:layoutItem size="2" flexibility="auto" class="slds-p-top_small slds-p-horizontal_small">
+                        <label class="slds-form-element__label">                                       
+                            From Date
+                            <!-- <abbr class="slds-required" title="required">*</abbr> -->
+                        </label>
+                        <lightning:input label="From date" type="date" aura:id="filterFromDate" value="{!v.selectedFromDate}" min="{!v.todayDate}" variant="label-hidden" onchange="{!c.handleSearchButtonVisibility}"/>
+                    </lightning:layoutItem> 
+                    
+                    <lightning:layoutItem size="2" flexibility="auto" class="slds-p-top_small slds-p-horizontal_small">
+                        <label class="slds-form-element__label">                                       
+                            To Date
+                            <!-- <abbr class="slds-required" title="required">*</abbr> -->
+                        </label>
+                        <lightning:input label="To date" type="date" aura:id="filterToDate" value="{!v.selectedToDate}" min="{!v.todayDate}" variant="label-hidden" onchange="{!c.handleSearchButtonVisibility}"/>
+                    </lightning:layoutItem>
+                    
+                    <!-- lightning:layoutItem size="2" flexibility="auto" class="slds-p-top_small slds-p-horizontal_small">
+                    <label class="slds-form-element__label">                                       
+                        Space Type
+                    </label>
+                    <div class="slds-form-element__control">
+                        <lightning:select label="Space Type" value="{!v.selectedSpaceType}" class="label-hidden" variant="label-hidden">
+                            <aura:iteration items="{!v.listSpaceTypesOptions}" var="i" indexVar="key">
+                                <option text="{!i.value}" value="{!i.key}" selected="{!i.key==v.selectedSpaceType}" />
+                            </aura:iteration>
+                        </lightning:select>         
+                    </div>  
+                </lightning:layoutItem --> 
+                    
+                    <!--lightning:layoutItem size="2" flexibility="auto" class="slds-p-top_small slds-p-horizontal_small">
+                    <label class="slds-form-element__label">                                       
+                        Unit Type
+                    </label>
+                    <div class="slds-form-element__control">
+                        <lightning:select label="No. of Bedroom" value="{!v.selectedUnitType}" class="label-hidden" variant="label-hidden">
+                            <aura:iteration items="{!v.listUnitTypeOptions}" var="i" indexVar="key">
+                                <option text="{!i.value}" value="{!i.key}" selected="{!i.key==v.selectedUnitType}" />
+                            </aura:iteration>
+                        </lightning:select>         
+                    </div>  
+                </lightning:layoutItem-->
+                    
+                    
+                    
+                    
+                </lightning:layout>            
+            </lightning:recordEditForm>
+            
+            <lightning:layout multipleRows="true" class="slds-form-element">  
+                <lightning:layoutItem size="5" flexibility="auto" padding="around-medium" class="slds-m-top_medium">
+                    
+                </lightning:layoutItem>
+                <lightning:layoutItem size="1" flexibility="auto" padding="around-medium" class="slds-m-top_medium">
+                    <lightning:button label="Search" variant="brand" iconName="utility:search" onclick="{!c.searchMethod}" disabled="{!v.disableSearchButton}"/>
+                </lightning:layoutItem>
+                
+                <lightning:layoutItem size="1" flexibility="auto" padding="around-medium" class="slds-m-top_medium">
+                    <lightning:button label="Reset" iconName="utility:skip_back" onclick="{!c.doInit}"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem size="5" flexibility="auto" padding="around-medium" class="slds-m-top_medium">
+                    
+                </lightning:layoutItem>
+            </lightning:layout>
+            
+        </lightning:card>
+        <!-- Filter Section - End -->
+        
+        <!-- Renewal Information Section - Start -->
+        <aura:if isTrue="{!v.listUnitPlansWrapper.length > 0}">
+            <lightning:card variant="Narrow" title="Renewal Information" iconName="custom:custom95" >
+                <lightning:layout multipleRows="true" class="slds-form-element">                 
+                    <aura:if isTrue="{!v.selectedLeasingType == 'Residential Unit'}">
+                        <lightning:layoutItem size="2" flexibility="auto" class="slds-p-top_small slds-p-horizontal_small">
+                            <lightning:select name="AddUplift" label="Add Uplift" value="{!v.selectedAddUpliftType}" disabled="{!and(v.defaultRenewalRentPrice != '', v.defaultRenewalRentPrice != null)}">
+                                <option text="By %" value="Percentage"/>
+                                <option text="By Amount" value="Amount"/>
+                            </lightning:select>
+                        </lightning:layoutItem>  
+                        
+                        <lightning:layoutItem size="2" flexibility="auto" class="slds-p-top_small slds-p-horizontal_small">
+                            <lightning:input label="Uplift Value" fieldLevelHelp="Please clear this value to apply Default Renewal Rent Price." aura:id="addUpliftValueId" type="number" min="0" name="AddUpliftValue" value="{!v.selectedAddUpliftValue}" disabled="{!and(v.defaultRenewalRentPrice != '', v.defaultRenewalRentPrice != null)}" onchange="{!c.handleAddUpliftValueChange}"/>
+                        </lightning:layoutItem>
+                        
+                        <lightning:layoutItem size="2" flexibility="auto" class="slds-p-top_small slds-p-horizontal_small">
+                            <lightning:input label="Default Renewal Rent Price" fieldLevelHelp="Please clear this value to apply Uplift value." aura:id="defaultRenewalRentPriceId" min="0" type="number" name="Default Renewal Rent Price" value="{!v.defaultRenewalRentPrice}" disabled="{!and(v.selectedAddUpliftValue != '', v.selectedAddUpliftValue != null)}" onchange="{!c.handleDefaultRenewalRentPriceChange}"/>
+                        </lightning:layoutItem>
+                    </aura:if>
+                    <lightning:layoutItem size="2" flexibility="auto" class="slds-p-top_small slds-p-horizontal_small">
+                        <lightning:select aura:id="rentUpdateReasonPicklist" value="{!v.selectedRentUpdateReason}" name="rentUpdateReasonPicklist" label="Rent Update Reason" onchange="{!c.handleReasonChange}">
+                            <option value="">--None--</option>
+                            <aura:iteration items="{!v.rentUpdateReasonMap}" var="i" indexVar="key">
+                                <option text="{!i.value}" value="{!i.key}" selected="{!i.key==v.selectedRentUpdateReason}" />
+                            </aura:iteration>
+                        </lightning:select>             
+                    </lightning:layoutItem>            
+                    
+                    <lightning:layoutItem size="1" flexibility="auto" padding="around-medium" class="slds-m-top_medium">
+                        <lightning:button label="Apply" variant="brand" onclick="{!c.applyMethod}" disabled="{!v.disableApplyButton}" />
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </lightning:card>
+        </aura:if>
+        <!-- Renewal Information Section - End -->
+        
+        <!-- Units Section - Start -->
+        <lightning:card variant="Narrow" title="Units" iconName="custom:custom63" >
+            <lightning:layout multipleRows="true" class="slds-form-element"> 
+                <lightning:layoutItem size="12" flexibility="auto">
+                    
+                    <aura:if isTrue="{!v.listUnitPlansWrapper.length > 0}" >
+                        <div class="slds-float_left slds-p-left_medium slds-p-bottom_medium">
+                            <lightning:button label="Reset" iconName="utility:skip_back" onclick="{!c.resetPriceMethod}"/>
+                        </div>
+                        
+                        <div class="slds-float_right slds-p-right_medium slds-p-bottom_medium">
+                            <lightning:button label="Save" 
+                                              variant="brand"
+                                              iconName="utility:save"
+                                              onclick="{!c.saveMethod}"/>
+                        </div>
+                        <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-box" style="table-layout: fixed;">
+                            <thead>
+                                <tr style="word-wrap: break-word" >                        
+                                    <th width="10%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Lease Number</div>
+                                    </th>
+                                    <th width="10%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Customer Name</div>
+                                    </th>
+                                    <th width="10%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Customer Number</div>
+                                    </th>
+                                    <th width="10%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Location Code</div>
+                                    </th>
+                                    <!--th width="10%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Space Type</div>
+                                    </th-->
+                                    <aura:if isTrue="{!v.selectedLeasingType == 'Residential Unit'}">
+                                        <th width="10%" scope="col">
+                                            <div class="slds-truncate" style="white-space: normal;">No. of Bedrooms</div>
+                                        </th>
+                                    </aura:if>
+                                    <th width="10%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Property type</div>
+                                    </th>
+                                    <th width="8%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Area</div>
+                                    </th>
+                                    <th width="10%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Contract Start Date</div>
+                                    </th>
+                                    <th width="10%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Contract End Date</div>
+                                    </th>
+                                    <aura:if isTrue="{!v.selectedLeasingType == 'Residential Unit'}">
+                                        <th width="10%" scope="col">
+                                            <div class="slds-truncate" style="white-space: normal;">Current Rent</div>
+                                        </th>
+                                        <th width="10%" scope="col">
+                                            <div class="slds-truncate" style="white-space: normal;">Renewal Rent</div>
+                                        </th>
+                                    </aura:if>
+                                    <aura:if isTrue="{!v.selectedLeasingType == 'Commercial Unit'}">
+                                        <th width="10%" scope="col">
+                                            <div class="slds-truncate" style="white-space: normal;">Current Rent sqft</div>
+                                        </th>
+                                        <th width="10%" scope="col">
+                                            <div class="slds-truncate" style="white-space: normal;">Renewal Rent sqft</div>
+                                        </th>
+                                    </aura:if>
+                                    <th width="12%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Rent Update Reason</div>
+                                    </th>
+                                    <th width="17%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Comments</div>
+                                    </th>
+                                    <th width="9%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Notify Customer
+                                            <lightning:input type="checkbox" label="Notify Flag" value="{!v.notifyFlagAll}" checked="{!v.notifyFlagAll}" variant="label-hidden" onchange="{!c.handleNotifyFlagAll}"/>
+                                        </div>
+                                    </th>
+                                    <th width="10%" scope="col">
+                                        <div class="slds-truncate" style="white-space: normal;">Last Updated Date for Rent</div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <aura:iteration items="{!v.listUnitPlansWrapper}" var="objUnitPlansWrapper" start="{!v.startIndex}" end="{!v.endIndex}">
+                                    <tr>
+                                        <td style="white-space: break-spaces;">
+                                            {!objUnitPlansWrapper.objUnitPlan.Opportunity__r.Leasing_Number__c}
+                                        </td> 
+                                        <td style="white-space: break-spaces;">
+                                            {!objUnitPlansWrapper.objUnitPlan.Opportunity__r.Account.Name}
+                                        </td> 
+                                        <td style="white-space: break-spaces;">
+                                            {!objUnitPlansWrapper.objUnitPlan.Opportunity__r.Account.ERP_Account_ID__c}
+                                        </td> 
+                                        <td style="white-space: break-spaces;">
+                                            <lightning:formattedUrl value="{!'/' + objUnitPlansWrapper.objUnitPlan.Unit__c}" tooltip="{!objUnitPlansWrapper.objUnitPlan.Unit__r.Unit_Code__c}" label="{!objUnitPlansWrapper.objUnitPlan.Unit__r.Unit_Code__c}" target="_blank" />
+                                        </td> 
+                                        <aura:if isTrue="{!v.selectedLeasingType == 'Residential Unit'}">
+                                            <td style="white-space: break-spaces;">
+                                                {!objUnitPlansWrapper.objUnitPlan.Unit__r.No_of_Bedrooms__c}
+                                                <!-- {!objUnitPlansWrapper.objUnitPlan.Unit__r.Unit_Leasing_Type__r.Name} --> 
+                                            </td> 
+                                        </aura:if>
+                                        <td style="white-space: break-spaces;">
+                                            {!objUnitPlansWrapper.objUnitPlan.Unit__r.Leasing_Property_Type__c}
+                                        </td> 
+                                        <td style="white-space: break-spaces;">
+                                            {!objUnitPlansWrapper.objUnitPlan.Unit__r.Total_Leasable_Area__c}
+                                        </td> 
+                                        <td style="white-space: break-spaces;">
+                                            {!objUnitPlansWrapper.objUnitPlan.Opportunity__r.Lease_Start_Date__c}
+                                        </td> 
+                                        <td style="white-space: break-spaces;">
+                                            {!objUnitPlansWrapper.objUnitPlan.Opportunity__r.Lease_End_Date__c}
+                                        </td> 
+                                        <td style="white-space: break-spaces;">
+                                            {!objUnitPlansWrapper.dcmCurrentRent}                                        
+                                        </td> 
+                                        <td style="white-space: break-spaces;">
+                                            <lightning:input type="number" value="{!objUnitPlansWrapper.dcmRenewalRent}" min="0" messageWhenRangeUnderflow="Renewal Rent should not be Negative, should not be character." variant="label-hidden"/>
+                                        </td> 
+                                        <td style="white-space: break-spaces;">
+                                            <lightning:select value="{!objUnitPlansWrapper.strRentUpdateReason}" name="rentUpdateReasonPicklist" label="Rent Update Reason" class="label-hidden" variant="label-hidden">
+                                                <option value="">--None--</option>
+                                                <aura:iteration items="{!v.rentUpdateReasonMap}" var="i" indexVar="key">
+                                                    <option text="{!i.value}" value="{!i.key}" selected="{!i.key==objUnitPlansWrapper.strRentUpdateReason}" />
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </td> 
+                                        <td style="white-space: break-spaces;">
+                                            <lightning:textarea name="Comments" value="{!objUnitPlansWrapper.strComments}" label="Comments" variant="label-hidden"/>
+                                        </td> 
+                                        <td style="white-space: break-spaces;">
+                                            <lightning:input type="checkbox" label="Notify Flag" checked="{!objUnitPlansWrapper.blnNotifyFlag}" value="{!objUnitPlansWrapper.blnNotifyFlag}" variant="label-hidden"/>
+                                        </td>
+                                        <td style="white-space: break-spaces;">
+                                            {!objUnitPlansWrapper.objUnitPlan.Unit__r.Last_updated_date_for_Rent__c}
+                                        </td>
+                                    </tr>
+                                </aura:iteration>
+                            </tbody>                        
+                        </table>
+                        
+                        <div>
+                            <div class="slds-float_left slds-p-right_medium slds-p-top_medium">
+                                <span class="slds-badge slds-badge_lightest slds-p-horizontal_medium"
+                                      style="margin-right: 10px;margin-left: 10px;">
+                                    Total Units: {!v.totalRecordsCount}
+                                </span>
+                            </div>
+                            
+                            <div class="slds-align_absolute-center slds-p-top_medium">
+                                <div class="slds-p-horizontal_medium">
+                                    <lightning:button label="Previous Page" 
+                                                      variant="brand"
+                                                      iconName="utility:back"
+                                                      disabled="{!v.startIndex == 0}"
+                                                      onclick="{!c.pgPreviousMethod}"/>
+                                </div>
+                                
+                                <div>
+                                    <span class="slds-badge slds-badge_lightest slds-p-horizontal_medium"
+                                          style="margin-right: 10px;margin-left: 10px;">
+                                        Page {!v.currentPage} out of {!v.totalPagesCount}
+                                    </span>                            
+                                </div>
+                                
+                                <div class="slds-p-horizontal_medium">
+                                    <lightning:button label="Next Page" 
+                                                      variant="brand" 
+                                                      iconName="utility:forward"
+                                                      iconPosition="right"
+                                                      disabled="{!v.disableNext}"
+                                                      onclick="{!c.pgNextMethod}"/>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        
+                        <!--div class="slds-float_right slds-p-right_medium slds-p-top_medium">
+                            <lightning:button label="Save" 
+                                              variant="brand"
+                                              iconName="utility:save"
+                                              onclick="{!c.saveMethod}"/>
+                        </div-->
+                        
+                        <aura:set attribute="else">
+                            <div class="slds-p-top_medium slds-p-left_large">
+                                No Records to Display.
+                            </div>
+                        </aura:set>            
+                    </aura:if>                
+                </lightning:layoutItem>            
+            </lightning:layout>
+        </lightning:card>
+        
+        <!-- Units Section - End -->
+    </div>    
+</aura:component>
